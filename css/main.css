@@ -1,0 +1,56 @@
+/* Extra small devices (phones, less than 768px) */
+/* No media query since this is the default in Bootstrap */
+
+body {
+	padding-top: 60px;
+	min-width: 400px;
+}
+
+.slot-disabled {
+	color: #999;
+}
+
+.slot-enabled {
+	color: #222;
+}
+
+.center {
+	text-align: center;
+}
+
+.slide.ng-enter, .slide.ng-leave {
+	-webkit-transition:0.5s linear all;
+	transition:0.5s linear all;
+	opacity: 0;
+}
+.slide.ng-enter, .slide.ng-leave-active {
+	opacity: 0;
+}
+.slide.ng-leave, .slide.ng-enter-active {
+	opacity: 1;
+}
+
+.actions {
+	width: 40%;
+}
+
+/* Small devices (tablets, 768px and up) */
+@media (min-width: 768px) { 
+	.actions {
+		width: 40%;
+	}
+}
+
+/* Medium devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+	.actions {
+		width: 50%;
+	}
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+	.actions {
+		width: 40%;
+	}
+}
