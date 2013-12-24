@@ -1,3 +1,11 @@
+// Have the navbar collapse (on mobile) after a page is selected
+document.addEventListener("DOMContentLoaded", function() {
+	jQuery('.navitem').click(function() {
+		if (jQuery(window).width() <= 768)
+			jQuery('#navbar').collapse("hide");
+	});
+}, true);
+
 // Register the app with angular
 var app = angular.module("WebDrink", ['ngRoute', 'ngAnimate']);
 
@@ -29,7 +37,7 @@ app.factory("UserService", function($http, $window, $log) {
 				url += "/offset/"+offset;
 			}
 			$http.get(url).success(successCallback).error(errorCallback);
-			$log.log(url);
+			//$log.log(url);
 		}
 	};
 });
@@ -78,12 +86,19 @@ app.directive("itemlist", function() {
 });
 
 // Root controller for shared data/services
-function RootCtrl($scope, $window) {
+function RootCtrl($scope, $log, $window, $location) {
 	$scope.current_user = $window.current_user;
+	$scope.location = $location;
+
+	if ($scope.current_user.admin) {
+		$scope.toggleAdminDropdown = function() {
+			jQuery("#adminDropdown").dropdown('toggle');
+		}
+	}
 }
 
 // Controller for the machines page
-function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
+function MachineCtrl($scope, $log, $timeout, MachineService) {
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
 	$scope.items = {};			// All existing drink items (admin only)
@@ -122,7 +137,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 		}
 	);
 	// Admin only functions
-	if ($window.current_user.admin) {
+	if ($scope.current_user.admin) {
 		// Get all items (for editing a slot)
 		MachineService.getItemAll(
 			function (response) {
@@ -209,7 +224,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 }
 
 // Controller for the drops page
-function DropCtrl($scope, $log, $window, UserService) {
+function DropCtrl($scope, $log, UserService) {
 	// Initialize scope variables
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded

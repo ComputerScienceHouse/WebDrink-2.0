@@ -6,6 +6,19 @@ body {
 	min-width: 400px;
 }
 
+/*#admin-navbar {
+	position: fixed;
+	background-color: white;
+	border-bottom: 3px solid #428bca;
+	padding: 5px;
+}
+
+#admin-body {
+	position: relative;
+	top: 60px;
+	z-index: -1;
+}*/
+
 .slot-disabled {
 	color: #999;
 }

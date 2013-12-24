@@ -56,15 +56,23 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#">WebDrink 2.0</a>
+				<a class="navbar-brand" href="#/machines">WebDrink 2.0</a>
 			</div>
-			<div class="collapse navbar-collapse">
+			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
-					<li><a href="#/machines">Machines</a></li>
-					<?php if ($user_data['admin']): ?><li><a href="#/admin">Admin Panel</a></li><?php endif; ?>
+					<li ng-class="(location.path() == '/machines') ? 'active' : ''" class="navitem"><a href="#/machines">Machines</a></li>	
+					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown" ng-show="current_user.admin">
+						<a href="" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
+						<ul class="dropdown-menu">
+							<li><a class="navitem" href="#admin/users">Users</a></li>
+							<li><a class="navitem" href="#admin/items">Items</a></li>
+							<li><a class="navitem" href="#admin/temps">Machine Temps</a></li>
+							<li><a class="navitem" href="#admin/logs">Drop Logs</a></li>
+						</ul>
+					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<li><a href="#/drops">{{ current_user.uid }} ({{ current_user.credits }} Credits)</a></li>
+					<li ng-class="(location.path() == '/drops') ? 'active' : ''" class="navitem"><a href="#/drops">{{ current_user.uid }} ({{ current_user.credits }} Credits)</a></li>
 				</ul>
 			</div>
 		</div>
