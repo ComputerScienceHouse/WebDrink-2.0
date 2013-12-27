@@ -24,6 +24,10 @@ app.factory("UserService", function($http, $window, $log) {
 		searchUsers: function(search, successCallback, errorCallback) {
 			var url = "api/v1/users/searchUsers/search/"+search;
 			$http.get(url).success(successCallback).error(errorCallback);
+		},
+		getCredits: function(uid, successCallback, errorCallback) {
+			var url = "api/v1/users/getCredits/uid/"+uid;
+			$http.get(url).success.(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -46,9 +50,17 @@ app.factory("LogsService", function($http, $window) {
 	};
 });
 
-function UserCtrl($scope, $log, UserService) {
+function UserCtrl($scope, $log, UserService, DropService) {
 	$scope.searchTerm = "";
 	$scope.searchResults = {};
+	$scope.activeUser = {
+		uid: "",
+		cn: "",
+		credits: 0,
+		drops: []
+	};
+
+	$scope.dropsToLoad = 5;
 
 	$scope.getUsers = function() {
 		$log.log($scope.searchTerm);
@@ -57,6 +69,38 @@ function UserCtrl($scope, $log, UserService) {
 			function (response) {
 				if (response.result) {
 					$scope.searchResults = response.data;
+				}
+				else {
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	$scope.getUserCredits = function() {
+		UserService.getCredits($scope.activeUser.uid, 
+			function (response) {
+				if (response.result) {
+					$scope.activeUser.credits = response.data;
+				}
+				else {
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(response.message);
+			}
+		);
+	}
+
+	$scope.getUserDrops = function() {
+		DropService.getDrops($scope.dropsToLoad, 0,
+			function (response) {
+				if (response.result) {
+					$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
 				}
 				else {
 					$log.log(response.message);

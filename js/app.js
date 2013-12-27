@@ -28,8 +28,8 @@ app.config(['$routeProvider', function($routeProvider) {
 // Return the current user's drops
 app.factory("DropService", function($http, $window, $log) {
 	return {
-		getDrops: function(limit, offset, successCallback, errorCallback) {
-			var url = "api/v1/users/getDrops/uid/"+$window.current_user.uid;
+		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
+			var url = "api/v1/users/getDrops/uid/"+uid;
 			if (limit > 0) {
 				url += "/limit/"+limit;
 			}
@@ -115,7 +115,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 				$scope.stock = response.data;
 			}
 			else {
-				$scope.stock = response.message;
+				$log.log(response.message);
 			}
 		}, 
 		function (error) { 
@@ -129,7 +129,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 				$scope.machines = response.data;
 			}
 			else {
-				$scope.machines = response.message;
+				$log.log(response.message);
 			}
 		},
 		function (error) {
@@ -146,7 +146,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 					//$log.log($scope.items);
 				}
 				else {
-					$scope.items = response.message;
+					$log.log(response.message);
 				}
 			},
 			function (error) {
@@ -187,6 +187,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 						$scope.message = "Edit success!";
 					}
 					else {
+						$log.log(response.message);
 						$scope.message = response.message;
 					}
 					jQuery("#saveModal").modal('show');
@@ -224,7 +225,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 }
 
 // Controller for the drops page
-function DropCtrl($scope, $log, DropService) {
+function DropCtrl($scope, $window, $log, DropService) {
 	// Initialize scope variables
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
@@ -233,14 +234,14 @@ function DropCtrl($scope, $log, DropService) {
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
-		DropService.getDrops($scope.dropsToLoad ,$scope.pagesLoaded * $scope.dropsToLoad,
+		DropService.getDrops($window.current_user.uid, $scope.dropsToLoad ,$scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
 				if (response.result) {
 					$scope.drops.push.apply($scope.drops, response.data);
 					$scope.pagesLoaded += 1;
 				}
 				else {
-					
+					$log.log(response.message);
 				}
 			},
 			function (error) {
