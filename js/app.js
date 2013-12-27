@@ -25,8 +25,8 @@ app.config(['$routeProvider', function($routeProvider) {
 		});
 }]);
 
-// Return the current user's data (globals)
-app.factory("UserService", function($http, $window, $log) {
+// Return the current user's drops
+app.factory("DropService", function($http, $window, $log) {
 	return {
 		getDrops: function(limit, offset, successCallback, errorCallback) {
 			var url = "api/v1/users/getDrops/uid/"+$window.current_user.uid;
@@ -224,7 +224,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 }
 
 // Controller for the drops page
-function DropCtrl($scope, $log, UserService) {
+function DropCtrl($scope, $log, DropService) {
 	// Initialize scope variables
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
@@ -233,7 +233,7 @@ function DropCtrl($scope, $log, UserService) {
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
-		UserService.getDrops($scope.dropsToLoad ,$scope.pagesLoaded * $scope.dropsToLoad,
+		DropService.getDrops($scope.dropsToLoad ,$scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
 				if (response.result) {
 					$scope.drops.push.apply($scope.drops, response.data);

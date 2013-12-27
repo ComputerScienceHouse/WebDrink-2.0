@@ -110,7 +110,7 @@ class DrinkAPI extends API
 			*	
 			*	{
 			*		"result": true,
-			*		"message": "Success (machines.getStockAll)",
+			*		"message": "Success (users.getCredits)",
 			*		"data": "2000"
 			*	}
 			*/
@@ -138,6 +138,63 @@ class DrinkAPI extends API
 				else {
 					$result["result"] = false;
 					$result["message"] = "Error: only accepts GET requests (users.getCredits)";
+					$result["data"] = false;
+				}
+				break;
+			/* 
+			*	users.searchUsers - Search LDAP for usernames by letter/string
+			*
+			*	Example URL: api/v1/users/searchUsers/search/ben
+			*	
+			*	Expected Parameters: 
+			*	- search: the string to search for 
+			*
+			*	Return Data: 
+			*	- Number of drink credits the user has
+			*	
+			*	{
+			*		"result": true,
+			*		"message": "Success (users.searchUsers)",
+			*		"data":[
+			*			{
+			*				"uid": "ben",
+			*				"cn": "Ben Litchfield"
+			*			},
+			*			...
+			*		}
+			*	}
+			*/
+			case "searchUsers":
+				if ($this->method == "GET") {
+					if (!array_key_exists("search", $this->args)) {
+						$result["result"] = false;
+						$result["message"] = "Error: search term not supplied (users.searchUsers)";
+						$result["data"] = false;
+						break;
+					}
+					$fields = array('uid', 'cn');
+					$data = ldap_lookup($this->args["search"]."*", $fields);
+					if ($data) {
+						$result["result"] = true;
+						$result["message"] = "Success (users.searchUsers)";
+						$tmp = array();
+						$i = 0;
+						foreach ($data as $user) {
+							$tmp[$i] = array("uid" => $user["uid"][0], "cn" => $user["cn"][0]);
+							$i++;
+						}
+						array_shift($tmp);
+						$result["data"] = $tmp;
+					}
+					else {
+						$result["result"] = false;
+						$result["message"] = "Error: failed to query LDAP (users.searchUsers)";
+						$result["data"] = false;
+					}
+				}
+				else {
+					$result["result"] = false;
+					$result["message"] = "Error: only accepts GET requests (users.searchUsers)";
 					$result["data"] = false;
 				}
 				break;
@@ -193,8 +250,38 @@ class DrinkAPI extends API
 					$result["data"] = false;
 				}
 				break;
-			/*
+			/* 
+			*	users.getDrops - Get the drop history for a user
 			*
+			*	Example URL: api/v1/users/getCredits/uid/bencentra/limit/10/offset/0
+			*	
+			*	Expected Parameters: 
+			*	- uid: The username to look up (Note: must be your own uid, unless you are an admin)
+			*	- limit: The amount of drops to load
+			*	- offset: The drop entry to start loading from 
+			*
+			*	Return Data: 
+			*	- JSON-encoded array of a user's drop history
+			*	
+			*	{
+			*		"result": true,
+			*		"message": "Success (users.getDrops)",
+			*		"data": [ 
+			*			{
+			*				"drop_log_id": "10447",
+			*				"machine_id": "1",
+			*				"display_name": "Little Drink",
+			*				"slot": "4",
+			*				"username":"bencentra", 
+			*				"time": "2013-11-11 19:52:23",
+			*				"status": "ok",
+			*				"item_id": "84",
+			*				"item_name": "Ginger Ale",
+			*				"current_item_price": "50"
+			*			},
+			*			...
+			*		]
+			*	}
 			*/
 			case "getDrops":
 				if ($this->method == "GET") {

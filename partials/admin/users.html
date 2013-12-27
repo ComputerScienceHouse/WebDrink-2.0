@@ -1,3 +1,21 @@
-<div ng-controller="UsersAdminCtrl">
-	<h1>Users!</h1>
+<div ng-controller="UserCtrl">
+	<div class="row">
+		<div class="col-md-6 col-sm-12">
+			<h3>Manage Users</h3>
+			<div class="input-group">
+				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();">
+		      	<span class="input-group-btn">
+		        	<button class="btn btn-primary" type="button">Search</button>
+		      	</span>
+		    </div>
+		    <datalist id="usernames">
+		    	<option ng-repeat="username in searchResults" value="{{ username.uid }}">
+		    		{{ username.cn }}
+		    	</option>
+		    </datalist>
+		</div>
+	</div>
+	<div class="row">
+
+	</div>
 </div>
