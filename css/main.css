@@ -47,6 +47,23 @@ body {
 	width: 40%;
 }
 
+.credits {
+	font-size: 1.25em;
+	font-weight: bold;
+}
+
+.spacer-h {
+	margin: 0 5px;
+}
+
+.spacer-v {
+	margin: 5px 0;
+}
+
+.pressed {
+	background-color: #EEEEEE;
+}
+
 /* Small devices (tablets, 768px and up) */
 @media (min-width: 768px) { 
 	.actions {

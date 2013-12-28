@@ -24,7 +24,7 @@ Front-end:
 * Machines (With Drops)     
 * ~~Machines Admin Stuff~~
 * ~~User's Drops~~  
-* Admin Panel: Users
+* ~~Admin Panel: Users~~
 * Admin Panel: Items
 * Admin Panel: Machine Temps
 * Admin Panel: Log

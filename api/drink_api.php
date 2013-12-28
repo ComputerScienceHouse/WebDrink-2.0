@@ -141,6 +141,52 @@ class DrinkAPI extends API
 					$result["data"] = false;
 				}
 				break;
+			/*
+			*
+			*/
+			case "updateCredits":
+				if ($this->method == "POST") {
+					// Only run if you're an admin
+					if ($this->admin) {
+						// Make sure the necessary parameters were provided
+						if (!array_key_exists("uid", $this->args)) {
+							$result["result"] = false;
+							$result["message"] = "Error: uid not supplied (users.updateCredits)";
+							$result["data"] = false;
+							break;
+						}
+						else if (!array_key_exists("credits", $this->args)) {
+							$result["result"] = false;
+							$result["message"] = "Error: credits not supplied (users.updateCredits)";
+							$result["data"] = false;
+							break;
+						}
+						// Update the user's drink credit value
+						$replace = array('drinkBalance' => $this->args["credits"]);
+						$data = ldap_update($this->args["uid"], $replace);
+						if ($data) {
+							$result["result"] = true;
+							$result["message"] = "Success (users.updateCredits)";
+							$result["data"] = true;
+						}
+						else {
+							$result["result"] = false;
+							$result["message"] = "Error: failed to query LDAP (users.updateCredits)";
+							$result["data"] = false;
+						}
+					}
+					else {
+						$result["result"] = false;
+						$result["message"] = "Error: must be an admin to update drink credits (users.updateCredits)";
+						$result["data"] = false;
+					}
+				}
+				else {
+					$result["result"] = false;
+					$result["message"] = "Error: only accepts POST requests (users.updateCredits)";
+					$result["data"] = false;
+				}
+				break;
 			/* 
 			*	users.searchUsers - Search LDAP for usernames by letter/string
 			*

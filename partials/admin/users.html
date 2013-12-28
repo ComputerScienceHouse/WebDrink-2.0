@@ -5,7 +5,7 @@
 			<div class="input-group">
 				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();">
 		      	<span class="input-group-btn">
-		        	<button class="btn btn-primary" type="button">Search</button>
+		        	<button class="btn btn-primary" type="button" ng-click="loadUser();">Go!</button>
 		      	</span>
 		    </div>
 		    <datalist id="usernames">
@@ -16,28 +16,47 @@
 		</div>
 	</div>
 	<br/>
-	<div class="row panel" ng-show="activeUser">
+	<div class="row" ng-show="activeUser.uid.length > 0">
 		<div class="col-md-6 col-sm-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h3 class="panel-title">'s Credits</h3>
+					<h3 class="panel-title">{{ activeUser.cn }}'s Credits</h3>
 				</div>
 				<div class="panel-body">
 					<div class="row center">
-						<div class="col-md-4 col-sm-4 well">
-							{{ activeUser.credits }} Credits
+						<div class="col-md-4 col-sm-12">
+							<span class="credits">{{ activeUser.credits }}</span>
+							<p>Credits</p>
 						</div>
-						<div class="col-md-4 col-sm-4">
-							Plus or Minus
+						<div class="col-md-4 col-sm-12 spacer-v">
+							<div class="btn-group">
+							    <button type="button" class="btn btn-default" ng-click="changeType('add');" ng-class="(transactionType == 'add') ? 'pressed' : ''">
+							    	<span class="glyphicon glyphicon-plus"></span>
+							   	</button>
+							    <button type="button" class="btn btn-default" ng-click="changeType('subtract');" ng-class="(transactionType == 'subtract') ? 'pressed' : ''">
+							    	<span class="glyphicon glyphicon-minus"></span>
+							    </button>
+							    <button type="button" class="btn btn-default" ng-click="changeType('update');" ng-class="(transactionType == 'update') ? 'pressed' : ''">
+							    	<span class="glyphicon glyphicon-pencil"></span>
+							    </button>
+							</div>
 						</div>
-						<div class="col-md-4 col-sm-4">
-							<input type="number" class="form-control" value="0"/>
+						<div class="col-md-4 col-sm-12 spacer-v">
+							<input type="number" class="form-control" ng-model="creditChange" value="0"/>
 						</div>
 					</div>
 					<div class="row center">
 						<div class="col-md-6 col-md-offset-3 col-sm-12">
-							<button class="btn btn-success">Update</button>
+							<button class="btn btn-success" ng-click="updateCredits();">Update</button>
 						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div class="alert" ng-class="(alert.success == true) ? 'alert-success' : 'alert-danger'" ng-show="alert.show">
+						<button type="button" class="close" ng-click="alert.show = false">&times;</button>
+						{{ alert.message }}
 					</div>
 				</div>
 			</div>
@@ -45,7 +64,7 @@
 		<div class="col-md-6 col-sm-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h3 class="panel-title">'s Drops</h3>
+					<h3 class="panel-title">{{ activeUser.cn }}'s Drops</h3>
 				</div>
 				<table class="table table-striped">
 					<tr><th>Machine</th><th>Item</th><th>Price</th><th>Time</th></tr>

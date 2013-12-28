@@ -25,9 +25,10 @@ app.config(['$routeProvider', function($routeProvider) {
 		});
 }]);
 
-// Return the current user's drops
+// Drop Service - retrieve a user's drop history, etc.
 app.factory("DropService", function($http, $window, $log) {
 	return {
+		// Get a user's drop history
 		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
 			var url = "api/v1/users/getDrops/uid/"+uid;
 			if (limit > 0) {
@@ -42,7 +43,7 @@ app.factory("DropService", function($http, $window, $log) {
 	};
 });
 
-// AJAX request methods for getting machine data
+// Machine Service - Get and update data about the drink machines, machine stock, etc
 app.factory("MachineService", function($http, $window, $log) {
 	return {
 		// Get a list of information about all drink machines
@@ -57,6 +58,7 @@ app.factory("MachineService", function($http, $window, $log) {
 		getItemAll: function(successCallback, errorCallback) {
 			$http.get("api/v1/machines/getItemAll").success(successCallback).error(errorCallback);
 		},
+		// Update the items and state of a slot in a drink machine
 		updateSlot: function(data, successCallback, errorCallback) {
 			var url = "api/v1/machines/updateSlot/uid/"+$window.current_user.uid+"/slotNum/"+data.slot_num+"/machineId/"+data.machine_id;
 			if (data.hasOwnProperty("item_id"))
@@ -70,6 +72,7 @@ app.factory("MachineService", function($http, $window, $log) {
 	};
 });
 
+/*
 // Machine directive, template for drink machine tables
 app.directive("machines", function() {
 	return {
@@ -78,14 +81,16 @@ app.directive("machines", function() {
 	};
 });
 
+// Item List directive, template for item dropdown (for editing slots)
 app.directive("itemlist", function() {
 	return {
 		restrict: "AE",
 		templateUrl: "templates/itemList.html"
 	};
 });
+*/
 
-// Root controller for shared data/services
+// Root controller - for shared data/services
 function RootCtrl($scope, $log, $window, $location) {
 	$scope.current_user = $window.current_user;
 	$scope.location = $location;
