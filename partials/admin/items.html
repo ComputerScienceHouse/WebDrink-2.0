@@ -1,3 +1,53 @@
 <div ng-controller="ItemCtrl">
-	<h1>Items!</h1>
+	<div class="row">
+		<div class="col-md-6 col-sm-12">
+			<h3>Manage Items</h3>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-6 col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Add New Item</h3>
+				</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-md-6 col-sm-12">
+							<label for="itemName">Item Name:</label>
+							<input type="text" id="itemName" class="form-control" placeholder="Item Name" />
+						</div>
+						<div class="col-md-6 col-sm-12">
+							<label for="itemPrice">Item Price: </label>
+							<input type="number" id="itemPrice" class="form-control" value="0" />
+						</div>
+					</div>
+					<br/>
+					<div class="row center">
+						<div class="col-md-12 col-sm-12">
+							<button type="button" class="btn btn-success">Add Item</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6 col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Edit Items</h3>
+				</div>
+				<table class="table table-striped">
+					<tr><th>Item</th><th>Price</th><th>Actions</th></tr>
+					<tr ng-repeat="item in items">
+						<td class="item">{{ item.item_name }}</td>
+						<td class="price">{{ item.item_price }}</td>
+						<td class="actions">
+							<button type="button" class="btn btn-primary">Edit</button>
+							<button type="button" class="btn btn-danger">Delete</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
 </div>

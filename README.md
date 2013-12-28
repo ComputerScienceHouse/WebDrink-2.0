@@ -3,6 +3,8 @@ WebDrink 2.0
 
 Rewrite of CSH WebDrink. Includes updated interface and new API.
 
+CSH-Public Demo: _Coming Soon!_
+
 Why?
 * Address usability concerns (make it mobile friendly, improve admin experience, etc)    
 * Make improved API for current/future development (mobile apps, new new webdrink, etc)
@@ -14,7 +16,7 @@ It Uses:
 * [A RESTful API](http://coreymaynard.com/blog/creating-a-restful-api-with-php/)    
 * Boring ol' PHP        
 
-The project is still in the formitive stages. Let me know (via email or GitHub issue) of any feature requests or glaring implementation/security issues.
+The project is still in active development. Therefore, it is incomplete and may suffer from sloppy design/code in some parts. Let me know (via email or GitHub issue) of any feature requests or glaring implementation/security issues.
 
 Feature Checklist
 -----------------
@@ -23,7 +25,7 @@ Front-end:
 * ~~Machines (Minus Drops)~~
 * Machines (With Drops)     
 * ~~Machines Admin Stuff~~
-* ~~User's Drops~~  
+* ~~User's Drop History~~  
 * ~~Admin Panel: Users~~
 * Admin Panel: Items
 * Admin Panel: Machine Temps
@@ -31,5 +33,5 @@ Front-end:
 
 Back-end:
 * ~~API Class~~    
-* Private API (Webauth)
+* ~~Private API (Webauth)~~
 * Public API (API keys)

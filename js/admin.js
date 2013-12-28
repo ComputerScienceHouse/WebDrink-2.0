@@ -201,8 +201,29 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	}
 }
 
-function ItemCtrl($scope, $log, ItemService) {
-	
+// Controller for the Manage Items page
+function ItemCtrl($scope, $log, ItemService, MachineService) {
+	$scope.items = {};				// All drink items
+
+	// Get a list of all drink items
+	$scope.loadItems = function() {
+		MachineService.getItemAll(
+			function (response) {
+				if (response.result) {
+					$scope.items = response.data;
+				}
+				else {
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	// Load all drink items
+	$scope.loadItems();
 }
 
 function TempCtrl($scope, $log, TempService) {
