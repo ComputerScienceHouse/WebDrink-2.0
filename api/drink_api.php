@@ -142,7 +142,22 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
+			*	users.updateCredits - Update the drink credit balance for a user
 			*
+			*	Example URL: api/v1/users/updateCredits/uid/bencentra/credits/2000
+			*
+			*	Expected Parameters: 
+			*	- uid: The username to look up
+			*	- credits: The new credits value to set
+			*
+			*	Return Data: 
+			*	- True for success
+			*	
+			*	{
+			*		"result": true,
+			*		"message": "Success (users.updateCredits)",
+			*		"data": true
+			*	}
 			*/
 			case "updateCredits":
 				if ($this->method == "POST") {

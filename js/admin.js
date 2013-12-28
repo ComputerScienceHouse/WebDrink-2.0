@@ -136,7 +136,8 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		DropService.getDrops($scope.activeUser.uid, $scope.dropsToLoad, 0,
 			function (response) {
 				if (response.result) {
-					$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
+					//$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
+					$scope.activeUser.drops = response.data;
 				}
 				else {
 					$log.log(response.message);
