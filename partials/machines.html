@@ -1,6 +1,6 @@
 <div ng-controller="MachineCtrl">
 	<!-- Select Slot Modal -->
-	<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="selectModalLabel" aria-hidden="true">
+	<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="Select Slot" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -28,7 +28,7 @@
 		</div>
 	</div>
 	<!-- Drop Drink Modal -->
-	<div class="modal fade" id="dropModal" tabindex="-1" role="dialog" aria-labelledby="dropModalLabel" aria-hidden="true">
+	<div class="modal fade" id="dropModal" tabindex="-1" role="dialog" aria-labelledby="Drop Drink" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -45,7 +45,7 @@
 		</div>
 	</div>
 	<!-- Edit Slot Modal -->
-	<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+	<div class="modal fade" id="editSlotModal" tabindex="-1" role="dialog" aria-labelledby="Edit Slot" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -95,7 +95,7 @@
 		</div>
 	</div>
 	<!-- Result Modal -->
-	<div class="modal fade" id="saveModal" tabindex="-1" role="dialog" aria-labelledby="saveModalLabel" aria-hidden="true">
+	<div class="modal fade" id="saveSlotModal" tabindex="-1" role="dialog" aria-labelledby="Save Slot" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -126,7 +126,7 @@
 						<td class="price">{{ slot.item_price }}</td>
 						<td class="actions">
 							<button type="button" ng-disabled="(slot.status == 'disabled') || (slot.available == 0)" class="btn btn-primary" data-toggle="modal" data-target="#selectModal" ng-click="selectDrink(slot);">Drop</button>
-							<button type="button" ng-show="current_user.admin" class="btn btn-default" data-toggle="modal" data-target="#editModal" ng-click="editSlot(slot);">Edit</button>
+							<button type="button" ng-show="current_user.admin" class="btn btn-default" data-toggle="modal" data-target="#editSlotModal" ng-click="editSlot(slot);">Edit</button>
 						</td>
 					</tr>
 				</table>

@@ -1,4 +1,107 @@
 <div ng-controller="ItemCtrl">
+	<!-- Edit Item Modal -->
+	<div class="modal fade" id="editItemModal" tabindex="-1" role="dialog" aria-labelledby="Edit Item" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Edit Item {{ currentItem.item_id }}?</h4>
+				</div>
+				<div class="modal-body">
+					<!--<pre>{{ currentItem | json }}</pre>-->
+					<form class="form-horizontal" role="form">
+					    <div class="form-group row">
+					    	<div class="col-md-3">
+					    		<label class="control-label">Name: </label>
+					    	</div>
+						    <div class="col-md-9">
+						        <input type="text" class="form-control" ng-model="updateItem.item_name" value="{{ currentItem.item_name }}" />
+						    </div>
+					    </div>
+					    <div class="form-group row">
+					    	<div class="col-md-3">
+					    		<label class="control-label">Price: </label>
+					    	</div>
+						    <div class="col-md-9">
+						        <input class="form-control" type="number" min="0" ng-model="updateItem.item_price" value="{{ currentItem.item_price }}"/>
+						    </div>
+					    </div>
+					    <div class="form-group row">
+					    	<div class="col-md-3">
+					    		<label class="control-label">Status: </label>
+					    	</div>
+						    <div class="col-md-9">
+						        <select class="form-control" ng-model="updateItem.state">
+						        	<option value="enabled" ng-selected="currentItem.state == 'active'">Active</option>
+						        	<option value="disabled" ng-selected="currentItem.state == 'inactive'">Inactive</option>
+						        </select>
+						    </div>
+					    </div>
+					</form>
+					<!--<pre>{{ updateItem | json }}</pre>-->
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-success" data-dismiss="modal" ng-click="saveItem();">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Edit Result Modal -->
+	<div class="modal fade" id="saveItemModal" tabindex="-1" role="dialog" aria-labelledby="Save Item" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Saving Item {{ currentItem.item_id }}...</h4>
+				</div>
+				<div class="modal-body">
+					{{ message }}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Delete Item Modal -->
+	<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="Edit Item" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Delete Item {{ currentItem.item_id }}?</h4>
+				</div>
+				<div class="modal-body">
+					<!--<pre>{{ currentItem | json }}</pre>-->
+					Are you sure you want to delete {{ currentItem.item_name }}?
+					<!--<pre>{{ updateItem | json }}</pre>-->
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal" ng-click="deleteItem();">Delete</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Delete Result Modal -->
+	<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="Save Item" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Deleting Item {{ currentItem.item_id }}...</h4>
+				</div>
+				<div class="modal-body">
+					{{ message }}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="col-md-6 col-sm-12">
 			<h3>Manage Items</h3>
@@ -14,17 +117,17 @@
 					<div class="row">
 						<div class="col-md-12 col-sm-6 col-xs-6 spacer-v">
 							<label for="itemName">Item Name:</label>
-							<input type="text" id="itemName" class="form-control" placeholder="Item Name" />
+							<input type="text" id="itemName" class="form-control" placeholder="Item Name" ng-model="newItem.item_name" />
 						</div>
 						<div class="col-md-12 col-sm-6 col-xs-6 spacer-v">
 							<label for="itemPrice">Item Price: </label>
-							<input type="number" id="itemPrice" class="form-control" value="0" />
+							<input type="number" id="itemPrice" class="form-control" min="0" value="0" ng-model="newItem.item_price" />
 						</div>
 					</div>
 					<br/>
 					<div class="row center">
 						<div class="col-md-12 col-sm-12">
-							<button type="button" class="btn btn-success">Add Item</button>
+							<button type="button" class="btn btn-success" ng-click="addItem();">Add Item</button>
 						</div>
 					</div>
 				</div>
@@ -49,8 +152,8 @@
 						<td class="item">{{ item.item_name }}</td>
 						<td class="price">{{ item.item_price }}</td>
 						<td class="actions">
-							<button type="button" class="btn btn-primary" ng-click="editItem(item);">Edit</button>
-							<button type="button" class="btn btn-danger" ng-click="deleteItem(item);">Delete</button>
+							<button type="button" class="btn btn-primary" ng-click="editItem(item);" data-toggle="modal" data-target="#editItemModal">Edit</button>
+							<button type="button" class="btn btn-danger" ng-click="confirmDelete(item);" data-toggle="modal" data-target="#confirmModal">Delete</button>
 						</td>
 					</tr>
 				</table>

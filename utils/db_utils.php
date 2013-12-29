@@ -61,4 +61,9 @@ function db_delete($sql, $data)
 	return db_insert($sql, $data);
 }
 
+function db_last_insert_id() {
+	global $pdo;
+	return $pdo->lastInsertId();
+}
+
 ?>

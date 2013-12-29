@@ -42,7 +42,28 @@ app.factory("UserService", function($http, $window, $log) {
 
 app.factory("ItemService", function($http, $window) {
 	return {
-		
+		// Add a new item
+		addItem: function(name, price, successCallback, errorCallback) {
+			var url = "api/v1/machines/addItem/name/"+name+"/price/"+price;
+			$http.post(url, {}).success(successCallback).error(errorCallback);
+		},
+		updateItem: function(data, successCallback, errorCallback) {
+			var url = "api/v1/machines/updateItem/itemId/"+data.item_id;
+			if (data.hasOwnProperty("item_name")) {
+				url += "/name/"+data.item_name;
+			}
+			if (data.hasOwnProperty("item_price")) {
+				url += "/price/"+data.item_price;
+			}
+			if (data.hasOwnProperty("state")) {
+				url += "/status/"+data.state;
+			}
+			$http.post(url, {}).success(successCallback).error(errorCallback);
+		},
+		deleteItem: function(itemId, successCallback, errorCallback) {
+			var url = "api/v1/machines/deleteItem/itemId/"+itemId;
+			$http.post(url, {}).success(successCallback).error(errorCallback);
+		}
 	};
 });
 
@@ -189,7 +210,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 				}
 				else {
 					$scope.alert.success = false;
-					$scope.alert.message = "Update failed: " + response.message;
+					$scope.alert.message = response.message;
 				}
 				// Show the success/failure alert
 				$scope.alert.show = true;
@@ -203,13 +224,21 @@ function UserCtrl($scope, $log, UserService, DropService) {
 
 // Controller for the Manage Items page
 function ItemCtrl($scope, $log, ItemService, MachineService) {
-	$scope.items = {};				// All drink items
+	$scope.items = new Array();		// All drink items
 	$scope.currentItem = {};		// Current item being edited/deleted
+	$scope.newItem = {				// New item being added
+		item_name: "",
+		item_price: 0,
+		item_id: 0,
+		state: "active"
+	};		
+	$scope.updateItem = {};			// Temporary item for updates	
 	$scope.alert = {				// Alert for success/failure of adding an item
 		show: false,
 		success: false,
-		message: ""
+		message: "default"
 	};
+	$scope.message = "";			// Message to display after edit/delete
 
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
@@ -225,6 +254,102 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 			$log.log(error);
 		}
 	);
+
+	// Add the newItem to the database
+	$scope.addItem = function() {
+		// Add the item to the database
+		ItemService.addItem($scope.newItem.item_name, $scope.newItem.item_price,
+			function (response) {
+				if (response.result) {
+					// Set the item ID and state of the new item
+					$scope.newItem.item_id = response.data; //Number($scope.items[$scope.items.length - 1].item_id) + 1;
+					$scope.newItem.state = "active";
+					// Add the new item to the items array
+					$scope.items.push.call($scope.items, $scope.newItem);
+					// Reset the new item
+					$scope.newItem = { item_name: "", item_price: 0 };
+					// Show the alert
+					$scope.alert.success = true;
+					$scope.alert.message = "Item added successfully!";
+				}
+				else {
+					$scope.alert.success = false;
+					$scope.alert.message = response.message;
+					//$log.log(response.message);
+				}
+				$scope.alert.show = true;
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	// Set the item to be updated 
+	$scope.editItem = function(item) {
+		$scope.currentItem = item;
+		$scope.updateItem.item_id = $scope.currentItem.item_id;
+		$scope.updateItem.item_name = $scope.currentItem.item_name;
+		$scope.updateItem.item_price = Number($scope.currentItem.item_price);
+		$scope.updateItem.state = $scope.currentItem.state;
+	}
+
+	// Save the updated item in the database
+	$scope.saveItem = function() {
+		ItemService.updateItem($scope.updateItem, 
+			function (response) {
+				if (response.result) {
+					// Update the currentItem to reflect changes
+					$scope.currentItem.item_name = $scope.updateItem.item_name;
+					$scope.currentItem.item_price = Number($scope.updateItem.item_price);
+					$scope.currentItem.state = $scope.updateItem.state;
+					$scope.message = "Item updated successfully!";
+				}
+				else {
+					$scope.message = response.message;
+				}
+				jQuery("#saveItemModal").modal('show');
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	// Lookup an item by id
+	$scope.lookupItemIndex = function (id) {
+		for (var i = 0; i < $scope.items.length; i++) {
+			if ($scope.items[i].item_id == id) {
+				return i;
+			}
+		}
+	}
+
+	// Prepare an item to be deleted 
+	$scope.confirmDelete = function(item) {
+		$scope.currentItem = item;
+	}
+
+	// Delete an item from the database
+	$scope.deleteItem = function() {
+		ItemService.deleteItem($scope.currentItem.item_id,
+			function (response) {
+				if (response.result) {
+					// Remove the item from the items array
+					var indexToRemove = $scope.lookupItemIndex($scope.currentItem.item_id);
+					$scope.items.splice(indexToRemove, 1);
+					$scope.message = "Item deleted!";
+				}
+				else {
+					$scope.message = response.message;
+				}
+				jQuery("#deleteModal").modal('show');
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
 
 }
 

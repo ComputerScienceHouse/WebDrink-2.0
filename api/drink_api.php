@@ -30,6 +30,7 @@ class DrinkAPI extends API
 		}
 		// If the request is a POST method, verify the user is an admin
 		if ($this->method == "POST") {
+			/*
 			// Make sure the user's uid was provided in the URL (Ex - api/v1/<method>/uid/<uid>)
 			// AND make sure they are who they say they are (same as Webauth token)
 			if (array_key_exists("uid", $this->args) && "".$this->args["uid"] === $this->uid) {
@@ -39,6 +40,9 @@ class DrinkAPI extends API
 			else {
 				$this->admin = false;
 			}
+			*/
+			// Check if the user is an admin
+			$this->admin = $this->isAdmin($this->uid);
 		}
 	}
 
@@ -701,7 +705,7 @@ class DrinkAPI extends API
 			case "getItemAll":
 				if ($this->method == "GET") {
 					// Form the SQL query
-					$sql = "SELECT * FROM drink_items WHERE state = 'active'";
+					$sql = "SELECT item_id, item_name, item_price, state FROM drink_items WHERE state = 'active'";
 
 					// Query the database
 					$query = db_select($sql, $params);
@@ -873,7 +877,7 @@ class DrinkAPI extends API
 						}
 						$append = substr($append, 0, -1);
 						$sql .= $append . " WHERE item_id = :itemId";
-						$params["itemId"] = $this->args["item_id"];
+						$params["itemId"] = $this->args["itemId"];
 						// Make the Query
 						$query = db_update($sql, $params);
 						// Query Success
@@ -932,7 +936,7 @@ class DrinkAPI extends API
 						}
 						// Form the SQL query
 						$sql = "DELETE FROM drink_items WHERE item_id = :itemId";
-						$params["itemId"] = $this->args["item_id"];
+						$params["itemId"] = $this->args["itemId"];
 						// Make the Query
 						$query = db_delete($sql, $params);
 						// Query Success
@@ -1006,7 +1010,7 @@ class DrinkAPI extends API
 						if ($query) {
 							$result["result"] = true;
 							$result["message"] = "Success (machines.addItem)";
-							$result["data"] = true;
+							$result["data"] = db_last_insert_id();
 						}
 						// Query Failure
 						else {

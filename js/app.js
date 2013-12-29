@@ -182,7 +182,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 		$scope.saveSlot = function () {
 			MachineService.updateSlot($scope.new_slot, 
 				function (response) {
-					$log.log(response);
+					//$log.log(response);
 					if (response.result) {
 						$scope.current_slot.item_id = $scope.new_slot.item_id;
 						$scope.current_slot.available = Number($scope.new_slot.available);
@@ -192,10 +192,10 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 						$scope.message = "Edit success!";
 					}
 					else {
-						$log.log(response.message);
+						//$log.log(response.message);
 						$scope.message = response.message;
 					}
-					jQuery("#saveModal").modal('show');
+					jQuery("#saveSlotModal").modal('show');
 				},
 				function (error) {
 					$log.log(error);
