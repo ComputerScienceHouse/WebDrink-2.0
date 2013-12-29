@@ -98,7 +98,7 @@ class DrinkAPI extends API
 				}
 				break;*/
 			/* 
-			*	users.getCredits - Get the amount of drink credits for a user
+			*	users.getCredits (GET) - Get the amount of drink credits for a user
 			*
 			*	Example URL: api/v1/users/getCredits/uid/bencentra
 			*	
@@ -142,7 +142,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	users.updateCredits - Update the drink credit balance for a user
+			*	users.updateCredits (POST) - Update the drink credit balance for a user
 			*
 			*	Example URL: api/v1/users/updateCredits/uid/bencentra/credits/2000
 			*
@@ -203,7 +203,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/* 
-			*	users.searchUsers - Search LDAP for usernames by letter/string
+			*	users.searchUsers (GET) - Search LDAP for usernames by letter/string
 			*
 			*	Example URL: api/v1/users/searchUsers/search/ben
 			*	
@@ -260,7 +260,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/* 
-			*	users.getiButton - Get the iButton value for a user
+			*	users.getiButton (GET) - Get the iButton value for a user
 			*
 			*	Example URL: api/v1/users/getCredits/uid/bencentra
 			*	
@@ -312,7 +312,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/* 
-			*	users.getDrops - Get the drop history for a user
+			*	users.getDrops (GET) - Get the drop history for a user
 			*
 			*	Example URL: api/v1/users/getCredits/uid/bencentra/limit/10/offset/0
 			*	
@@ -416,7 +416,7 @@ class DrinkAPI extends API
 		// Determine the specific method to call
 		switch($this->verb) {
 			/* 
-			*	machines.getStockAll - Get the combined stock of all the drink machines
+			*	machines.getStockAll (GET) - Get the combined stock of all the drink machines
 			*
 			*	Example URL: api/v1/machines/getStockAll
 			*	
@@ -481,7 +481,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	machines.getStockOne - Get the stock for one drink machine
+			*	machines.getStockOne (GET) - Get the stock for one drink machine
 			*
 			*	Example URL: api/v1/machines/getStockOne/machineId/<machine_id>
 			*
@@ -554,7 +554,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	machines.getMachineAll - Get a list of all machines (just info, no stock)
+			*	machines.getMachineAll (GET) - Get a list of all machines (just info, no stock)
 			*
 			*	Example URL: api/v1/machines/getMachineAll
 			*
@@ -610,7 +610,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	machines.getMachineOne - Get the info for a single drink machine (not stock)
+			*	machines.getMachineOne (GET) - Get the info for a single drink machine (not stock)
 			*
 			*	Example URL: api/v1/machines/getMachineOne/machineId/1
 			*
@@ -673,7 +673,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	machines.getItemAll - Get a list of all drink items
+			*	machines.getItemAll (GET) - Get a list of all drink items
 			*
 			*	Example URL: api/v1/machines/getItemAll
 			*
@@ -726,7 +726,7 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	machines.updateSlot - Get the info for a single drink machine (not stock)
+			*	machines.updateSlot (POST) - Get the info for a single drink machine (not stock)
 			*
 			*	Example URL: api/v1/machines/updateSlot/slotNum/1/machineId/2
 			*
@@ -805,10 +805,6 @@ class DrinkAPI extends API
 							$result["message"] = "Error: failed to query database (machines.updateSlot)";
 							$result["data"] = false;
 						}
-
-						$result["result"] = true;
-						$result["message"] = "Success (machines.updateSlot)";
-						$result["data"] = true;
 					}
 					else {
 						$result["result"] = false;
@@ -819,6 +815,215 @@ class DrinkAPI extends API
 				else {
 					$result["result"] = false;
 					$result["message"] = "Error: only accepts POST requests (machines.updateSlot)";
+					$result["data"] = false;
+				}
+				break;
+			/*
+			*	machines.updateItem (POST) - Update an item's name, price, or state
+			*
+			*	Example URL: api/v1/machines/updateItem/itemId/8/name/Cola/price/55
+			*
+			*	Expected Parameters: 
+			*	- itemId: ID of the item to update
+			*	- name: New name of the item (optional)
+			*	- price: New price of the item (optional)
+			*	- state: New state of the item, "active" or "inactive" (optional)
+			*
+			*	Return Data:
+			*	- True for success, false for failure
+			*
+			*	{
+			*		"result": true,
+			*		"message": "Success (machines.updateItem)",
+			*		"data": true
+			*	}
+			*/
+			case "updateItem":
+				// Only accept POST requests
+				if ($this->method == "POST") {
+					// Only run if the user is an admin
+					if ($this->admin) {
+						// Make sure an itemId was provided
+						if (!array_key_exists("itemId", $this->args)) {
+							$result["result"] = false;
+							$result["message"] = "Error: itemId not provided (machines.updateItem)";
+							$result["data"] = false;
+							break;
+						}
+						// Form the SQL query
+						$append = "";
+						$sql = "UPDATE drink_items SET";
+						if (array_key_exists("name", $this->args)) {
+							$append .= " item_name = :name,";
+							$params["name"] = $this->args["name"];
+						}
+						if (array_key_exists("price", $this->args)) {
+							$append .= " item_price = :price,";
+							$params["price"] = $this->args["price"];
+						}
+						if (array_key_exists("state", $this->args)) {
+							$append .= " state = :state,";
+							$params["state"] = $this->args["state"];
+						}
+						if ($append == "") {
+							$result["result"] = false;
+							$result["message"] = "Error: invalid number of parameters (machines.updateItem)";
+							$result["data"] = false;
+							break;
+						}
+						$append = substr($append, 0, -1);
+						$sql .= $append . " WHERE item_id = :itemId";
+						$params["itemId"] = $this->args["item_id"];
+						// Make the Query
+						$query = db_update($sql, $params);
+						// Query Success
+						if ($query) {
+							$result["result"] = true;
+							$result["message"] = "Success (machines.updateItem)";
+							$result["data"] = true;
+						}
+						// Query Failure
+						else {
+							$result["result"] = false;
+							$result["message"] = "Error: failed to query database (machines.updateItem)";
+							$result["data"] = false;
+						}
+					}
+					else {
+						$result["result"] = false;
+						$result["message"] = "Error: must be an admin (machines.updateItem)";
+						$result["data"] = false;
+					}
+				}
+				else {
+					$result["result"] = false;
+					$result["message"] = "Error: only accepts POST requests (machines.updateItem)";
+					$result["data"] = false;
+				}
+				break;
+			/*
+			*	machines.deleteItem (POST) - Delete an item from the database
+			*
+			*	Example URL: api/v1/machines/deleteItem/itemId/8/
+			*
+			*	Expected Parameters: 
+			*	- itemId: ID of the item to delete
+			*
+			*	Return Data:
+			*	- True for success, false for failure
+			*
+			*	{
+			*		"result": true,
+			*		"message": "Success (machines.deleteItem)",
+			*		"data": true
+			*	}
+			*/
+			case "deleteItem":
+				// Only accept POST requests
+				if ($this->method == "POST") {
+					// Only run if the user is an admin
+					if ($this->admin) {
+						// Make sure an itemId was provided
+						if (!array_key_exists("itemId", $this->args)) {
+							$result["result"] = false;
+							$result["message"] = "Error: itemId not provided (machines.deleteItem)";
+							$result["data"] = false;
+							break;
+						}
+						// Form the SQL query
+						$sql = "DELETE FROM drink_items WHERE item_id = :itemId";
+						$params["itemId"] = $this->args["item_id"];
+						// Make the Query
+						$query = db_delete($sql, $params);
+						// Query Success
+						if ($query) {
+							$result["result"] = true;
+							$result["message"] = "Success (machines.deleteItem)";
+							$result["data"] = true;
+						}
+						// Query Failure
+						else {
+							$result["result"] = false;
+							$result["message"] = "Error: failed to query database (machines.deleteItem)";
+							$result["data"] = false;
+						}
+					}
+					else {
+						$result["result"] = false;
+						$result["message"] = "Error: must be an admin (machines.deleteItem)";
+						$result["data"] = false;
+					}
+				}
+				else {
+					$result["result"] = false;
+					$result["message"] = "Error: only accepts POST requests (machines.deleteItem)";
+					$result["data"] = false;
+				}
+				break;
+			/*
+			*	machines.addItem (POST) - Add a new item to the database
+			*
+			*	Example URL: api/v1/machines/addItem/name/Sugarfizz/price/50
+			*
+			*	Expected Parameters: 
+			*	- name: Name of the new item
+			*	- price: Price of the new item 
+			*
+			*	Return Data:
+			*	- True for success, false for failure
+			*
+			*	{
+			*		"result": true,
+			*		"message": "Success (machines.addItem)",
+			*		"data": true
+			*	}
+			*/
+			case "addItem":
+				// Only accept POST requests
+				if ($this->method == "POST") {
+					// Only run if the user is an admin
+					if ($this->admin) {
+						// Make sure the necessary parameters were passed
+						if (!array_key_exists("name", $this->args)) {
+							$result["result"] = false;
+							$result["message"] = "Error: name not provided (machines.addItem)";
+							$result["data"] = false;
+							break;
+						}
+						else if (!array_key_exists("price", $this->args)) {
+							$result["result"] = false;
+							$result["message"] = "Error: price not provided (machines.addItem)";
+							$result["data"] = false;
+							break;
+						}
+						// Form the SQL query
+						$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
+						$params["name"] = $this->args["name"];
+						$params["price"] = $this->args["price"];
+						// Make the query
+						$query = db_insert($sql, $params);
+						// Query Success
+						if ($query) {
+							$result["result"] = true;
+							$result["message"] = "Success (machines.addItem)";
+							$result["data"] = true;
+						}
+						// Query Failure
+						else {
+							$result["result"] = false;
+							$result["message"] = "Error: failed to query database (machines.addItem)";
+							$result["data"] = false;
+						}
+					}
+					else {
+						$result["result"] = false;
+						$result["message"] = "Error: must be an admin (machines.addItem)";
+						$result["data"] = false;
+					}
+				}
+				else {
+					$result["result"] = false;
+					$result["message"] = "Error: only accepts POST requests (machines.addItem)";
 					$result["data"] = false;
 				}
 				break;

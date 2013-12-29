@@ -4,20 +4,19 @@
 			<h3>Manage Items</h3>
 		</div>
 	</div>
-	
 	<div class="row">
-		<div class="col-md-6 col-sm-12">
+		<div class="col-md-4 col-sm-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title">Add New Item</h3>
 				</div>
 				<div class="panel-body">
 					<div class="row">
-						<div class="col-md-6 col-sm-12">
+						<div class="col-md-12 col-sm-6 col-xs-6 spacer-v">
 							<label for="itemName">Item Name:</label>
 							<input type="text" id="itemName" class="form-control" placeholder="Item Name" />
 						</div>
-						<div class="col-md-6 col-sm-12">
+						<div class="col-md-12 col-sm-6 col-xs-6 spacer-v">
 							<label for="itemPrice">Item Price: </label>
 							<input type="number" id="itemPrice" class="form-control" value="0" />
 						</div>
@@ -30,8 +29,16 @@
 					</div>
 				</div>
 			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div class="alert" ng-class="(alert.success == true) ? 'alert-success' : 'alert-danger'" ng-show="alert.show">
+						<button type="button" class="close" ng-click="alert.show = false">&times;</button>
+						{{ alert.message }}
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class="col-md-6 col-sm-12">
+		<div class="col-md-8 col-sm-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title">Edit Items</h3>
@@ -42,8 +49,8 @@
 						<td class="item">{{ item.item_name }}</td>
 						<td class="price">{{ item.item_price }}</td>
 						<td class="actions">
-							<button type="button" class="btn btn-primary">Edit</button>
-							<button type="button" class="btn btn-danger">Delete</button>
+							<button type="button" class="btn btn-primary" ng-click="editItem(item);">Edit</button>
+							<button type="button" class="btn btn-danger" ng-click="deleteItem(item);">Delete</button>
 						</td>
 					</tr>
 				</table>

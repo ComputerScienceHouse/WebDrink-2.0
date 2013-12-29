@@ -204,26 +204,28 @@ function UserCtrl($scope, $log, UserService, DropService) {
 // Controller for the Manage Items page
 function ItemCtrl($scope, $log, ItemService, MachineService) {
 	$scope.items = {};				// All drink items
+	$scope.currentItem = {};		// Current item being edited/deleted
+	$scope.alert = {				// Alert for success/failure of adding an item
+		show: false,
+		success: false,
+		message: ""
+	};
 
-	// Get a list of all drink items
-	$scope.loadItems = function() {
-		MachineService.getItemAll(
-			function (response) {
-				if (response.result) {
-					$scope.items = response.data;
-				}
-				else {
-					$log.log(response.message);
-				}
-			},
-			function (error) {
-				$log.log(error);
+	// Initialize data, get a list of all drink items
+	MachineService.getItemAll(
+		function (response) {
+			if (response.result) {
+				$scope.items = response.data;
 			}
-		);
-	}
+			else {
+				$log.log(response.message);
+			}
+		},
+		function (error) {
+			$log.log(error);
+		}
+	);
 
-	// Load all drink items
-	$scope.loadItems();
 }
 
 function TempCtrl($scope, $log, TempService) {
