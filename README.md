@@ -3,7 +3,7 @@ WebDrink 2.0
 
 Rewrite of CSH WebDrink. Includes updated interface and new API.
 
-CSH-Public Demo: _Coming Soon!_
+CSH-Public Demo: https://members.csh.rit.edu/~bencentra/webdrink/
 
 Why?
 * Address usability concerns (make it mobile friendly, improve admin experience, etc)    
@@ -27,7 +27,7 @@ Front-end:
 * ~~Machines Admin Stuff~~
 * ~~User's Drop History~~  
 * ~~Admin Panel: Users~~
-* Admin Panel: Items
+* ~~Admin Panel: Items~~
 * Admin Panel: Machine Temps
 * Admin Panel: Log
 
