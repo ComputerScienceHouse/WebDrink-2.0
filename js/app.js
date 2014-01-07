@@ -1,3 +1,5 @@
+var baseUrl = "api/v1/"; // "api/index.php?request="
+
 // Have the navbar collapse (on mobile) after a page is selected
 document.addEventListener("DOMContentLoaded", function() {
 	jQuery('.navitem').click(function() {
@@ -30,7 +32,7 @@ app.factory("DropService", function($http, $window, $log) {
 	return {
 		// Get a user's drop history
 		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
-			var url = "api/v1/users/getDrops/uid/"+uid;
+			var url = baseUrl+"users/getDrops/uid/"+uid;
 			if (limit > 0) {
 				url += "/limit/"+limit;
 			}
@@ -48,19 +50,19 @@ app.factory("MachineService", function($http, $window, $log) {
 	return {
 		// Get a list of information about all drink machines
 		getMachineAll: function(successCallback, errorCallback) {
-			$http.get("api/v1/machines/getMachineAll").success(successCallback).error(errorCallback);
+			$http.get(baseUrl+"machines/getMachineAll").success(successCallback).error(errorCallback);
 		},
 		// Get the stock of all drink machines
 		getStockAll: function(successCallback, errorCallback) {
-			$http.get("api/v1/machines/getStockAll").success(successCallback).error(errorCallback);
+			$http.get(baseUrl+"machines/getStockAll").success(successCallback).error(errorCallback);
 		},
 		// Get a list of all drink items
 		getItemAll: function(successCallback, errorCallback) {
-			$http.get("api/v1/machines/getItemAll").success(successCallback).error(errorCallback);
+			$http.get(baseUrl+"machines/getItemAll").success(successCallback).error(errorCallback);
 		},
 		// Update the items and state of a slot in a drink machine
 		updateSlot: function(data, successCallback, errorCallback) {
-			var url = "api/v1/machines/updateSlot/uid/"+$window.current_user.uid+"/slotNum/"+data.slot_num+"/machineId/"+data.machine_id;
+			var url = baseUrl+"machines/updateSlot/uid/"+$window.current_user.uid+"/slotNum/"+data.slot_num+"/machineId/"+data.machine_id;
 			if (data.hasOwnProperty("item_id"))
 				url += "/itemId/"+data.item_id;
 			if (data.hasOwnProperty("available")) 

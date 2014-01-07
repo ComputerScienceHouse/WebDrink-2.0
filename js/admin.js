@@ -24,17 +24,17 @@ app.factory("UserService", function($http, $window, $log) {
 	return {	
 		// Search for usernames that match a string
 		searchUsers: function(search, successCallback, errorCallback) {
-			var url = "api/v1/users/searchUsers/search/"+search;
+			var url = baseUrl+"users/searchUsers/search/"+search;
 			$http.get(url).success(successCallback).error(errorCallback);
 		},
 		// Get the drink credit amount for a user
 		getCredits: function(uid, successCallback, errorCallback) {
-			var url = "api/v1/users/getCredits/uid/"+uid;
+			var url = baseUrl+"users/getCredits/uid/"+uid;
 			$http.get(url).success(successCallback).error(errorCallback);
 		},
 		// Update the drink credit amount for a user
 		updateCredits: function(uid, credits, successCallback, errorCallback) {
-			var url = "api/v1/users/updateCredits/uid/"+uid+"/credits/"+credits;
+			var url = baseUrl+"users/updateCredits/uid/"+uid+"/credits/"+credits;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		}
 	};
@@ -44,11 +44,11 @@ app.factory("ItemService", function($http, $window) {
 	return {
 		// Add a new item
 		addItem: function(name, price, successCallback, errorCallback) {
-			var url = "api/v1/machines/addItem/name/"+name+"/price/"+price;
+			var url = baseUrl+"machines/addItem/name/"+name+"/price/"+price;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		},
 		updateItem: function(data, successCallback, errorCallback) {
-			var url = "api/v1/machines/updateItem/itemId/"+data.item_id;
+			var url = baseUrl+"machines/updateItem/itemId/"+data.item_id;
 			if (data.hasOwnProperty("item_name")) {
 				url += "/name/"+data.item_name;
 			}
@@ -61,7 +61,7 @@ app.factory("ItemService", function($http, $window) {
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		},
 		deleteItem: function(itemId, successCallback, errorCallback) {
-			var url = "api/v1/machines/deleteItem/itemId/"+itemId;
+			var url = baseUrl+"machines/deleteItem/itemId/"+itemId;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		}
 	};

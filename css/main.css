@@ -3,7 +3,7 @@
 
 body {
 	padding-top: 60px;
-	min-width: 480px;
+	min-width: 320px;
 }
 
 /*#admin-navbar {
@@ -43,10 +43,6 @@ body {
 	opacity: 1;
 }
 
-.actions {
-	width: 40%;
-}
-
 .credits {
 	font-size: 1.25em;
 	font-weight: bold;
@@ -64,23 +60,51 @@ body {
 	background-color: #EEEEEE;
 }
 
-/* Small devices (tablets, 768px and up) */
-@media (min-width: 768px) { 
-	.actions {
-		width: 40%;
-	}
+.item {
+	width: 50%;
+}
+.item-admin {
+	width: 40%;
+}
+.price {
+	width: 25%;
+}
+.price-admin {
+	width: 15%;
+}
+.actions {
+	width: 25%;
+}
+.actions-admin {
+	width: 45%;
 }
 
-/* Medium devices (desktops, 992px and up) */
+/*
+.actions {
+	width: 50%;
+}
+*/
+
+/* Small devices (tablets, 768px and up) 
+@media (min-width: 768px) { 
+	.actions {
+		width: 30%;
+	}
+}
+*/
+
+/* Medium devices (desktops, 992px and up) 
 @media (min-width: 992px) {
 	.actions {
 		width: 50%;
 	}
 }
+*/
 
-/* Large devices (large desktops, 1200px and up) */
+/* Large devices (large desktops, 1200px and up) 
 @media (min-width: 1200px) {
 	.actions {
 		width: 40%;
 	}
 }
+*/

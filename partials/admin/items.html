@@ -149,11 +149,15 @@
 				<table class="table table-striped">
 					<tr><th>Item</th><th>Price</th><th>Actions</th></tr>
 					<tr ng-repeat="item in items">
-						<td class="item">{{ item.item_name }}</td>
-						<td class="price">{{ item.item_price }}</td>
-						<td class="actions">
-							<button type="button" class="btn btn-primary" ng-click="editItem(item);" data-toggle="modal" data-target="#editItemModal">Edit</button>
-							<button type="button" class="btn btn-danger" ng-click="confirmDelete(item);" data-toggle="modal" data-target="#confirmModal">Delete</button>
+						<td ng-class="(current_user.admin) ? 'item-admin' : 'item'">{{ item.item_name }}</td>
+						<td ng-class="(current_user.admin) ? 'price-admin' : 'price'">{{ item.item_price }}</td>
+						<td ng-class="(current_user.admin) ? 'actions-admin' : 'actions'">
+							<button type="button" class="btn btn-primary" ng-click="editItem(item);" data-toggle="modal" data-target="#editItemModal">
+								<span class="glyphicon glyphicon-pencil"></span>
+							</button>
+							<button type="button" class="btn btn-danger" ng-click="confirmDelete(item);" data-toggle="modal" data-target="#confirmModal">
+								<span class="glyphicon glyphicon-trash"></span>
+							</button>
 						</td>
 					</tr>
 				</table>

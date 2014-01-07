@@ -122,11 +122,13 @@
 				<table class="table table-striped">
 					<tr><th>Item</th><th>Price</th><th class="actions">Actions</th>
 					<tr ng-repeat="slot in machine" ng-class="(slot.status == 'disabled' || slot.available == 0) ? 'slot-disabled' : 'slot-enabled'">
-						<td class="item">{{ slot.item_name }}</td>
-						<td class="price">{{ slot.item_price }}</td>
-						<td class="actions">
+						<td ng-class="(current_user.admin) ? 'item-admin' : 'item'">{{ slot.item_name }}</td>
+						<td ng-class="(current_user.admin) ? 'price-admin' : 'price'">{{ slot.item_price }}</td>
+						<td ng-class="(current_user.admin) ? 'actions-admin' : 'actions'">
 							<button type="button" ng-disabled="(slot.status == 'disabled') || (slot.available == 0)" class="btn btn-primary" data-toggle="modal" data-target="#selectModal" ng-click="selectDrink(slot);">Drop</button>
-							<button type="button" ng-show="current_user.admin" class="btn btn-default" data-toggle="modal" data-target="#editSlotModal" ng-click="editSlot(slot);">Edit</button>
+							<button type="button" ng-show="current_user.admin" class="btn btn-default" data-toggle="modal" data-target="#editSlotModal" ng-click="editSlot(slot);">
+								<span class="glyphicon glyphicon-pencil"></span>
+							</button>
 						</td>
 					</tr>
 				</table>
