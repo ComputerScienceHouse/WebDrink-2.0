@@ -134,10 +134,7 @@
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<div class="alert" ng-class="(alert.success == true) ? 'alert-success' : 'alert-danger'" ng-show="alert.show">
-						<button type="button" class="close" ng-click="alert.show = false">&times;</button>
-						{{ alert.message }}
-					</div>
+					<alert data="alert"></alert>
 				</div>
 			</div>
 		</div>

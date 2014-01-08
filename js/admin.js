@@ -91,11 +91,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	};
 	$scope.creditChange = 0;			// Value to adjust drink credits by
 	$scope.transactionType = "add";		// How credits are being adjusted (add, subtract, update)
-	$scope.alert = {					// Alert for success/failure of credit change
-		show: false,
-		success: false,
-		message: ""
-	};
+	$scope.alert = $scope.getAlertDefaults();	// Alert for success/failure of credit change
 	$scope.dropsToLoad = 5;				// How many entries of drop history to load
 
 	// Change the transaction type for updating credits (add, subtract, or update)
@@ -204,12 +200,12 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		UserService.updateCredits($scope.activeUser.uid, newCredits, 
 			function (response) {
 				if (response.result) {
-					$scope.alert.success = true;
+					$scope.alert.type = "alert-success";
 					$scope.alert.message = "Credits updated successfully!"
 					$scope.activeUser.credits = newCredits;
 				}
 				else {
-					$scope.alert.success = false;
+					$scope.alert.type = "alert-danger";
 					$scope.alert.message = response.message;
 				}
 				// Show the success/failure alert
@@ -233,11 +229,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 		state: "active"
 	};		
 	$scope.updateItem = {};			// Temporary item for updates	
-	$scope.alert = {				// Alert for success/failure of adding an item
-		show: false,
-		success: false,
-		message: "default"
-	};
+	$scope.alert = $scope.getAlertDefaults();	// Alert for success/failure of adding an item
 	$scope.message = "";			// Message to display after edit/delete
 
 	// Initialize data, get a list of all drink items
@@ -269,11 +261,11 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 					// Reset the new item
 					$scope.newItem = { item_name: "", item_price: 0 };
 					// Show the alert
-					$scope.alert.success = true;
+					$scope.alert.type = "alert-success"; 
 					$scope.alert.message = "Item added successfully!";
 				}
 				else {
-					$scope.alert.success = false;
+					$scope.alert.type = "alert-danger"; 
 					$scope.alert.message = response.message;
 					//$log.log(response.message);
 				}
@@ -354,7 +346,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 }
 
 function TempCtrl($scope, $log, TempService) {
-	
+	$scope.alert = $scope.getAlertDefaults();
 }
 
 function LogsCtrl($scope, $log, LogsService) {

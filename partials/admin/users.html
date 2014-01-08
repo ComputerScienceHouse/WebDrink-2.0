@@ -5,7 +5,9 @@
 			<div class="input-group">
 				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();">
 		      	<span class="input-group-btn">
-		        	<button class="btn btn-primary" type="button" ng-click="loadUser();">Go!</button>
+		        	<button class="btn btn-primary" type="button" ng-click="loadUser();">
+		        		<span class="glyphicon glyphicon-search"></span>
+		        	</button>
 		      	</span>
 		    </div>
 		    <datalist id="usernames">
@@ -54,10 +56,7 @@
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<div class="alert" ng-class="(alert.success == true) ? 'alert-success' : 'alert-danger'" ng-show="alert.show">
-						<button type="button" class="close" ng-click="alert.show = false">&times;</button>
-						{{ alert.message }}
-					</div>
+					<alert data="alert"></alert>
 				</div>
 			</div>
 		</div>

@@ -3,9 +3,6 @@
 // Include the database connection info
 require_once("../ldapInfo.inc");
 
-// Include the logging functions
-require_once("../utils/log_utils.php");
-
 /*
 *	LDAP methods
 */
@@ -27,7 +24,7 @@ function ldap_lookup($uid, $fields = null) {
 			return false;
 	}
 	catch (Exception $e) {
-		log_exception($e->getMessage());
+		
 	}
 }
 
@@ -41,7 +38,7 @@ function ldap_update($uid, $replace) {
 		return ldap_mod_replace($conn, $dn, $replace);
 	}
 	catch (Exception $e) {
-		log_exception($e->getMessage());
+		
 	}
 }
 

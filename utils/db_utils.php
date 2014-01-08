@@ -3,9 +3,6 @@
 // Include the database connection info
 require_once("../dbInfo.inc");
 
-// Include the logging functions
-require_once("../utils/log_utils.php");
-
 /*
 *	Database methods
 */
@@ -24,7 +21,7 @@ function db_select($sql, $data)
 	}
 	// Catch any exceptions/errors
 	catch (Exception $e) {
-		log_exception($e->getMessage());
+		
 	}
 	// Return false if it didn't succeed
 	return false;
@@ -45,7 +42,7 @@ function db_insert($sql, $data)
 	}
 	// Catch any exceptions/errors
 	catch (Exception $e) {
-		log_exception($e->getMessage());
+		
 	}
 	// Return false if it didn't succeed
 	return false;

@@ -27,6 +27,17 @@ app.config(['$routeProvider', function($routeProvider) {
 		});
 }]);
 
+// Alert directive - data contains show (boolean), type (string, alert class), and message (string)
+app.directive("alert", function() {
+	return {
+		restrict: "E",
+		templateUrl: "templates/alert.html",
+		scope: {
+			alert: "=data"
+		}
+	};
+});
+
 // Drop Service - retrieve a user's drop history, etc.
 app.factory("DropService", function($http, $window, $log) {
 	return {
@@ -74,29 +85,23 @@ app.factory("MachineService", function($http, $window, $log) {
 	};
 });
 
-/*
-// Machine directive, template for drink machine tables
-app.directive("machines", function() {
-	return {
-		restrict: "AE",
-		templateUrl: "templates/machines.html"
-	};
-});
-
-// Item List directive, template for item dropdown (for editing slots)
-app.directive("itemlist", function() {
-	return {
-		restrict: "AE",
-		templateUrl: "templates/itemList.html"
-	};
-});
-*/
-
 // Root controller - for shared data/services
 function RootCtrl($scope, $log, $window, $location) {
+	// Current user data
 	$scope.current_user = $window.current_user;
+	// Current page
 	$scope.location = $location;
 
+	// Default data for any alert directives
+	$scope.getAlertDefaults = function() {
+		return {
+			show: false,
+			type: "alert-warning",
+			message: "default"
+		};
+	}
+
+	// Activate the admin dropdown menu
 	if ($scope.current_user.admin) {
 		$scope.toggleAdminDropdown = function() {
 			jQuery("#adminDropdown").dropdown('toggle');
