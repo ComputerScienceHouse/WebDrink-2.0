@@ -16,7 +16,7 @@ It Uses:
 * [A RESTful API](http://coreymaynard.com/blog/creating-a-restful-api-with-php/)    
 * Boring ol' PHP        
 
-The project is still in active development. Therefore, it is incomplete and may suffer from sloppy design/code in some parts. Let me know (via email or GitHub issue) of any feature requests or glaring implementation/security issues.
+The project is still in active development. Let me know (via email or GitHub issue) of any feature requests or glaring implementation/security issues.
 
 Feature Checklist
 -----------------
@@ -28,8 +28,8 @@ Front-end:
 * ~~User's Drop History~~  
 * ~~Admin Panel: Users~~
 * ~~Admin Panel: Items~~
-* Admin Panel: Machine Temps
-* Admin Panel: Log
+* ~~Admin Panel: Machine Temps~~
+* ~~Admin Panel: Log~~
 
 Back-end:
 * ~~API Class~~    

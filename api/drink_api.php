@@ -63,6 +63,7 @@ class DrinkAPI extends API
 		return array("result" => true, "message" => "Test Success!");
 	}
 
+	// Users enpoint - call the various user-related API methods
 	protected function users() {
 		// Create an array to store response data
 		$result = array();
@@ -351,18 +352,22 @@ class DrinkAPI extends API
 			case "getDrops":
 				if ($this->method == "GET") {
 					// Make sure a username was provided
-					if (!array_key_exists("uid", $this->args)) {
+					/*if (!array_key_exists("uid", $this->args)) {
 						$result["result"] = false;
 						$result["message"] = "Error: uid not supplied (users.getCredits)";
 						$result["data"] = false;
 						break;
 					}
-					$params["username"] = $this->args["uid"];
+					$params["username"] = $this->args["uid"];*/
 
 					// Form the SQL query
 					$sql = "SELECT l.drop_log_id, l.machine_id, m.display_name, l.slot, l.username, l.time, l.status, l.item_id, i.item_name, l.current_item_price 
-							FROM drop_log as l, machines as m, drink_items as i 
-							WHERE l.username = :username AND m.machine_id = l.machine_id AND i.item_id = l.item_id 
+							FROM drop_log as l, machines as m, drink_items as i WHERE";
+					if (array_key_exists("uid", $this->args)) {
+						$sql .= " l.username = :username AND";
+						$params["username"] = $this->args["uid"];
+					}
+					$sql .= " m.machine_id = l.machine_id AND i.item_id = l.item_id 
 							ORDER BY l.drop_log_id DESC";
 
 					// Add a limit and offset, if provided
@@ -1037,6 +1042,96 @@ class DrinkAPI extends API
 			default:
 				$result["result"] = false;
 				$result["message"] = "Invalid API method call (machines)";
+				$result["data"] = false;
+				break;
+		}
+		// Return the response data
+		return $result;
+	}
+
+	// Temps endpoint, get temperature data for the drink machines
+	protected function temps() {
+		// Create an array to store response data
+		$result = array();
+		// Create an array to store parameters for SQL queries
+		$params = array();
+		// Determine the specific method to call
+		switch($this->verb) {
+			/*
+			*	temps.getDataOne (GET) - Get temperature data for one drink machine
+			*
+			*	Example URL: api/v1/temps/getDataOne/machineId/2/
+			*
+			*	Expected Parameters: 
+			*	- machineId: ID of the drink machine 
+			*	- limit: How many results to return, default 300 (optional)
+			*
+			*	Return Data:
+			*	- JSON object with arrays of temperatures and times
+			*
+			*	{
+			*		"result": true,
+			*		"message": "Success (temps.getDataOne)",
+			*		"data": {
+			*			"temp": [39.200000762939, ...],
+			*			"time": ["2013-11-11 21:36:17", ...]
+			*		}
+			*	}
+			*/
+			case "getDataOne":
+				if ($this->method == "GET") {
+					// Check for the required machineId 
+					if (!array_key_exists("machineId", $this->args)) {
+						$result["result"] = false;
+						$result["message"] = "Error: machineId not provided (temps.getDataOne)";
+						$result["data"] = false;
+						break;
+					}
+					// Set how many results to grab
+					$limit = 300;
+					if (array_key_exists("limit", $this->args)) {
+						$limit == $this->args["limit"];
+					}
+					// Form the SQL query
+					$sql = "SELECT t.machine_id, t.time, t.temp, m.display_name 
+							FROM temperature_log as t, machines as m
+							WHERE t.machine_id = m.machine_id AND t.machine_id = :machineId
+							ORDER BY t.time DESC LIMIT :limit";
+					$params["limit"] = $limit;
+					$params["machineId"] = $this->args["machineId"];
+
+					// Query the database
+					$query = db_select($sql, $params);	
+
+					// Query success
+					if ($query) {
+						$data = array();
+						for ($i = count($query) - 1; $i >= 0; $i--) {
+							//$data["temp"][] = $temp["temp"];
+							//$data["time"][] = $temp["time"];
+							$data["temp"][] = $query[$i]["temp"];
+							$data["time"][] = $query[$i]["time"];
+						}
+						$result["result"] = true;
+						$result["message"] = "Success (temps.getDataOne)";
+						$result["data"] = $data;
+					}
+					// Query failure
+					else {
+						$result["result"] = false;
+						$result["message"] = "Error: failed to query database (temps.getDataOne)";
+						$result["data"] = $query;
+					}		
+				}
+				else {
+					$result["result"] = false;
+					$result["message"] = "Error: only accepts GET requests (temps.getDataOne)";
+					$result["data"] = false;
+				}
+				break;
+			default:
+				$result["result"] = false;
+				$result["message"] = "Invalid API method call (temps)";
 				$result["data"] = false;
 				break;
 		}

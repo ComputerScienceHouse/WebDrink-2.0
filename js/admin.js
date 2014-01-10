@@ -69,7 +69,10 @@ app.factory("ItemService", function($http, $window) {
 
 app.factory("TempService", function($http, $window) {
 	return {
-		
+		getTempsOne: function(machineId, successCallback, errorCallback) {
+			var url = baseUrl+"temps/getDataOne/machineId/"+machineId;
+			$http.get(url).success(successCallback).error(errorCallback);
+		}
 	};
 });
 
@@ -345,10 +348,91 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 
 }
 
+// Controller for the Machine Temperatures page
 function TempCtrl($scope, $log, TempService) {
-	$scope.alert = $scope.getAlertDefaults();
+	// Mapping of machine IDs to names
+	$scope.machines = {
+		1: "littledrink",
+		2: "bigdrink",
+		3: "snack"
+	};
+
+	// Get a machine's tempereature data
+	$scope.getMachineTemps = function(machineId) {
+		TempService.getTempsOne(machineId, 
+			function (response) {
+				if (response.result) {
+					$scope.drawChart($scope.machines[machineId], response.data);
+				}
+				else {
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	// Draw a temperature chart
+	$scope.drawChart = function(machine, data) {
+		jQuery(function () {
+		    jQuery("#"+machine).highcharts({
+		        chart: {
+		            type: 'line'
+		        },
+		        title: {
+		            text: 'Temperatures'
+		        },
+		        xAxis: {
+		            title: {
+		            	text: 'Time'
+		            }
+		        },
+		        yAxis: {
+		            title: {
+		                text: 'Temperature'
+		            }
+		        },
+		        series: [{
+		            name: machine,
+		            data: data.temp
+		        }]
+		    });
+		});
+	}
+
+	// Get temperature data for each machine
+	$scope.getMachineTemps(1);
+	$scope.getMachineTemps(2);
+	$scope.getMachineTemps(3);
 }
 
-function LogsCtrl($scope, $log, LogsService) {
-	
+// Controller for the Drop Logs page
+function LogsCtrl($scope, $log, LogsService, DropService) {
+	// Initialize scope variables
+	$scope.logs = new Array();	// List of all user drops
+	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
+	$scope.dropsToLoad = 50;	// How many drops to load at a time
+
+	// Get a user's drop history
+	$scope.getDrops = function() {
+		DropService.getDrops(false, $scope.dropsToLoad , $scope.pagesLoaded * $scope.dropsToLoad,
+			function (response) {
+				if (response.result) {
+					$scope.logs.push.apply($scope.logs, response.data);
+					$scope.pagesLoaded += 1;
+				}
+				else {
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	};
+
+	// Get the first page of a user's drops
+	$scope.getDrops();
 }

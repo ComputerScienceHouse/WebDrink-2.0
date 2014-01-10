@@ -1,3 +1,24 @@
 <div ng-controller="LogsCtrl">
-	<h1>Logs!</h1>
+	<div class="row">
+		<div class="col-md-12 col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Drop Log</h3>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-striped table-condensed">
+						<tr><th>Machine</th><th>Item</th><th>Price</th><th>User</th><th>Time</th></tr>
+						<tr ng-repeat="drop in logs" ng-class="(drop.status != 'ok') ? 'warning' : ''">
+							<td>{{ drop.display_name }}</td>
+							<td>{{ drop.item_name }}</td>
+							<td>{{ drop.current_item_price}}</td>
+							<td>{{ drop.username }}</td>
+							<td>{{ drop.time }}</td>
+						</tr>
+						<tr><td colspan="5" class="center"><button type="button" class="btn btn-primary" ng-disabled="done == true" ng-click="getDrops();">Load More Drops</button></td></tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

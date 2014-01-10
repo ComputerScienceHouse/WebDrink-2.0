@@ -43,7 +43,10 @@ app.factory("DropService", function($http, $window, $log) {
 	return {
 		// Get a user's drop history
 		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
-			var url = baseUrl+"users/getDrops/uid/"+uid;
+			var url = baseUrl+"users/getDrops/";
+			if (uid !== false) {
+				url += "/uid/"+uid;
+			}
 			if (limit > 0) {
 				url += "/limit/"+limit;
 			}
@@ -91,7 +94,7 @@ function RootCtrl($scope, $log, $window, $location) {
 	$scope.current_user = $window.current_user;
 	// Current page
 	$scope.location = $location;
-
+	
 	// Default data for any alert directives
 	$scope.getAlertDefaults = function() {
 		return {
@@ -242,11 +245,10 @@ function DropCtrl($scope, $window, $log, DropService) {
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
 	$scope.dropsToLoad = 25;	// How many drops to load at a time
-	$scope.done = false;
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
-		DropService.getDrops($window.current_user.uid, $scope.dropsToLoad ,$scope.pagesLoaded * $scope.dropsToLoad,
+		DropService.getDrops($window.current_user.uid, $scope.dropsToLoad, $scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
 				if (response.result) {
 					$scope.drops.push.apply($scope.drops, response.data);

@@ -45,6 +45,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<script type="text/javascript" src="js/app.js"></script>
 	<?php if ($user_data['admin']): ?>
 	<script type="text/javascript" src="js/admin.js"></script>
+	<script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script>
 	<?php endif; ?>
 </head>
 <body ng-controller="RootCtrl">
@@ -66,8 +67,8 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 						<ul class="dropdown-menu">
 							<li><a class="navitem" href="#admin/users">Users</a></li>
 							<li><a class="navitem" href="#admin/items">Items</a></li>
-							<li><a class="navitem" href="#admin/temps">Machine Temps</a></li>
-							<li><a class="navitem" href="#admin/logs">Drop Logs</a></li>
+							<li><a class="navitem" href="#admin/temps">Temps</a></li>
+							<li><a class="navitem" href="#admin/logs">Logs</a></li>
 						</ul>
 					</li>
 				</ul>
