@@ -43,7 +43,7 @@ app.factory("DropService", function($http, $window, $log) {
 	return {
 		// Get a user's drop history
 		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
-			var url = baseUrl+"users/getDrops/";
+			var url = baseUrl+"users/getDrops";
 			if (uid !== false) {
 				url += "/uid/"+uid;
 			}
@@ -94,6 +94,24 @@ function RootCtrl($scope, $log, $window, $location) {
 	$scope.current_user = $window.current_user;
 	// Current page
 	$scope.location = $location;
+	// Machine data
+	$scope.machines = {
+		1: {
+			"id": 1,
+			"alias": "littledrink",
+			"name": "Little Drink"
+		},
+		2: {
+			"id": 2,
+			"alias": "bigdrink",
+			"name": "Big Drink"
+		},
+		3: {
+			"id": 3,
+			"alias": "snack",
+			"name": "Snack"
+		}
+	};
 	
 	// Default data for any alert directives
 	$scope.getAlertDefaults = function() {
@@ -117,7 +135,6 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
 	$scope.items = {};			// All existing drink items (admin only)
-	$scope.machines = {};		// List of machines
 	$scope.current_slot = {};	// Current slot being dropped/edited
 	$scope.new_slot = {};		// New data for slot being edited
 	$scope.delay = 0;			// Delay for dropping a drink
@@ -135,20 +152,6 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 		}, 
 		function (error) { 
 			$log.log(error); 
-		}
-	);
-	// Get the initial machine list
-	MachineService.getMachineAll(
-		function (response) {
-			if (response.result) {
-				$scope.machines = response.data;
-			}
-			else {
-				$log.log(response.message);
-			}
-		},
-		function (error) {
-			$log.log(error);
 		}
 	);
 	// Admin only functions

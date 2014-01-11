@@ -350,19 +350,12 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 
 // Controller for the Machine Temperatures page
 function TempCtrl($scope, $log, TempService) {
-	// Mapping of machine IDs to names
-	$scope.machines = {
-		1: "littledrink",
-		2: "bigdrink",
-		3: "snack"
-	};
-
 	// Get a machine's tempereature data
 	$scope.getMachineTemps = function(machineId) {
 		TempService.getTempsOne(machineId, 
 			function (response) {
 				if (response.result) {
-					$scope.drawChart($scope.machines[machineId], response.data);
+					$scope.drawChart(machineId, response.data);
 				}
 				else {
 					$log.log(response.message);
@@ -375,14 +368,14 @@ function TempCtrl($scope, $log, TempService) {
 	}
 
 	// Draw a temperature chart
-	$scope.drawChart = function(machine, data) {
+	$scope.drawChart = function(id, data) {
 		jQuery(function () {
-		    jQuery("#"+machine).highcharts({
+		    jQuery("#"+$scope.machines[id].alias).highcharts({
 		        chart: {
 		            type: 'line'
 		        },
 		        title: {
-		            text: 'Temperatures'
+		            text: $scope.machines[id].name + 'Temperatures'
 		        },
 		        xAxis: {
 		            title: {
@@ -395,7 +388,7 @@ function TempCtrl($scope, $log, TempService) {
 		            }
 		        },
 		        series: [{
-		            name: machine,
+		            name: $scope.machines[id].name,
 		            data: data.temp
 		        }]
 		    });
@@ -403,9 +396,9 @@ function TempCtrl($scope, $log, TempService) {
 	}
 
 	// Get temperature data for each machine
-	$scope.getMachineTemps(1);
-	$scope.getMachineTemps(2);
-	$scope.getMachineTemps(3);
+	for (var machine in $scope.machines) {
+		$scope.getMachineTemps(machine);
+	}
 }
 
 // Controller for the Drop Logs page

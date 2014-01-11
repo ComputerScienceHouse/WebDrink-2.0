@@ -1109,7 +1109,7 @@ class DrinkAPI extends API
 						for ($i = count($query) - 1; $i >= 0; $i--) {
 							//$data["temp"][] = $temp["temp"];
 							//$data["time"][] = $temp["time"];
-							$data["temp"][] = $query[$i]["temp"];
+							$data["temp"][] = (float) $query[$i]["temp"];
 							$data["time"][] = $query[$i]["time"];
 						}
 						$result["result"] = true;

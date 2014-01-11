@@ -63,14 +63,14 @@
 		<div class="col-md-6 col-sm-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h3 class="panel-title">{{ activeUser.cn }}'s Drops</h3>
+					<h3 class="panel-title">{{ activeUser.cn }}'s Recent Drops</h3>
 				</div>
 				<table class="table table-striped">
 					<tr><th>Machine</th><th>Item</th><th>Price</th><th>Time</th></tr>
 					<tr ng-repeat="drop in activeUser.drops">
 						<td>{{ drop.display_name }}</td>
 						<td>{{ drop.item_name }}</td>
-						<td>{{ drop.current_item_price}}</td>
+						<td>{{ drop.current_item_price }}</td>
 						<td>{{ drop.time }}</td>
 					</tr>
 				</table>
