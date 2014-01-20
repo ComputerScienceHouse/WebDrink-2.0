@@ -26,6 +26,7 @@ class DrinkAPI extends API
 			$this->uid = $_SERVER["WEBAUTH_USER"];
 		} 
 		else {
+			//$this->uid = false;
 			$this->uid = "bencentra";
 		}
 		// If the request is a POST method, verify the user is an admin
@@ -42,7 +43,9 @@ class DrinkAPI extends API
 			}
 			*/
 			// Check if the user is an admin
-			$this->admin = $this->isAdmin($this->uid);
+			if ($this->uid != false) {
+				$this->admin = $this->isAdmin($this->uid);
+			}
 		}
 	}
 
@@ -71,37 +74,6 @@ class DrinkAPI extends API
 		$params = array();
 		// Determine the specific method to call
 		switch($this->verb) {
-			/*case "getInfo":
-				if ($this->method == "GET") {
-					if (!array_key_exists("uid", $this->args)) {
-						$result["result"] = false;
-						$result["message"] = "Error: uid not supplied (users.getInfo)";
-						$result["data"] = false;
-					}
-					$fields = array('drinkBalance', 'drinkAdmin', 'ibutton');
-					$data = ldap_lookup($this->args["uid"], $fields);
-					if ($data) {
-						$tmp = array();
-						$tmp["uid"] = $this->args["uid"];
-						$tmp["credits"] = $data[0]["drinkbalance"][0];
-						$tmp["admin"] = $data[0]["drinkadmin"][0];
-						$tmp["ibutton"] = $data[0]["ibutton"][0];
-						$result["result"] = true;
-						$result["message"] = "Success (users.getInfo)";
-						$result["data"] = $tmp;
-					}
-					else {
-						$result["result"] = false;
-						$result["message"] = "Error: failed to query LDAP (users.Info)";
-						$result["data"] = $false;
-					}
-				}
-				else {
-					$result["result"] = false;
-					$result["message"] = "Error: only accepts GET requests (users.getInfo)";
-					$result["data"] = false;
-				}
-				break;*/
 			/* 
 			*	users.getCredits (GET) - Get the amount of drink credits for a user
 			*
@@ -989,7 +961,7 @@ class DrinkAPI extends API
 			*/
 			case "addItem":
 				// Only accept POST requests
-				if ($this->method == "POST") {
+				if ($this->method != "POST") {
 					// Only run if the user is an admin
 					if ($this->admin) {
 						// Make sure the necessary parameters were passed
@@ -1067,14 +1039,14 @@ class DrinkAPI extends API
 			*	- limit: How many results to return, default 300 (optional)
 			*
 			*	Return Data:
-			*	- JSON object with arrays of temperatures and times
+			*	- JSON-encoded array of times and temperatures
 			*
 			*	{
 			*		"result": true,
 			*		"message": "Success (temps.getDataOne)",
 			*		"data": {
-			*			"temp": [39.200000762939, ...],
-			*			"time": ["2013-11-11 21:36:17", ...]
+			*			[1384205777, 39.200000762939],
+			*			...
 			*		}
 			*	}
 			*/
@@ -1109,8 +1081,9 @@ class DrinkAPI extends API
 						for ($i = count($query) - 1; $i >= 0; $i--) {
 							//$data["temp"][] = $temp["temp"];
 							//$data["time"][] = $temp["time"];
-							$data["temp"][] = (float) $query[$i]["temp"];
-							$data["time"][] = $query[$i]["time"];
+							//$data["temp"][] = (float) $query[$i]["temp"];
+							//$data["time"][] = $query[$i]["time"];
+							$data[] = array(strtotime($query[$i]["time"]), (float) $query[$i]["temp"]);
 						}
 						$result["result"] = true;
 						$result["message"] = "Success (temps.getDataOne)";

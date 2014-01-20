@@ -380,7 +380,8 @@ function TempCtrl($scope, $log, TempService) {
 		        xAxis: {
 		            title: {
 		            	text: 'Time'
-		            }
+		            },
+		            type: 'datetime'
 		        },
 		        yAxis: {
 		            title: {
@@ -389,7 +390,7 @@ function TempCtrl($scope, $log, TempService) {
 		        },
 		        series: [{
 		            name: $scope.machines[id].name,
-		            data: data.temp
+		            data: data
 		        }]
 		    });
 		});
