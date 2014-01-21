@@ -1,4 +1,4 @@
-var baseUrl = "api/v1/"; // "api/index.php?request="
+var baseUrl = "api/"; // "api/index.php?request="
 
 // Have the navbar collapse (on mobile) after a page is selected
 document.addEventListener("DOMContentLoaded", function() {
@@ -43,15 +43,15 @@ app.factory("DropService", function($http, $window, $log) {
 	return {
 		// Get a user's drop history
 		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
-			var url = baseUrl+"users/getDrops";
+			var url = baseUrl+"users/drops";
 			if (uid !== false) {
-				url += "/uid/"+uid;
+				url += "/user/"+uid;
 			}
 			if (limit > 0) {
-				url += "/limit/"+limit;
+				url += "/"+limit;
 			}
 			if (limit > 0 && offset > 0) {
-				url += "/offset/"+offset;
+				url += "/"+offset;
 			}
 			$http.get(url).success(successCallback).error(errorCallback);
 			//$log.log(url);
@@ -64,25 +64,25 @@ app.factory("MachineService", function($http, $window, $log) {
 	return {
 		// Get a list of information about all drink machines
 		getMachineAll: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"machines/getMachineAll").success(successCallback).error(errorCallback);
+			$http.get(baseUrl+"machines/info").success(successCallback).error(errorCallback);
 		},
 		// Get the stock of all drink machines
 		getStockAll: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"machines/getStockAll").success(successCallback).error(errorCallback);
+			$http.get(baseUrl+"machines/stock").success(successCallback).error(errorCallback);
 		},
 		// Get a list of all drink items
 		getItemAll: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"machines/getItemAll").success(successCallback).error(errorCallback);
+			$http.get(baseUrl+"items/list").success(successCallback).error(errorCallback);
 		},
 		// Update the items and state of a slot in a drink machine
 		updateSlot: function(data, successCallback, errorCallback) {
-			var url = baseUrl+"machines/updateSlot/uid/"+$window.current_user.uid+"/slotNum/"+data.slot_num+"/machineId/"+data.machine_id;
+			var url = baseUrl+"machines/slot/"+data.slot_num+"/"+data.machine_id;
 			if (data.hasOwnProperty("item_id"))
-				url += "/itemId/"+data.item_id;
+				url += "/"+data.item_id;
 			if (data.hasOwnProperty("available")) 
-				url += "/available/"+data.available;
+				url += "/"+data.available;
 			if (data.hasOwnProperty("status")) 
-				url += "/status/"+data.status;
+				url += "/"+data.status;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		}
 	};
@@ -143,7 +143,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 	// Get the initial stock
 	MachineService.getStockAll(
 		function (response) { 
-			if (response.result) {
+			if (response.status) {
 				$scope.stock = response.data;
 			}
 			else {
@@ -159,7 +159,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 		// Get all items (for editing a slot)
 		MachineService.getItemAll(
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					$scope.items = response.data;
 					//$log.log($scope.items);
 				}
@@ -196,7 +196,7 @@ function MachineCtrl($scope, $log, $timeout, MachineService) {
 			MachineService.updateSlot($scope.new_slot, 
 				function (response) {
 					//$log.log(response);
-					if (response.result) {
+					if (response.status) {
 						$scope.current_slot.item_id = $scope.new_slot.item_id;
 						$scope.current_slot.available = Number($scope.new_slot.available);
 						$scope.current_slot.status = $scope.new_slot.status;
@@ -253,7 +253,7 @@ function DropCtrl($scope, $window, $log, DropService) {
 	$scope.getDrops = function() {
 		DropService.getDrops($window.current_user.uid, $scope.dropsToLoad, $scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					$scope.drops.push.apply($scope.drops, response.data);
 					$scope.pagesLoaded += 1;
 				}

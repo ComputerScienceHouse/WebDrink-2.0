@@ -24,17 +24,17 @@ app.factory("UserService", function($http, $window, $log) {
 	return {	
 		// Search for usernames that match a string
 		searchUsers: function(search, successCallback, errorCallback) {
-			var url = baseUrl+"users/searchUsers/search/"+search;
+			var url = baseUrl+"users/search/"+search;
 			$http.get(url).success(successCallback).error(errorCallback);
 		},
 		// Get the drink credit amount for a user
 		getCredits: function(uid, successCallback, errorCallback) {
-			var url = baseUrl+"users/getCredits/uid/"+uid;
+			var url = baseUrl+"users/credits/"+uid;
 			$http.get(url).success(successCallback).error(errorCallback);
 		},
 		// Update the drink credit amount for a user
 		updateCredits: function(uid, credits, successCallback, errorCallback) {
-			var url = baseUrl+"users/updateCredits/uid/"+uid+"/credits/"+credits;
+			var url = baseUrl+"users/credits/"+uid+"/"+credits;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		}
 	};
@@ -44,24 +44,24 @@ app.factory("ItemService", function($http, $window) {
 	return {
 		// Add a new item
 		addItem: function(name, price, successCallback, errorCallback) {
-			var url = baseUrl+"machines/addItem/name/"+name+"/price/"+price;
+			var url = baseUrl+"items/add/"+name+"/"+price;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		},
 		updateItem: function(data, successCallback, errorCallback) {
-			var url = baseUrl+"machines/updateItem/itemId/"+data.item_id;
+			var url = baseUrl+"items/update/"+data.item_id;
 			if (data.hasOwnProperty("item_name")) {
-				url += "/name/"+data.item_name;
+				url += "/"+data.item_name;
 			}
 			if (data.hasOwnProperty("item_price")) {
-				url += "/price/"+data.item_price;
+				url += "/"+data.item_price;
 			}
 			if (data.hasOwnProperty("state")) {
-				url += "/status/"+data.state;
+				url += "/"+data.state;
 			}
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		},
 		deleteItem: function(itemId, successCallback, errorCallback) {
-			var url = baseUrl+"machines/deleteItem/itemId/"+itemId;
+			var url = baseUrl+"items/delete/"+itemId;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
 		}
 	};
@@ -70,7 +70,7 @@ app.factory("ItemService", function($http, $window) {
 app.factory("TempService", function($http, $window) {
 	return {
 		getTempsOne: function(machineId, successCallback, errorCallback) {
-			var url = baseUrl+"temps/getDataOne/machineId/"+machineId;
+			var url = baseUrl+"temps/machines/"+machineId;
 			$http.get(url).success(successCallback).error(errorCallback);
 		}
 	};
@@ -119,7 +119,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 			// Search for matching usernames
 			UserService.searchUsers($scope.searchTerm,
 				function (response) {
-					if (response.result) {
+					if (response.status) {
 						// Update the matched set of usernames
 						$scope.searchResults = response.data;
 					}
@@ -138,7 +138,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	$scope.getUserCredits = function() {
 		UserService.getCredits($scope.activeUser.uid, 
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					$scope.activeUser.credits = response.data;
 				}
 				else {
@@ -155,7 +155,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	$scope.getUserDrops = function() {
 		DropService.getDrops($scope.activeUser.uid, $scope.dropsToLoad, 0,
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					//$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
 					$scope.activeUser.drops = response.data;
 				}
@@ -202,7 +202,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		// Update the user's credits in LDAP
 		UserService.updateCredits($scope.activeUser.uid, newCredits, 
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					$scope.alert.type = "alert-success";
 					$scope.alert.message = "Credits updated successfully!"
 					$scope.activeUser.credits = newCredits;
@@ -238,7 +238,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
 		function (response) {
-			if (response.result) {
+			if (response.status) {
 				$scope.items = response.data;
 			}
 			else {
@@ -255,7 +255,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 		// Add the item to the database
 		ItemService.addItem($scope.newItem.item_name, $scope.newItem.item_price,
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					// Set the item ID and state of the new item
 					$scope.newItem.item_id = response.data; //Number($scope.items[$scope.items.length - 1].item_id) + 1;
 					$scope.newItem.state = "active";
@@ -293,7 +293,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 	$scope.saveItem = function() {
 		ItemService.updateItem($scope.updateItem, 
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					// Update the currentItem to reflect changes
 					$scope.currentItem.item_name = $scope.updateItem.item_name;
 					$scope.currentItem.item_price = Number($scope.updateItem.item_price);
@@ -329,7 +329,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 	$scope.deleteItem = function() {
 		ItemService.deleteItem($scope.currentItem.item_id,
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					// Remove the item from the items array
 					var indexToRemove = $scope.lookupItemIndex($scope.currentItem.item_id);
 					$scope.items.splice(indexToRemove, 1);
@@ -354,7 +354,7 @@ function TempCtrl($scope, $log, TempService) {
 	$scope.getMachineTemps = function(machineId) {
 		TempService.getTempsOne(machineId, 
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					$scope.drawChart(machineId, response.data);
 				}
 				else {
@@ -413,7 +413,7 @@ function LogsCtrl($scope, $log, LogsService, DropService) {
 	$scope.getDrops = function() {
 		DropService.getDrops(false, $scope.dropsToLoad , $scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
-				if (response.result) {
+				if (response.status) {
 					$scope.logs.push.apply($scope.logs, response.data);
 					$scope.pagesLoaded += 1;
 				}

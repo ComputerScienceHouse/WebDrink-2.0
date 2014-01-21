@@ -1,7 +1,7 @@
 <?php
 
 // Include the database connection info
-require_once("../../ldapInfo.inc");
+require_once("../ldapInfo.inc");
 
 /*
 *	LDAP methods
