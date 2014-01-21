@@ -1,7 +1,7 @@
 <?php
 
 // Include the database connection info
-require_once("../dbInfo.inc");
+require_once("../../dbInfo.inc");
 
 /*
 *	Database methods
