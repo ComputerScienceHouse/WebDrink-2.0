@@ -118,9 +118,10 @@ function RootCtrl($scope, $log, $window, $location) {
 	};
 	
 	// Default data for any alert directives
-	$scope.getAlertDefaults = function() {
+	$scope.Alert = function() {
 		return {
 			show: false,
+			closeable: true,
 			type: "alert-warning",
 			message: "default"
 		};
@@ -145,9 +146,10 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 	$scope.dropping_message = "";
 	$scope.message = "";		// Message to display after edit
 
-	$scope.websocket_alert = $scope.getAlertDefaults();
+	$scope.websocket_alert = $scope.Alert();
 	$scope.websocket_alert.message = "Warning: Websocket not connected!";
 	$scope.websocket_alert.show = true;
+	$scope.websocket_alert.closeable = false;
 
 	// Get the initial stock
 	MachineService.getStockAll(
@@ -279,7 +281,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 		},
 		// Execute the Request's command
 		runCommand: function() {
-			this.comand(this.command_data);
+			this.command(this.command_data);
 		}
 	};
 
@@ -298,9 +300,10 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 		// Connect to the drink server
 		this.socket = $window.io.connect('https://drink.csh.rit.edu:8080', {secure: true});
 		// Initialize events for server responses
+		var self = this;
 		this.initWebsocketEvents(function() {
-			this.connect();
-			this.initClickEvents();
+			self.connect();
+			self.initClickEvents();
 		});
 	}
 
@@ -504,8 +507,8 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 		}
 	};
 
-	$scope.drinkConn = new $scope.WebsocketConn(12345);
-	$log.log($scope.drinkConn);
+	//$scope.drinkConn = new $scope.WebsocketConn(12345);
+	//$log.log($scope.drinkConn);
 
 	/*$scope.$on('$destroy', function (event) {
 		DrinkSocket.removeAllListeners();

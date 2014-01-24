@@ -94,7 +94,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	};
 	$scope.creditChange = 0;			// Value to adjust drink credits by
 	$scope.transactionType = "add";		// How credits are being adjusted (add, subtract, update)
-	$scope.alert = $scope.getAlertDefaults();	// Alert for success/failure of credit change
+	$scope.alert = $scope.Alert();	    // Alert for success/failure of credit change
 	$scope.dropsToLoad = 5;				// How many entries of drop history to load
 
 	// Change the transaction type for updating credits (add, subtract, or update)
@@ -232,7 +232,7 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 		state: "active"
 	};		
 	$scope.updateItem = {};			// Temporary item for updates	
-	$scope.alert = $scope.getAlertDefaults();	// Alert for success/failure of adding an item
+	$scope.alert = $scope.Alert();	// Alert for success/failure of adding an item
 	$scope.message = "";			// Message to display after edit/delete
 
 	// Initialize data, get a list of all drink items
