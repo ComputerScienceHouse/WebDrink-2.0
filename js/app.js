@@ -119,12 +119,15 @@ function RootCtrl($scope, $log, $window, $location) {
 	
 	// Default data for any alert directives
 	$scope.Alert = function() {
-		return {
-			show: false,
-			closeable: true,
-			type: "alert-warning",
-			message: "default"
-		};
+		this.show = false;
+		this.closeable = true;
+		this.type = "alert-warning";
+		this.message = "default";
+	}
+	$scope.Alert.prototype = {
+		toggle: function() {
+			this.show = !this.show;
+		}
 	}
 
 	// Activate the admin dropdown menu
@@ -146,7 +149,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 	$scope.dropping_message = "";
 	$scope.message = "";		// Message to display after edit
 
-	$scope.websocket_alert = $scope.Alert();
+	$scope.websocket_alert = new $scope.Alert();
 	$scope.websocket_alert.message = "Warning: Websocket not connected!";
 	$scope.websocket_alert.show = true;
 	$scope.websocket_alert.closeable = false;
@@ -290,20 +293,22 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 
 	// Create a new WebsocketConn object
 	$scope.WebsocketConn = function (ibutton) {
-		this.ibutton = ibutton;			// User's ibutton
-		this.authed = false;			// Authentication success/failure
-		this.requesting = false;		// Are we currently handling a request?
-		this.request_queue = [];		// Queue to store requests
-		this.current_request = null;	// Current request being processed
-		this.slot_to_drop = null;		// Slot we wish to drop
+		var self = this;
+		self.ibutton = ibutton;			// User's ibutton
+		self.authed = false;			// Authentication success/failure
+		self.requesting = false;		// Are we currently handling a request?
+		self.request_queue = [];		// Queue to store requests
+		self.current_request = null;	// Current request being processed
+		self.slot_to_drop = null;		// Slot we wish to drop
 
 		// Connect to the drink server
-		this.socket = $window.io.connect('https://drink.csh.rit.edu:8080', {secure: true});
+		self.socket = $window.io.connect('https://drink.csh.rit.edu:8080', {secure: true});
 		// Initialize events for server responses
-		var self = this;
-		this.initWebsocketEvents(function() {
+		
+		self.initWebsocketEvents(function() {
 			self.connect();
 			self.initClickEvents();
+			$scope.websocket_alert.show = self.authed;
 		});
 	}
 
@@ -313,112 +318,117 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 			// Do I need this?
 		},
 		initWebsocketEvents: function(callback) {
+			var self = this;
 			// If the socket connects/disconnects, hide/show the alert
-			this.socket.on('connect', function() {
+			self.socket.on('connect', function() {
 				$scope.websocket_alert.show = false;
 			});
-			this.socket.on('disconnect', function() {
+			self.socket.on('disconnect', function() {
 				$scope.websocket_alert.show = true;
 			});
-			this.socket.on('close', function() {
+			self.socket.on('close', function() {
 				$scope.websocket_alert.show = true;
 			});
-			this.socket.on('reconnect', function() {
+			self.socket.on('reconnect', function() {
 				$scope.websocket_alert.show = true;
 			});
-			this.socket.on('reconnecting', function() {
+			self.socket.on('reconnecting', function() {
 				$scope.websocket_alert.show = false;
 			});
 			// Process incoming data
-			this.socket.on('stat_recv', function(data) {
-				this.processIncomingData(data);
+			self.socket.on('stat_recv', function(data) {
+				self.processIncomingData(data);
 			});
-			this.socket.on('ibutton_recv', function(data) {
-				this.processIncomingData(data);
+			self.socket.on('ibutton_recv', function(data) {
+				self.processIncomingData(data);
 			});
-			this.socket.on('machine_recv', function(data) {
-				this.processIncomingData(data);
+			self.socket.on('machine_recv', function(data) {
+				self.processIncomingData(data);
 			});
-			this.socket.on('drop_recv', function(data) {
-				this.processIncomingData(data);
+			self.socket.on('drop_recv', function(data) {
+				self.processIncomingData(data);
 			});
-			this.socket.on('balance_recv', function(data) {
-				this.processIncomingData(data);
+			self.socket.on('balance_recv', function(data) {
+				self.processIncomingData(data);
 			});
 			// Run the callback
 			callback();
 		},
 		// Process the next Request in the queue
 		processQueue: function() {
-			if (this.request_queue.length > 0) {
-				this.requesting = true;
-				this.current_request = this.request_queue.pop();
-				this.current_request.runCommand();
+			var self = this;
+			if (self.request_queue.length > 0) {
+				self.requesting = true;
+				self.current_request = self.request_queue.pop();
+				self.current_request.runCommand();
 			}
 		},
 		// Execute the only Request or put it in the queue
 		prepRequest: function(request) {
-			if (!this.requesting) {
-				this.requesting = true;
-				this.current_request = request;
-				this.current_request.runCommand();
+			var self = this;
+			if (!self.requesting) {
+				self.requesting = true;
+				self.current_request = request;
+				self.current_request.runCommand();
 			}
 			else {
-				this.request_queue.push(request);
+				self.request_queue.push(request);
 			}
 		},
 		// Process data received from the socket
 		processIncomingData: function(data) {
-			if (this.current_request != null) {
+			var self = this;
+			if (self.current_request != null) {
 				console.log(data);
-				//this.current_request.runCallback(data);
+				self.current_request.runCallback(data);
 			}
 			else {
 				// Uh...
 			}
 
-			this.current_request = null;
-			this.requesting = false;
-			this.processQueue();
+			self.current_request = null;
+			self.requesting = false;
+			self.processQueue();
 		},
 		// Connect to the drink server as the current user
 		connect: function() {
+			var self = this;
 			// Request command
 			var command = function() {
 				// Send the ibutton command to the server to validate your ibutton
-				this.socket.emit('ibutton', {ibutton: this.ibutton});
+				self.socket.emit('ibutton', {ibutton: self.ibutton});
 			};
 			// Request callback
 			var callback = function(data) {
 				// If the status was OK, we authed successfully
 				if (data.substr(0, 2) == 'OK') {
-					this.authed = true;
-					$log.log(data);
+					self.authed = true;
 				}
 				// If not, we have a bogus iButton
 				else {
-					this.authed = false;
+					self.authed = false;
 					$scope.websocket_alert.message = "Warning: Invalid iButton";
 					$scope.websocket_alert.show = true;
 				}
 			};
 			// Create the Request object and queue it up
 			var request = new $scope.Request(command, callback);
-			this.prepRequest(request);
+			self.prepRequest(request);
 		},
 		// Tell the server to drop a drink
 		drop: function(slot_num, machine_alias, delay) {
+			var self = this;
 			// First Request: connect to the drink machine
 			// Request command
 			var machine_command = function() {
-				this.socket.emit('machine', {machine_id: machine_alias});
+				self.socket.emit('machine', {machine_id: machine_alias});
 			};
 			// Request callback
 			var machine_callback = function() {
 				// Second Request: drop the drink
 				// Request command
 				var drop_command = function() {
-					this.socket.emit('drop', {slot_num: slot_num, delay: delay});
+					self.socket.emit('drop', {slot_num: slot_num, delay: delay});
 					$scope.reduceDelay();
 				};
 				// Request callback
@@ -446,48 +456,51 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 				};
 				// Create the Request object and queue it up
 				var drop_request = new Request(drop_command, drop_callback);
-				this.prepRequest(drop_request);
+				self.prepRequest(drop_request);
 			};
 			// Create the Request object and queue it up
 			var machine_request = new Request(machine_command, machine_callback);
-			this.prepRequest(machine_request);
+			self.prepRequest(machine_request);
 		},
 		// Get the stock of the last connected-to (?) machine
 		stat: function() {
+			var self = this;
 			// Request command
 			var command = function() {
 				// Send the ibutton command to the server to validate your ibutton
-				this.socket.emit('stat', {});
+				self.socket.emit('stat', {});
 			};
 			// Request callback
 			var callback = function(data) {
-				this.processQueue();
+				self.processQueue();
 			};
 			// Create the Request object and queue it up
 			var request = new $scope.Request(command, callback);
-			this.prepRequest(request);
+			self.prepRequest(request);
 		},
 		// Connect to a machine
 		machine: function(machine_alias) {
+			var self = this;
 			// Request command
 			var command = function() {
 				// Send the ibutton command to the server to validate your ibutton
-				this.socket.emit('machine', {machine_id: machine_alias});
+				self.socket.emit('machine', {machine_id: machine_alias});
 			};
 			// Request callback
 			var callback = function(data) {
-				this.processQueue();
+				self.processQueue();
 			};
 			// Create the Request object and queue it up
 			var request = new $scope.Request(command, callback);
-			this.prepRequest(request);
+			self.prepRequest(request);
 		},
 		// Get the current user's credit balance
 		balance: function() {
+			var self = this;
 			// Request command
 			var command = function() {
 				// Send the ibutton command to the server to validate your ibutton
-				this.socket.emit('getbalance', {});
+				self.socket.emit('getbalance', {});
 			};
 			// Request callback
 			var callback = function(data) {
@@ -496,19 +509,19 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 					$scope.current_user.credits = data[1];
 				}
 				else {
-					this.authed = false;
+					self.authed = false;
 					$log.log("invalid ibutton, yo");
 				}
-				this.processQueue();
+				self.processQueue();
 			};
 			// Create the Request object and queue it up
 			var request = new $scope.Request(command, callback);
-			this.prepRequest(request);
+			self.prepRequest(request);
 		}
 	};
 
-	//$scope.drinkConn = new $scope.WebsocketConn(12345);
-	//$log.log($scope.drinkConn);
+	$scope.drinkConn = new $scope.WebsocketConn($scope.current_user.ibutton);
+	$log.log($scope.drinkConn);
 
 	/*$scope.$on('$destroy', function (event) {
 		DrinkSocket.removeAllListeners();
