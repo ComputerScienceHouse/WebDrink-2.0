@@ -102,18 +102,21 @@ function RootCtrl($scope, $log, $window, $location) {
 	$scope.machines = {
 		1: {
 			"id": 1,
-			"alias": "littledrink",
-			"name": "Little Drink"
+			"name": "littledrink",
+			"display_name": "Little Drink",
+			"alias": "ld"
 		},
 		2: {
 			"id": 2,
 			"alias": "bigdrink",
-			"name": "Big Drink"
+			"display_name": "Big Drink",
+			"alias":"s"
 		},
 		3: {
 			"id": 3,
-			"alias": "snack",
-			"name": "Snack"
+			"name": "snack",
+			"display_name": "Snack",
+			"alias":"s"
 		}
 	};
 	
@@ -154,111 +157,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 	$scope.websocket_alert.show = true;
 	$scope.websocket_alert.closeable = false;
 
-	// Get the initial stock
-	MachineService.getStockAll(
-		function (response) { 
-			if (response.status) {
-				$scope.stock = response.data;
-			}
-			else {
-				$log.log(response.message);
-			}
-		}, 
-		function (error) { 
-			$log.log(error); 
-		}
-	);
-	// Admin only functions
-	if ($scope.current_user.admin) {
-		// Get all items (for editing a slot)
-		MachineService.getItemAll(
-			function (response) {
-				if (response.status) {
-					$scope.items = response.data;
-					//$log.log($scope.items);
-				}
-				else {
-					$log.log(response.message);
-				}
-			},
-			function (error) {
-				$log.log(error);
-			}
-		);
-		// Lookup an item by id
-		$scope.lookupItem = function (id) {
-			for (var i = 0; i < $scope.items.length; i++) {
-				if ($scope.items[i].item_id == id) {
-					//$log.log("Found it: "+$scope.items[i].item_name);
-					return $scope.items[i];
-				}
-			}
-		}
-		// Edit a slot
-		$scope.editSlot = function (slot) {
-			$scope.current_slot = slot;
-			$scope.new_slot.slot_num = $scope.current_slot.slot_num;
-			$scope.new_slot.machine_id = $scope.current_slot.machine_id;
-			$scope.new_slot.item_id = $scope.current_slot.item_id;
-			$scope.new_slot.available = Number($scope.current_slot.available);
-			$scope.new_slot.status = $scope.current_slot.status;
-			//$log.log("Edit:");
-			//$log.log($scope.new_slot);
-		};
-		// Save a slot
-		$scope.saveSlot = function () {
-			MachineService.updateSlot($scope.new_slot, 
-				function (response) {
-					//$log.log(response);
-					if (response.status) {
-						$scope.current_slot.item_id = $scope.new_slot.item_id;
-						$scope.current_slot.available = Number($scope.new_slot.available);
-						$scope.current_slot.status = $scope.new_slot.status;
-						$scope.current_slot.item_name = $scope.lookupItem($scope.new_slot.item_id).item_name;
-						$scope.current_slot.item_price = $scope.lookupItem($scope.new_slot.item_id).item_price;
-						$scope.message = "Edit success!";
-					}
-					else {
-						//$log.log(response.message);
-						$scope.message = response.message;
-					}
-					jQuery("#saveSlotModal").modal('show');
-				},
-				function (error) {
-					$log.log(error);
-				}
-			);
-		}
-	}
-	// Initialize modal data for dropping a drink
-	$scope.selectDrink = function (slot) {
-		$scope.current_slot = slot;
-		$scope.delay = 0;
-		//$log.log("Drop:");
-		//$log.log($scope.current_slot);
-	}; 
-	// Drop a drink
-	$scope.dropDrink = function() {
-		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-		$scope.reduceDelay();
-	}
-	// Count down the delay until a drink is dropped
-	$scope.reduceDelay = function () {
-		var i = $timeout(function () {
-			if ($scope.delay == 0) {
-				$timeout.cancel(i);
-				//jQuery("#dropModal").modal('hide');
-				//$scope.dropping_message = "Drink dropped!";
-			}
-			else {
-				$scope.delay -= 1;
-				$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-				$scope.reduceDelay();
-			}
-		}, 1000);
-	};
-
-	/*
+		/*
 	*	Websocket Nonsense
 	*
 	*	Pretty much straight up copying from Sean McGary 
@@ -288,9 +187,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 		}
 	};
 
-	//$scope.req = new $scope.Request(function() { $log.log(1); }, function() { $log.log(2); }, {lol:3});
-	//$log.log($scope.req);
-
 	// Create a new WebsocketConn object
 	$scope.WebsocketConn = function (ibutton) {
 		var self = this;
@@ -307,6 +203,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 		
 		self.initWebsocketEvents(function() {
 			self.connect();
+			$log.log($scope.current_user.ibutton);
 			self.initClickEvents();
 			$scope.websocket_alert.show = self.authed;
 		});
@@ -416,7 +313,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 			self.prepRequest(request);
 		},
 		// Tell the server to drop a drink
-		drop: function(slot_num, machine_alias, delay) {
+		drop: function(slot_num, machine_alias) {
 			var self = this;
 			// First Request: connect to the drink machine
 			// Request command
@@ -428,11 +325,11 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 				// Second Request: drop the drink
 				// Request command
 				var drop_command = function() {
-					self.socket.emit('drop', {slot_num: slot_num, delay: delay});
-					$scope.reduceDelay();
+					self.socket.emit('drop', {slot_num: slot_num, delay: 0});
+					//$scope.reduceDelay();
 				};
 				// Request callback
-				var drop_callback = function() {
+				var drop_callback = function(data) {
 					if (data.substr(0, 2) == 'OK') {
 						$scope.dropping_message = "Drink dropped!";
 						// Update my drink credits
@@ -453,13 +350,16 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 						// Update the stock
 
 					}
+					else {
+						$scope.dropping_message = data;
+					}
 				};
 				// Create the Request object and queue it up
-				var drop_request = new Request(drop_command, drop_callback);
+				var drop_request = new $scope.Request(drop_command, drop_callback);
 				self.prepRequest(drop_request);
 			};
 			// Create the Request object and queue it up
-			var machine_request = new Request(machine_command, machine_callback);
+			var machine_request = new $scope.Request(machine_command, machine_callback);
 			self.prepRequest(machine_request);
 		},
 		// Get the stock of the last connected-to (?) machine
@@ -521,11 +421,119 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService) {
 	};
 
 	$scope.drinkConn = new $scope.WebsocketConn($scope.current_user.ibutton);
-	$log.log($scope.drinkConn);
+	//$log.log($scope.drinkConn);
 
-	/*$scope.$on('$destroy', function (event) {
-		DrinkSocket.removeAllListeners();
-	});*/
+	$scope.test = function () {
+		$log.log("lol");
+		$scope.dropping_message = "LOLOL";
+	}
+
+	// Get the initial stock
+	MachineService.getStockAll(
+		function (response) { 
+			if (response.status) {
+				$scope.stock = response.data;
+			}
+			else {
+				$log.log(response.message);
+			}
+		}, 
+		function (error) { 
+			$log.log(error); 
+		}
+	);
+	// Admin only functions
+	if ($scope.current_user.admin) {
+		// Get all items (for editing a slot)
+		MachineService.getItemAll(
+			function (response) {
+				if (response.status) {
+					$scope.items = response.data;
+					//$log.log($scope.items);
+				}
+				else {
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+		// Lookup an item by id
+		$scope.lookupItem = function (id) {
+			for (var i = 0; i < $scope.items.length; i++) {
+				if ($scope.items[i].item_id == id) {
+					//$log.log("Found it: "+$scope.items[i].item_name);
+					return $scope.items[i];
+				}
+			}
+		}
+		// Edit a slot
+		$scope.editSlot = function (slot) {
+			$scope.current_slot = slot;
+			$scope.new_slot.slot_num = $scope.current_slot.slot_num;
+			$scope.new_slot.machine_id = $scope.current_slot.machine_id;
+			$scope.new_slot.item_id = $scope.current_slot.item_id;
+			$scope.new_slot.available = Number($scope.current_slot.available);
+			$scope.new_slot.status = $scope.current_slot.status;
+			//$log.log("Edit:");
+			//$log.log($scope.new_slot);
+		};
+		// Save a slot
+		$scope.saveSlot = function () {
+			MachineService.updateSlot($scope.new_slot, 
+				function (response) {
+					//$log.log(response);
+					if (response.status) {
+						$scope.current_slot.item_id = $scope.new_slot.item_id;
+						$scope.current_slot.available = Number($scope.new_slot.available);
+						$scope.current_slot.status = $scope.new_slot.status;
+						$scope.current_slot.item_name = $scope.lookupItem($scope.new_slot.item_id).item_name;
+						$scope.current_slot.item_price = $scope.lookupItem($scope.new_slot.item_id).item_price;
+						$scope.message = "Edit success!";
+					}
+					else {
+						//$log.log(response.message);
+						$scope.message = response.message;
+					}
+					jQuery("#saveSlotModal").modal('show');
+				},
+				function (error) {
+					$log.log(error);
+				}
+			);
+		}
+	}
+	// Initialize modal data for dropping a drink
+	$scope.selectDrink = function (slot) {
+		$scope.current_slot = slot;
+		$scope.delay = 0;
+		//$log.log("Drop:");
+		//$log.log($scope.current_slot);
+	}; 
+	// Drop a drink
+	$scope.dropDrink = function() {
+		$scope.drinkConn.drop($scope.current_slot.slot_num, $scope.machines[$scope.current_slot.machine_id].alias);
+		//$scope.reduceDelay();
+	}
+	// Count down the delay until a drink is dropped
+	$scope.reduceDelay = function () {
+		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+		var i = $timeout(function () {
+			if ($scope.delay == 0) {
+				$timeout.cancel(i);
+				$scope.dropDrink();
+				//jQuery("#dropModal").modal('hide');
+				//$scope.dropping_message = "Drink dropped!";
+			}
+			else {
+				$scope.delay -= 1;
+				$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+				$scope.reduceDelay();
+			}
+		}, 1000);
+	};
+
 }
 
 // Controller for the drops page
