@@ -40,6 +40,7 @@ app.factory("UserService", function($http, $window, $log) {
 	};
 });
 
+// Item Service - For adding, updating, and deleting drink items
 app.factory("ItemService", function($http, $window) {
 	return {
 		// Add a new item
@@ -67,6 +68,7 @@ app.factory("ItemService", function($http, $window) {
 	};
 });
 
+// Temp Service - for getting temperature data
 app.factory("TempService", function($http, $window) {
 	return {
 		getTempsOne: function(machineId, successCallback, errorCallback) {
@@ -76,9 +78,10 @@ app.factory("TempService", function($http, $window) {
 	};
 });
 
+// Logs Service - for getting drop logs
 app.factory("LogsService", function($http, $window) {
 	return {
-		
+		// Use DropService instead
 	};
 });
 
@@ -96,6 +99,10 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	$scope.transactionType = "add";		// How credits are being adjusted (add, subtract, update)
 	$scope.alert = new $scope.Alert();	    // Alert for success/failure of credit change
 	$scope.dropsToLoad = 5;				// How many entries of drop history to load
+	// Drops Table directive config
+	$scope.drops_table = new $scope.DropsTable($scope.activeUser.drops, $scope.activeUser.cn, {
+		showMore: false
+	});
 
 	// Change the transaction type for updating credits (add, subtract, or update)
 	$scope.changeType = function(type) {
@@ -158,6 +165,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 				if (response.status) {
 					//$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
 					$scope.activeUser.drops = response.data;
+					$scope.drops_table.drops = $scope.activeUser.drops;
 				}
 				else {
 					$log.log(response.message);
@@ -180,6 +188,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 			// Get the active user's drink credit balance and drop history
 			$scope.getUserCredits();
 			$scope.getUserDrops();
+			$scope.drops_table.user = $scope.activeUser.cn;
 		}
 	}
 
@@ -375,7 +384,7 @@ function TempCtrl($scope, $log, TempService) {
 		            type: 'line'
 		        },
 		        title: {
-		            text: $scope.machines[id].name + 'Temperatures'
+		            text: $scope.machines[id].display_name + 'Temperatures'
 		        },
 		        xAxis: {
 		            title: {
@@ -408,13 +417,18 @@ function LogsCtrl($scope, $log, LogsService, DropService) {
 	$scope.logs = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
 	$scope.dropsToLoad = 50;	// How many drops to load at a time
+	// Drops Table directive config
+	$scope.drops_table = new $scope.DropsTable($scope.logs, $scope.current_user.cn, {
+		showUser: true
+	});
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
 		DropService.getDrops(false, $scope.dropsToLoad , $scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
 				if (response.status) {
-					$scope.logs.push.apply($scope.logs, response.data);
+					$scope.logs = $scope.logs.concat(response.data);
+					$scope.drops_table.drops = $scope.logs;
 					$scope.pagesLoaded += 1;
 				}
 				else {

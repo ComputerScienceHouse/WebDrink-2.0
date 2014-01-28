@@ -27,7 +27,8 @@ app.config(['$routeProvider', function($routeProvider) {
 		});
 }]);
 
-// Alert directive - data contains show (boolean), type (string, alert class), and message (string)
+// Alert directive - quickly display a Bootstrap Alert
+// data = {show: true/false, closeable: true/false, message: "default", type:"alert-warning"}
 app.directive("alert", function() {
 	return {
 		restrict: "E",
@@ -36,6 +37,19 @@ app.directive("alert", function() {
 			alert: "=data"
 		}
 	};
+});
+
+// Drops directive - table showing a user's drop history/combined drop log
+// drops = drop data (i.e. result of /users/drops API call)
+// user = user data (i.e. $scope.current_user)
+app.directive("drops", function() {
+	return {
+		restrict: "E",
+		templateUrl: "templates/drops_table.html",
+		scope: {
+			drops: "=data"
+		}
+	}
 });
 
 // Wrapper for Socket.IO functionality in Angular 
@@ -147,17 +161,29 @@ function RootCtrl($scope, $log, $window, $location) {
 	};
 	
 	// Default data for any alert directives
-	$scope.Alert = function() {
-		this.show = false;
-		this.closeable = true;
-		this.type = "alert-warning";
-		this.message = "default";
-	}
+	$scope.Alert = function(config) {
+		if (typeof config === 'undefined') config = {};
+		this.show = (config.hasOwnProperty("show")) ? config.show : false;
+		this.closeable = (config.hasOwnProperty("closeable")) ? config.closeable : true;
+		this.type = (config.hasOwnProperty("type")) ? config.type : "alert-warning";
+		this.message = (config.hasOwnProperty("message")) ? config.message : "default";
+	};
 	$scope.Alert.prototype = {
 		toggle: function() {
 			this.show = !this.show;
 		}
-	}
+	};
+
+	// Default data for any drops_table directives
+	$scope.DropsTable = function(drops, username, config) {
+		if (typeof config === 'undefined') config = {};
+		this.drops = drops;
+		this.user = username;
+		this.config = {
+			showUser: (config.hasOwnProperty("showUser")) ? config.showUser : false,
+			showMore: (config.hasOwnProperty("showMore")) ? config.showMore : true
+		}
+	};
 
 	// Activate the admin dropdown menu
 	if ($scope.current_user.admin) {
@@ -178,10 +204,11 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	$scope.dropping_message = "";
 	$scope.message = "";		// Message to display after edit
 	// Data for the websocket connection alert
-	$scope.websocket_alert = new $scope.Alert();
-	$scope.websocket_alert.message = "Warning: Websocket not connected!";
-	$scope.websocket_alert.show = true;
-	$scope.websocket_alert.closeable = false;
+	$scope.websocket_alert = new $scope.Alert({
+		message: "Warning: Websocket not connected!",
+		show: true,
+		closeable: false
+	});
 
 	// Get the initial stock
 	MachineService.getStockAll(
@@ -204,7 +231,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			function (response) {
 				if (response.status) {
 					$scope.items = response.data;
-					//$log.log($scope.items);
 				}
 				else {
 					$log.log(response.message);
@@ -218,7 +244,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 		$scope.lookupItem = function (id) {
 			for (var i = 0; i < $scope.items.length; i++) {
 				if ($scope.items[i].item_id == id) {
-					//$log.log("Found it: "+$scope.items[i].item_name);
 					return $scope.items[i];
 				}
 			}
@@ -231,8 +256,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			$scope.new_slot.item_id = $scope.current_slot.item_id;
 			$scope.new_slot.available = Number($scope.current_slot.available);
 			$scope.new_slot.status = $scope.current_slot.status;
-			//$log.log("Edit:");
-			//$log.log($scope.new_slot);
 		};
 		// Save a slot
 		$scope.saveSlot = function () {
@@ -265,11 +288,12 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	}; 
 	// Drop a drink
 	$scope.dropDrink = function() {
+		$log.log("dropDrink");
 		$scope.wsDrop($scope.current_slot.slot_num, $scope.machines[$scope.current_slot.machine_id].alias);
-		//$scope.reduceDelay();
 	}
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
+		$log.log("reduceDelay");
 		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
 		var i = $timeout(function () {
 			if ($scope.delay == 0) {
@@ -407,6 +431,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Tell the server to drop a drink
 	$scope.wsDrop = function(slot_num, machine_alias) {
+		$log.log("wsDrop");
 		// First Request: connect to the drink machine
 		// Request command
 		var machine_command = function() {
@@ -512,8 +537,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Establish a websocket connection
 	$scope.wsConnect();
-	$scope.websocket_alert.show = $scope.authed;
-
 }
 
 // Controller for the drops page
@@ -522,13 +545,16 @@ function DropCtrl($scope, $window, $log, DropService) {
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
 	$scope.dropsToLoad = 25;	// How many drops to load at a time
+	// Drops Table directive config
+	$scope.drops_table = new $scope.DropsTable($scope.drops, $scope.current_user.cn);
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
 		DropService.getDrops($window.current_user.uid, $scope.dropsToLoad, $scope.pagesLoaded * $scope.dropsToLoad,
 			function (response) {
 				if (response.status) {
-					$scope.drops.push.apply($scope.drops, response.data);
+					$scope.drops = $scope.drops.concat(response.data);
+					$scope.drops_table.drops = $scope.drops;
 					$scope.pagesLoaded += 1;
 				}
 				else {
