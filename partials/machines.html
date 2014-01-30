@@ -54,7 +54,8 @@
 					<h4 class="modal-title">Edit {{ current_slot.display_name }} Slot {{ current_slot.slot_num }}?</h4>
 				</div>
 				<div class="modal-body">
-					<!--<pre>{{ current_slot | json }}</pre>-->
+					<!--<pre>{{ current_slot | json }}</pre>
+					<pre>{{ new_slot | json }}</pre>-->
 					<form class="form-horizontal" role="form">
 					    <div class="form-group row">
 					    	<div class="col-md-3">
@@ -62,7 +63,7 @@
 					    	</div>
 						    <div class="col-md-9">
 						        <select class="form-control" ng-model="new_slot.item_id">
-									<option ng-repeat="item in items" ng-value="item.item_id" ng-selected="current_slot.item_id == item.item_id ">{{ item.item_name }}</option>
+									<option ng-repeat="item in items | orderBy:'item_name'" ng-value="item.item_id" ng-selected="current_slot.item_id == item.item_id">{{ item.item_name }}</option>
 								</select>
 						    </div>
 					    </div>
@@ -86,7 +87,6 @@
 						    </div>
 					    </div>
 					</form>
-					<!--<pre>{{ new_slot | json }}</pre>-->
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>

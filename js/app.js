@@ -40,8 +40,7 @@ app.directive("alert", function() {
 });
 
 // Drops directive - table showing a user's drop history/combined drop log
-// drops = drop data (i.e. result of /users/drops API call)
-// user = user data (i.e. $scope.current_user)
+// data = {}
 app.directive("drops", function() {
 	return {
 		restrict: "E",
@@ -259,26 +258,27 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 		};
 		// Save a slot
 		$scope.saveSlot = function () {
-			MachineService.updateSlot($scope.new_slot, 
-				function (response) {
-					//$log.log(response);
-					if (response.status) {
-						$scope.current_slot.item_id = $scope.new_slot.item_id;
-						$scope.current_slot.available = Number($scope.new_slot.available);
-						$scope.current_slot.status = $scope.new_slot.status;
-						$scope.current_slot.item_name = $scope.lookupItem($scope.new_slot.item_id).item_name;
-						$scope.current_slot.item_price = $scope.lookupItem($scope.new_slot.item_id).item_price;
-						$scope.message = "Edit success!";
+			if ($scope.new_slot.item_id > 1) {
+				MachineService.updateSlot($scope.new_slot, 
+					function (response) {
+						if (response.status) {
+							$scope.current_slot.item_id = $scope.new_slot.item_id;
+							$scope.current_slot.available = Number($scope.new_slot.available);
+							$scope.current_slot.status = $scope.new_slot.status;
+							$scope.current_slot.item_name = $scope.lookupItem($scope.new_slot.item_id).item_name;
+							$scope.current_slot.item_price = $scope.lookupItem($scope.new_slot.item_id).item_price;
+							$scope.message = "Edit success!";
+						}
+						else {
+							$scope.message = response.message;
+						}
+						jQuery("#saveSlotModal").modal('show');
+					},
+					function (error) {
+						$log.log(error);
 					}
-					else {
-						$scope.message = response.message;
-					}
-					jQuery("#saveSlotModal").modal('show');
-				},
-				function (error) {
-					$log.log(error);
-				}
-			);
+				);
+			}
 		}
 	}
 	// Initialize modal data for dropping a drink
@@ -317,7 +317,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 		this.callback = callback;			// Callback to execute on command success
 		this.command_data = command_data;   // Data being passed to the command
 	};
-	$scope.Request.prototype =  {
+	$scope.Request.prototype = {
 		// Execute the Request's callback function
 		runCallback: function(callback_data) {
 			this.callback(callback_data);
