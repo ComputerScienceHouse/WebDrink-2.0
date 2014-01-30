@@ -79,6 +79,17 @@ body {
 	width: 45%;
 }
 
+.drops-table {
+	margin-bottom: 0;
+}
+
+/* prevent the credit buttons from wrapping on very small screens */
+@media (max-width: 350px) {
+	.credit-buttons {
+		padding-right: 0;
+	}
+}
+
 /*
 .actions {
 	width: 50%;

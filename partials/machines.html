@@ -1,4 +1,5 @@
 <div ng-controller="MachineCtrl">
+	<alert data="websocket_alert"></alert>
 	<!-- Select Slot Modal -->
 	<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="Select Slot" aria-hidden="true">
 		<div class="modal-dialog">
@@ -22,7 +23,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-success" data-dismiss="modal" data-toggle="modal" data-target="#dropModal" ng-click="dropDrink();">Drop</button>
+					<button type="button" class="btn btn-success" data-dismiss="modal" data-toggle="modal" data-target="#dropModal" ng-click="reduceDelay();">Drop</button>
 				</div>
 			</div>
 		</div>
@@ -36,7 +37,7 @@
 					<h4 class="modal-title">Dropping Drink...</h4>
 				</div>
 				<div class="modal-body">
-					<p class="center">Dropping in {{ delay }} seconds...</p>
+					<p class="center">{{ dropping_message }}</p>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
@@ -53,7 +54,8 @@
 					<h4 class="modal-title">Edit {{ current_slot.display_name }} Slot {{ current_slot.slot_num }}?</h4>
 				</div>
 				<div class="modal-body">
-					<!--<pre>{{ current_slot | json }}</pre>-->
+					<!--<pre>{{ current_slot | json }}</pre>
+					<pre>{{ new_slot | json }}</pre>-->
 					<form class="form-horizontal" role="form">
 					    <div class="form-group row">
 					    	<div class="col-md-3">
@@ -61,7 +63,7 @@
 					    	</div>
 						    <div class="col-md-9">
 						        <select class="form-control" ng-model="new_slot.item_id">
-									<option ng-repeat="item in items" ng-value="item.item_id" ng-selected="current_slot.item_id == item.item_id ">{{ item.item_name }}</option>
+									<option ng-repeat="item in items | orderBy:'item_name'" ng-value="item.item_id" ng-selected="current_slot.item_id == item.item_id">{{ item.item_name }}</option>
 								</select>
 						    </div>
 					    </div>
@@ -85,7 +87,6 @@
 						    </div>
 					    </div>
 					</form>
-					<!--<pre>{{ new_slot | json }}</pre>-->
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>

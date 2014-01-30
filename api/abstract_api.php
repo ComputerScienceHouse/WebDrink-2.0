@@ -36,7 +36,7 @@ abstract class API
 		$this->method = $_SERVER["REQUEST_METHOD"];
 
 		// Get the remainder of the arguments as key->value pairs
-		$tmp = array();
+		/*$tmp = array();
 		if (count($this->args) % 2) {
 			for ($i = 0; $i < count($this->args); $i += 2) {
 				$tmp[$this->args[$i]] = $this->args[$i+1];
@@ -47,7 +47,7 @@ abstract class API
 				$tmp[$this->args[$i]] = $this->args[$i+1];
 			}
 		}
-		$this->args = $tmp;
+		$this->args = $tmp;*/
 
 		// Sanitise the input
 		if ($this->method == "POST") 
