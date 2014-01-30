@@ -69,7 +69,13 @@ class DrinkAPI extends API
 
 	// Test endpoint - make sure you can contact the API
 	protected function test() {
-		return array("status" => true, "message" => "Test Success!", "data" => true);
+		switch ($this->verb) {
+			case "api":
+
+				break;
+			default:
+				return array("status" => true, "message" => "Test Success!", "data" => true);
+		}
 	}
 
 	// Users enpoint - call the various user-related API methods
@@ -357,6 +363,15 @@ class DrinkAPI extends API
 					$result["message"] = "Error: failed to query database (users.drops)";
 					$result["data"] = false;
 				}
+				break;
+			/*
+			*	Endpoint: users.apikey
+			*
+			*	Methods:
+			*	- get_key: GET /apikey
+			*/
+			case "apikey": 
+
 				break;
 			/*
 			*	Base case - no specific API method called

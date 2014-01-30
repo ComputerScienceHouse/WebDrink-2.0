@@ -1,8 +1,10 @@
-<alert data="api_alert" class="center"></alert>
-<div class="center" ng-show="api_key">
-	<h4>Your API Key Is: {{ api_key }}</h4>
-</div>
-<div class="center" ng-hide="api_key">
-	<h4>Looks like you need an API key...</h4>
-	<button type="button" class="btn btn-primary btn-lg" ng-click="generateKey();">Generate API Key</button>
+<div ng-controller="APICtrl">
+	<alert data="api_alert" class="center"></alert>
+	<div class="center" ng-show="api_key">
+		<h4>Your API Key Is: {{ api_key }}</h4>
+	</div>
+	<div class="center" ng-hide="api_key">
+		<h4>Looks like you need an API key...</h4>
+		<button type="button" class="btn btn-primary btn-lg" ng-click="generateKey();">Generate API Key</button>
+	</div>
 </div>

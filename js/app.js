@@ -22,6 +22,10 @@ app.config(['$routeProvider', function($routeProvider) {
 			templateUrl: 'partials/drops.html',
 			controller: 'DropCtrl'
 		}).
+		when('/api', {
+			templateUrl: 'partials/api.html',
+			controller: 'APICtrl'
+		}).
 		otherwise({
 			redirectTo: '/machines'
 		});
@@ -566,3 +570,16 @@ function DropCtrl($scope, $window, $log, DropService) {
 	// Get the first page of a user's drops
 	$scope.getDrops();
 }
+
+// Controller for the API page
+function APICtrl($scope, $window, $log) {
+	$scope.api_alert = new $scope.Alert({
+		message: "Want to use an external Drink client? Add this API key to the application to authenticate!",
+		type: "alert-info",
+		show: true,
+		closeable: false
+	});
+
+	$scope.api_key = false;
+}
+
