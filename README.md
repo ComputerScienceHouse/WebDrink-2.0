@@ -23,7 +23,7 @@ Feature Checklist
 
 Front-end:
 * ~~Machines (Minus Drops)~~
-* ~Machines (With Drops)~     
+* ~~Machines (With Drops)~~     
 * ~~Machines Admin Stuff~~
 * ~~User's Drop History~~  
 * ~~Admin Panel: Users~~
