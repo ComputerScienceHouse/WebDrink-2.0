@@ -447,20 +447,20 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 				if (data.substr(0, 2) == 'OK') {
 					$scope.dropping_message = "Drink dropped!";
 					// Update my drink credits
-					//$scope.current_user.credits -= $scope.current_slot.item_price;
-					/*MachineService.getCredits($scope.current_user.uid,
+					$scope.current_user.credits -= $scope.current_slot.item_price;
+					MachineService.getCredits($scope.current_user.uid,
 						function (response) {
 							if (response.status) {
 								$scope.current_user.credits = response.data;
 							}
 							else {
-								$log.log("uh oh");
+								$log.log(response.message);
 							}
 						},
 						function (error) {
 							$log.log(error);
 						}
-					);*/
+					);
 				}
 				else {
 					$scope.dropping_message = data;
