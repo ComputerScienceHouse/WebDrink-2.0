@@ -181,7 +181,8 @@ function RootCtrl($scope, $log, $window, $location) {
 		this.user = username;
 		this.config = {
 			showUser: (config.hasOwnProperty("showUser")) ? config.showUser : false,
-			showMore: (config.hasOwnProperty("showMore")) ? config.showMore : true
+			showMore: (config.hasOwnProperty("showMore")) ? config.showMore : true,
+			isCondensed: (config.hasOwnProperty("isCondensed")) ? config.isCondensed : false
 		}
 	};
 
@@ -206,7 +207,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	// Data for the websocket connection alert
 	$scope.websocket_alert = new $scope.Alert({
 		message: "Warning: Websocket not connected!",
-		show: true,
 		closeable: false
 	});
 
@@ -288,12 +288,10 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	}; 
 	// Drop a drink
 	$scope.dropDrink = function() {
-		$log.log("dropDrink");
 		$scope.wsDrop($scope.current_slot.slot_num, $scope.machines[$scope.current_slot.machine_id].alias);
 	}
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
-		$log.log("reduceDelay");
 		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
 		var i = $timeout(function () {
 			if ($scope.delay == 0) {
@@ -401,7 +399,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 		// Handle the next request
 		$scope.current_request = null;
 		$scope.requesting = false;
-		$scope.processeQueue();
+		$scope.wsProcessQueue();
 	};
 
 	// Connect to the drinkjs server
@@ -416,6 +414,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			// If the status was OK, we authed successfully
 			if (data.substr(0, 2) == 'OK') {
 				self.authed = true;
+				$scope.websocket_alert.show = false;
 			}
 			// If not, we have a bogus iButton
 			else {
@@ -431,7 +430,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Tell the server to drop a drink
 	$scope.wsDrop = function(slot_num, machine_alias) {
-		$log.log("wsDrop");
 		// First Request: connect to the drink machine
 		// Request command
 		var machine_command = function() {
@@ -450,7 +448,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 					$scope.dropping_message = "Drink dropped!";
 					// Update my drink credits
 					//$scope.current_user.credits -= $scope.current_slot.item_price;
-					MachineService.getCredits($scope.current_user.uid,
+					/*MachineService.getCredits($scope.current_user.uid,
 						function (response) {
 							if (response.status) {
 								$scope.current_user.credits = response.data;
@@ -462,9 +460,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 						function (error) {
 							$log.log(error);
 						}
-					);
-					// Update the stock
-
+					);*/
 				}
 				else {
 					$scope.dropping_message = data;

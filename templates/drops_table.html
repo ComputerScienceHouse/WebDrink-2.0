@@ -1,0 +1,18 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h3 class="panel-title">{{drops.user}}'s Drops</h3>
+	</div>
+	<div class="table-responsive">
+		<table class="table table-striped" ng-class="(drops.config.isCondensed) ? 'table-condensed' : ''">
+			<tr><th>Machine</th><th>Item</th><th>Price</th><th ng-show="drops.config.showUser">User</th><th>Time</th></tr>
+			<tr ng-repeat="drop in drops.drops" ng-class="(drop.status != 'ok') ? 'warning' : ''">
+				<td>{{ drop.display_name }}</td>
+				<td>{{ drop.item_name }}</td>
+				<td>{{ drop.current_item_price}}</td>
+				<td ng-show="drops.config.showUser">{{ drop.username }}</td>
+				<td>{{ drop.time }}</td>
+			</tr>
+		</table>
+	</div>
+</div>
+<p class="center" ng-show="drops.config.showMore"><button type="button" class="btn btn-primary" ng-disabled="done == true" ng-click="$parent.getDrops();">Load More Drops</button><br/></p>
