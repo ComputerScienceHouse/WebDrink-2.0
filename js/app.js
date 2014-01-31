@@ -97,7 +97,22 @@ app.factory("DropService", function($http, $window, $log) {
 				url += "/"+offset;
 			}
 			$http.get(url).success(successCallback).error(errorCallback);
-			//$log.log(url);
+		}
+	};
+});
+
+// API Service - generate or retrieve a user's API key
+app.factory("APIService", function($http, $window, $log) {
+	return {
+		// Get a user's API key
+		retrieveKey: function(successCallback, errorCallback) {
+			$http.get(baseUrl+"users/apikey").success(successCallback).error(errorCallback);
+		},
+		generateKey: function(successCallback, errorCallback) {
+			$http.post(baseUrl+"users/apikey", {}).success(successCallback).error(errorCallback);
+		},
+		deleteKey: function(successCallback, errorCallback) {
+			$http.post(baseUrl+"users/apikey/delete", {}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -572,14 +587,63 @@ function DropCtrl($scope, $window, $log, DropService) {
 }
 
 // Controller for the API page
-function APICtrl($scope, $window, $log) {
-	$scope.api_alert = new $scope.Alert({
-		message: "Want to use an external Drink client? Add this API key to the application to authenticate!",
-		type: "alert-info",
-		show: true,
-		closeable: false
-	});
-
+function APICtrl($scope, $window, $log, APIService) {
 	$scope.api_key = false;
+	$scope.date = "";
+
+	$scope.retrieveKey = function() {
+		APIService.retrieveKey(
+			function (response) {
+				if (response.status) {
+					$scope.api_key = response.data.api_key;
+					$scope.date = response.data.date;
+				}
+				else {
+					$scope.api_key = false;
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	};
+
+	$scope.generateKey = function() {
+		$scope.api_key = false;
+		APIService.generateKey(
+			function (response) {
+				if (response.status) {
+					$scope.api_key = response.data.api_key;
+					$scope.date = response.data.date;
+				}
+				else {
+					$scope.api_key = false;
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	};
+
+	$scope.deleteKey = function () {
+		APIService.deleteKey(
+			function (response) {
+				if (response.status) {
+					$scope.api_key = false;
+					$scope.date = "";
+				}
+				else {
+					$log.log("uh...");
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	$scope.retrieveKey();
+	
 }
 

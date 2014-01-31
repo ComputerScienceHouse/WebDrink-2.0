@@ -1,10 +1,23 @@
 <div ng-controller="APICtrl">
-	<alert data="api_alert" class="center"></alert>
-	<div class="center" ng-show="api_key">
-		<h4>Your API Key Is: {{ api_key }}</h4>
-	</div>
-	<div class="center" ng-hide="api_key">
-		<h4>Looks like you need an API key...</h4>
-		<button type="button" class="btn btn-primary btn-lg" ng-click="generateKey();">Generate API Key</button>
+	<div class="row center">
+		<div class="col-md-6 col-md-offset-3" ng-show="(api_key != false)">
+			<h4>Your API Key Is:</h4>
+			<h3>{{ api_key }}</h3>
+			<p>This API key was generated on {{ date }}</p>
+			<button type="button" class="btn btn-primary spacer-v" ng-click="generateKey();">Generate New API Key</button>
+			<button type="button" class="btn btn-danger spacer-v" ng-click="deleteKey();">Delete API Key</button>
+			<br/><br/>
+		</div>
+		<div class="col-md-6 col-md-offset-3" ng-show="(api_key == false)">
+			<h4>Looks like you need an API key...</h4>
+			<button type="button" class="btn btn-primary btn-lg" ng-click="generateKey();">Generate API Key</button>
+			<br/><br/>
+		</div>
+		<div class="col-md-6 col-md-offset-3">
+			<div class="well">
+				<p>Use this API key to authenticate with external Drink clients.</p>
+				<p class="small-text">Your API key is equivalent to your username and password: Anyone who knows it can log into Drink clients (other than WebDrink) as you. Only give your key to applications you trust, and generate a new one if you suspect it has been compromised.</p>
+			</div>
+		</div>
 	</div>
 </div>

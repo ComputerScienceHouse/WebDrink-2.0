@@ -83,6 +83,10 @@ body {
 	margin-bottom: 0;
 }
 
+.small-text {
+	font-size: .85em;
+}
+
 /* prevent the credit buttons from wrapping on very small screens */
 @media (max-width: 350px) {
 	.credit-buttons {
