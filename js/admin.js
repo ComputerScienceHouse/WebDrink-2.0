@@ -100,7 +100,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 	$scope.alert = new $scope.Alert();	    // Alert for success/failure of credit change
 	$scope.dropsToLoad = 5;				// How many entries of drop history to load
 	// Drops Table directive config
-	$scope.drops_table = new $scope.DropsTable($scope.activeUser.drops, $scope.activeUser.cn, {
+	$scope.drops_table = new $scope.DropsTable($scope.activeUser.drops, $scope.activeUser.cn + "'s Recent Drops", {
 		showMore: false
 	});
 
@@ -188,7 +188,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 			// Get the active user's drink credit balance and drop history
 			$scope.getUserCredits();
 			$scope.getUserDrops();
-			$scope.drops_table.user = $scope.activeUser.cn;
+			$scope.drops_table.title = $scope.activeUser.cn + "'s Recent Drops";
 		}
 	}
 
@@ -418,7 +418,7 @@ function LogsCtrl($scope, $log, LogsService, DropService) {
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
 	$scope.dropsToLoad = 50;	// How many drops to load at a time
 	// Drops Table directive config
-	$scope.drops_table = new $scope.DropsTable($scope.logs, $scope.current_user.cn, {
+	$scope.drops_table = new $scope.DropsTable($scope.logs, "Drop Logs", {
 		showUser: true
 	});
 

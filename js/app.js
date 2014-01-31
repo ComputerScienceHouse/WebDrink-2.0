@@ -193,10 +193,10 @@ function RootCtrl($scope, $log, $window, $location) {
 	};
 
 	// Default data for any drops_table directives
-	$scope.DropsTable = function(drops, username, config) {
+	$scope.DropsTable = function(drops, title, config) {
 		if (typeof config === 'undefined') config = {};
 		this.drops = drops;
-		this.user = username;
+		this.title = title;
 		this.config = {
 			showUser: (config.hasOwnProperty("showUser")) ? config.showUser : false,
 			showMore: (config.hasOwnProperty("showMore")) ? config.showMore : true,
@@ -423,6 +423,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Connect to the drinkjs server
 	$scope.wsConnect = function() {
+		$scope.websocket_alert.show = true;
 		// Request command
 		var command = function() {
 			// Send the ibutton command to the server to validate your ibutton
@@ -561,7 +562,7 @@ function DropCtrl($scope, $window, $log, DropService) {
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
 	$scope.dropsToLoad = 25;	// How many drops to load at a time
 	// Drops Table directive config
-	$scope.drops_table = new $scope.DropsTable($scope.drops, $scope.current_user.cn);
+	$scope.drops_table = new $scope.DropsTable($scope.drops, $scope.current_user.cn + "'s Drops");
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
