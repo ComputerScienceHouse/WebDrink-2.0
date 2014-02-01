@@ -22,7 +22,7 @@
 	<div id="header">
 		<h1>hullo i am a more differnt drink client</h1>
 		<p>here belong your api key: <input type="text" id="apikeyholder"/></p>
-		<p>press this to make it work: <button type="button" id="startup">Click</button></p>
+		<p>press this to make it work: <button type="button" id="startup">click</button></p>
 	</div>
 	<hr/>
 	<div id="therest" class="hide">
@@ -74,7 +74,7 @@
 										var machine = response.data[i];
 										var html = "<tr><th>drank</th><th>monies</th><th>buttons</th></tr>";
 										for (var j = 0; j < machine.length; j++) {
-											html += "<tr><td>"+machine[j].item_name+"</td><td>"+machine[j].item_price+"</td><td><button>drop</button>";
+											html += "<tr><td>"+machine[j].item_name+"</td><td>"+machine[j].item_price+"</td><td><button onclick='alert(\"LOL\");'>drop</button>";
 										}
 										if (machine[0].machine_id == "1") {
 											$("#littledrink").html(html);

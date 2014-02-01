@@ -225,8 +225,14 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	// Data for the websocket connection alert
 	$scope.websocket_alert = new $scope.Alert({
 		message: "Warning: Websocket not connected!",
+		show: true,
 		closeable: false
 	});
+	// Websocket connection variables
+	$scope.authed = false; 			// Authentication status
+	$scope.requesting = false; 		// Are we currently handling a request?
+	$scope.request_queue = []; 		// Array of pending requests
+	$scope.current_request = null; 	// Current request being processed
 
 	// Get the initial stock
 	MachineService.getStockAll(
@@ -304,6 +310,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	$scope.selectDrink = function (slot) {
 		$scope.current_slot = slot;
 		$scope.delay = 0;
+		$log.log($scope.authed);
 	}; 
 	// Drop a drink
 	$scope.dropDrink = function() {
@@ -311,20 +318,25 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	}
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
-		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-		var i = $timeout(function () {
-			if ($scope.delay == 0) {
-				$timeout.cancel(i);
-				$scope.dropDrink();
-				//jQuery("#dropModal").modal('hide');
-				//$scope.dropping_message = "Drink dropped!";
-			}
-			else {
-				$scope.delay -= 1;
-				$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-				$scope.reduceDelay();
-			}
-		}, 1000);
+		if (!$scope.authed) {
+			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
+		}
+		else {
+			$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+			var i = $timeout(function () {
+				if ($scope.delay == 0) {
+					$timeout.cancel(i);
+					$scope.dropDrink();
+					//jQuery("#dropModal").modal('hide');
+					//$scope.dropping_message = "Drink dropped!";
+				}
+				else {
+					$scope.delay -= 1;
+					$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+					$scope.reduceDelay();
+				}
+			}, 1000);
+		}
 	};
 
 	// Request object
@@ -346,12 +358,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			this.command(this.command_data);
 		}
 	};
-
-	// Websocket connection variables
-	$scope.authed = false; 			// Authentication status
-	$scope.requesting = false; 		// Are we currently handling a request?
-	$scope.request_queue = []; 		// Array of pending requests
-	$scope.current_request = null; 	// Current request being processed
 
 	// Initialize Websocket Events
 	socket.on('connect', function() {
@@ -423,7 +429,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Connect to the drinkjs server
 	$scope.wsConnect = function() {
-		$scope.websocket_alert.show = true;
 		// Request command
 		var command = function() {
 			// Send the ibutton command to the server to validate your ibutton
@@ -433,12 +438,12 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 		var callback = function(data) {
 			// If the status was OK, we authed successfully
 			if (data.substr(0, 2) == 'OK') {
-				self.authed = true;
+				$scope.authed = true;
 				$scope.websocket_alert.show = false;
 			}
 			// If not, we have a bogus iButton
 			else {
-				self.authed = false;
+				$scope.authed = false;
 				$scope.websocket_alert.message = "Warning: Invalid iButton";
 				$scope.websocket_alert.show = true;
 			}
