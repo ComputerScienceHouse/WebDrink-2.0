@@ -589,9 +589,12 @@ function DropCtrl($scope, $window, $log, DropService) {
 
 // Controller for the API page
 function APICtrl($scope, $window, $log, APIService) {
-	$scope.api_key = false;
-	$scope.date = "";
+	$scope.api_key = false;	// User's API key
+	$scope.date = "";		// Date the API key was generated
+	// Message to display to the user
+	$scope.message = "Looks like you need an API key!";
 
+	// Get the user's API key
 	$scope.retrieveKey = function() {
 		APIService.retrieveKey(
 			function (response) {
@@ -601,6 +604,8 @@ function APICtrl($scope, $window, $log, APIService) {
 				}
 				else {
 					$scope.api_key = false;
+					$scope.message = "Looks like you need an API key!";
+					$log.log(response.message);
 				}
 			},
 			function (error) {
@@ -609,8 +614,10 @@ function APICtrl($scope, $window, $log, APIService) {
 		);
 	};
 
+	// Generate a new key for the user
 	$scope.generateKey = function() {
 		$scope.api_key = false;
+		$scope.message = "Generating your API key...";
 		APIService.generateKey(
 			function (response) {
 				if (response.status) {
@@ -627,11 +634,13 @@ function APICtrl($scope, $window, $log, APIService) {
 		);
 	};
 
+	// Delete the user's current API key
 	$scope.deleteKey = function () {
 		APIService.deleteKey(
 			function (response) {
 				if (response.status) {
 					$scope.api_key = false;
+					$scope.message = "Looks like you need an API key!";
 					$scope.date = "";
 				}
 				else {
@@ -644,7 +653,7 @@ function APICtrl($scope, $window, $log, APIService) {
 		);
 	}
 
-	$scope.retrieveKey();
-	
+	// Check for the user's API key
+	$scope.retrieveKey();	
 }
 

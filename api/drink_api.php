@@ -30,7 +30,7 @@ class DrinkAPI extends API
 			$this->webauth = true;
 		} 
 		else if ($this->api_key) {
-			$this->uid = lookupAPIKey();
+			$this->uid = $this->lookupAPIKey();
 			$this->webauth = false;
 		}
 		else {
@@ -62,7 +62,7 @@ class DrinkAPI extends API
 
 	// Lookup api key
 	protected function lookupAPIKey() {
-		$sql = "SELECT * FROM api_key WHERE api_key = :apiKey";
+		$sql = "SELECT * FROM api_keys WHERE api_key = :apiKey";
 		$params["apiKey"] = $this->api_key;
 		$query = db_select($sql, $params); 
 		if ($query) {
@@ -254,6 +254,47 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
+			*	
+			*/
+			case "info":
+				if ($this->webauth && $this->api_key) {
+					$result["status"] = false;
+					$result["message"] = "Error: must include api_key (users.info)";
+					$result["data"] = false;
+					break;
+				}
+				if ($this->method == "GET") {
+ 					if (!$this->uid) {
+ 						$result["status"] = false;
+ 						$result["message"] = "Error: uid not supplied (users.info)";
+ 						$result["data"] = false;
+ 					}
+ 					$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
+ 					$data = ldap_lookup($this->uid, $fields);
+ 					if ($data) {
+ 						$tmp = array();
+ 						$tmp["uid"] = $this->uid;
+ 						$tmp["credits"] = $data[0]["drinkbalance"][0];
+ 						$tmp["admin"] = $data[0]["drinkadmin"][0];
+ 						$tmp["ibutton"] = $data[0]["ibutton"][0];
+ 						$tmp["cn"] = $data[0]["cn"][0];
+ 						$result["status"] = true;
+ 						$result["message"] = "Success (users.info)";
+ 						$result["data"] = $tmp;
+ 					}
+ 					else {
+ 						$result["status"] = false;
+ 						$result["message"] = "Error: failed to query LDAP (users.info)";
+ 						$result["data"] = false;
+ 					}
+ 				}
+ 				else {
+ 					$result["status"] = false;
+ 					$result["message"] = "Error: only accepts GET requests (users.info)";
+ 					$result["data"] = false;
+ 				}
+				break;
+			/*
 			*	Endpoint: users.ibutton
 			*
 			*	Methods:
@@ -310,7 +351,7 @@ class DrinkAPI extends API
 			*	Endpoint: users.drops
 			*
 			*	Methods:
-			*	- drops_one: GET /drops/:uid
+			*	- drops_one: GET /drops/user/:uid
 			*	- drops_all: GET /drops
 			*/
 			case "drops":
@@ -441,8 +482,8 @@ class DrinkAPI extends API
 				else if ($this->method == "POST" && !$delete) {
 					// Generate an API key
 					$salt = time();
-					$apiKey = sha1($this->uid.$salt);
-					$apiKey = substr($apiKey, 0, strlen($apiKey) - 1);
+					$apiKey = sha1(md5($this->uid.$salt));
+					//$apiKey = substr($apiKey, 0, strlen($apiKey) - 1);
 					// Form the SQL query
 					$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
 					$params["uid"] = $this->uid;

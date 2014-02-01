@@ -9,14 +9,14 @@
 			<br/><br/>
 		</div>
 		<div class="col-md-6 col-md-offset-3" ng-show="(api_key == false)">
-			<h4>Looks like you need an API key...</h4>
+			<h4>{{ message }}</h4>
 			<button type="button" class="btn btn-primary btn-lg" ng-click="generateKey();">Generate API Key</button>
 			<br/><br/>
 		</div>
 		<div class="col-md-6 col-md-offset-3">
 			<div class="well">
-				<p>Use this API key to authenticate with external Drink clients.</p>
-				<p class="small-text">Your API key is equivalent to your username and password: Anyone who knows it can log into Drink clients (other than WebDrink) as you. Only give your key to applications you trust, and generate a new one if you suspect it has been compromised.</p>
+				<p>Use this API key to authenticate with other Drink clients.</p>
+				<p class="small-text">Your API key is equivalent to your username and password. Anyone who knows it can log into Drink clients (other than WebDrink) as you. Only give your key to applications you trust, and generate a new one if you suspect it has been compromised.</p>
 			</div>
 		</div>
 	</div>

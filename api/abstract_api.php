@@ -15,7 +15,7 @@ abstract class API
 	// Paramaters passed with the request
 	protected $args = array();
 	// API Key
-	protected $api_key = 0;
+	protected $api_key = false;
 
 	// Constructor
 	public function __construct($request) {
@@ -38,9 +38,11 @@ abstract class API
 		$this->method = $_SERVER["REQUEST_METHOD"];
 
 		// Check for an API key
+		//die(var_dump($this->args));
 		for ($i = 0; $i < count($this->args); $i++) {
-			if ($this->args[$i] == "api_key") {
+			if ($this->args[$i] == "api_key" && array_key_exists($i+1, $this->args)) {
 				$this->api_key = $this->args[$i+1];
+				array_slice($this->args, $i, 2);
 				break;
 			}
 		}
