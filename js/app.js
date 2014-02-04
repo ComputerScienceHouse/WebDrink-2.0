@@ -32,7 +32,7 @@ app.config(['$routeProvider', function($routeProvider) {
 }]);
 
 // Alert directive - quickly display a Bootstrap Alert
-// data = {show: true/false, closeable: true/false, message: "default", type:"alert-warning"}
+// See $scope.Alert in RootCtrl for parameters details
 app.directive("alert", function() {
 	return {
 		restrict: "E",
@@ -44,7 +44,7 @@ app.directive("alert", function() {
 });
 
 // Drops directive - table showing a user's drop history/combined drop log
-// data = {}
+// See $scope.DropsTable in RootCtrl for parameters details
 app.directive("drops", function() {
 	return {
 		restrict: "E",
