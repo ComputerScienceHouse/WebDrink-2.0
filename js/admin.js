@@ -379,12 +379,13 @@ function TempCtrl($scope, $log, TempService) {
 	// Draw a temperature chart
 	$scope.drawChart = function(id, data) {
 		jQuery(function () {
-		    jQuery("#"+$scope.machines[id].alias).highcharts({
+			console.log("drawChart("+id+")");
+		    jQuery("#"+$scope.machines[id].name).highcharts({
 		        chart: {
 		            type: 'line'
 		        },
 		        title: {
-		            text: $scope.machines[id].display_name + 'Temperatures'
+		            text: $scope.machines[id].display_name + ' Temperatures'
 		        },
 		        xAxis: {
 		            title: {
@@ -398,10 +399,11 @@ function TempCtrl($scope, $log, TempService) {
 		            }
 		        },
 		        series: [{
-		            name: $scope.machines[id].name,
+		            name: $scope.machines[id].display_name,
 		            data: data
 		        }]
 		    });
+		    console.log("done");
 		});
 	}
 

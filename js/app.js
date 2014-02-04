@@ -166,9 +166,9 @@ function RootCtrl($scope, $log, $window, $location) {
 		},
 		2: {
 			"id": 2,
-			"alias": "bigdrink",
+			"name": "bigdrink",
 			"display_name": "Big Drink",
-			"alias":"s"
+			"alias":"d"
 		},
 		3: {
 			"id": 3,
