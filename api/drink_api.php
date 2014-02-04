@@ -482,8 +482,7 @@ class DrinkAPI extends API
 				else if ($this->method == "POST" && !$delete) {
 					// Generate an API key
 					$salt = time();
-					$apiKey = sha1(md5($this->uid.$salt));
-					//$apiKey = substr($apiKey, 0, strlen($apiKey) - 1);
+					$apiKey = md5(sha1($this->uid.$salt));
 					// Form the SQL query
 					$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
 					$params["uid"] = $this->uid;
