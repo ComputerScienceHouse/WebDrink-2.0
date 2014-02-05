@@ -22,13 +22,17 @@ app.config(['$routeProvider', function($routeProvider) {
 			templateUrl: 'partials/drops.html',
 			controller: 'DropCtrl'
 		}).
+		when('/api', {
+			templateUrl: 'partials/api.html',
+			controller: 'APICtrl'
+		}).
 		otherwise({
 			redirectTo: '/machines'
 		});
 }]);
 
 // Alert directive - quickly display a Bootstrap Alert
-// data = {show: true/false, closeable: true/false, message: "default", type:"alert-warning"}
+// See $scope.Alert in RootCtrl for parameters details
 app.directive("alert", function() {
 	return {
 		restrict: "E",
@@ -40,7 +44,7 @@ app.directive("alert", function() {
 });
 
 // Drops directive - table showing a user's drop history/combined drop log
-// data = {}
+// See $scope.DropsTable in RootCtrl for parameters details
 app.directive("drops", function() {
 	return {
 		restrict: "E",
@@ -93,7 +97,22 @@ app.factory("DropService", function($http, $window, $log) {
 				url += "/"+offset;
 			}
 			$http.get(url).success(successCallback).error(errorCallback);
-			//$log.log(url);
+		}
+	};
+});
+
+// API Service - generate or retrieve a user's API key
+app.factory("APIService", function($http, $window, $log) {
+	return {
+		// Get a user's API key
+		retrieveKey: function(successCallback, errorCallback) {
+			$http.get(baseUrl+"users/apikey").success(successCallback).error(errorCallback);
+		},
+		generateKey: function(successCallback, errorCallback) {
+			$http.post(baseUrl+"users/apikey", {}).success(successCallback).error(errorCallback);
+		},
+		deleteKey: function(successCallback, errorCallback) {
+			$http.post(baseUrl+"users/apikey/delete", {}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -147,9 +166,9 @@ function RootCtrl($scope, $log, $window, $location) {
 		},
 		2: {
 			"id": 2,
-			"alias": "bigdrink",
+			"name": "bigdrink",
 			"display_name": "Big Drink",
-			"alias":"s"
+			"alias":"d"
 		},
 		3: {
 			"id": 3,
@@ -174,10 +193,10 @@ function RootCtrl($scope, $log, $window, $location) {
 	};
 
 	// Default data for any drops_table directives
-	$scope.DropsTable = function(drops, username, config) {
+	$scope.DropsTable = function(drops, title, config) {
 		if (typeof config === 'undefined') config = {};
 		this.drops = drops;
-		this.user = username;
+		this.title = title;
 		this.config = {
 			showUser: (config.hasOwnProperty("showUser")) ? config.showUser : false,
 			showMore: (config.hasOwnProperty("showMore")) ? config.showMore : true,
@@ -206,8 +225,14 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	// Data for the websocket connection alert
 	$scope.websocket_alert = new $scope.Alert({
 		message: "Warning: Websocket not connected!",
+		show: true,
 		closeable: false
 	});
+	// Websocket connection variables
+	$scope.authed = false; 			// Authentication status
+	$scope.requesting = false; 		// Are we currently handling a request?
+	$scope.request_queue = []; 		// Array of pending requests
+	$scope.current_request = null; 	// Current request being processed
 
 	// Get the initial stock
 	MachineService.getStockAll(
@@ -285,6 +310,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	$scope.selectDrink = function (slot) {
 		$scope.current_slot = slot;
 		$scope.delay = 0;
+		$log.log($scope.authed);
 	}; 
 	// Drop a drink
 	$scope.dropDrink = function() {
@@ -292,20 +318,25 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	}
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
-		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-		var i = $timeout(function () {
-			if ($scope.delay == 0) {
-				$timeout.cancel(i);
-				$scope.dropDrink();
-				//jQuery("#dropModal").modal('hide');
-				//$scope.dropping_message = "Drink dropped!";
-			}
-			else {
-				$scope.delay -= 1;
-				$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-				$scope.reduceDelay();
-			}
-		}, 1000);
+		if (!$scope.authed) {
+			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
+		}
+		else {
+			$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+			var i = $timeout(function () {
+				if ($scope.delay == 0) {
+					$timeout.cancel(i);
+					$scope.dropDrink();
+					//jQuery("#dropModal").modal('hide');
+					//$scope.dropping_message = "Drink dropped!";
+				}
+				else {
+					$scope.delay -= 1;
+					$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+					$scope.reduceDelay();
+				}
+			}, 1000);
+		}
 	};
 
 	// Request object
@@ -327,12 +358,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			this.command(this.command_data);
 		}
 	};
-
-	// Websocket connection variables
-	$scope.authed = false; 			// Authentication status
-	$scope.requesting = false; 		// Are we currently handling a request?
-	$scope.request_queue = []; 		// Array of pending requests
-	$scope.current_request = null; 	// Current request being processed
 
 	// Initialize Websocket Events
 	socket.on('connect', function() {
@@ -413,12 +438,12 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 		var callback = function(data) {
 			// If the status was OK, we authed successfully
 			if (data.substr(0, 2) == 'OK') {
-				self.authed = true;
+				$scope.authed = true;
 				$scope.websocket_alert.show = false;
 			}
 			// If not, we have a bogus iButton
 			else {
-				self.authed = false;
+				$scope.authed = false;
 				$scope.websocket_alert.message = "Warning: Invalid iButton";
 				$scope.websocket_alert.show = true;
 			}
@@ -542,7 +567,7 @@ function DropCtrl($scope, $window, $log, DropService) {
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
 	$scope.dropsToLoad = 25;	// How many drops to load at a time
 	// Drops Table directive config
-	$scope.drops_table = new $scope.DropsTable($scope.drops, $scope.current_user.cn);
+	$scope.drops_table = new $scope.DropsTable($scope.drops, $scope.current_user.cn + "'s Drops");
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
@@ -566,3 +591,74 @@ function DropCtrl($scope, $window, $log, DropService) {
 	// Get the first page of a user's drops
 	$scope.getDrops();
 }
+
+// Controller for the API page
+function APICtrl($scope, $window, $log, APIService) {
+	$scope.api_key = false;	// User's API key
+	$scope.date = "";		// Date the API key was generated
+	// Message to display to the user
+	$scope.message = "Looks like you need an API key!";
+
+	// Get the user's API key
+	$scope.retrieveKey = function() {
+		APIService.retrieveKey(
+			function (response) {
+				if (response.status) {
+					$scope.api_key = response.data.api_key;
+					$scope.date = response.data.date;
+				}
+				else {
+					$scope.api_key = false;
+					$scope.message = "Looks like you need an API key!";
+					$log.log(response.message);
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	};
+
+	// Generate a new key for the user
+	$scope.generateKey = function() {
+		$scope.api_key = false;
+		$scope.message = "Generating your API key...";
+		APIService.generateKey(
+			function (response) {
+				if (response.status) {
+					$scope.api_key = response.data.api_key;
+					$scope.date = response.data.date;
+				}
+				else {
+					$scope.api_key = false;
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	};
+
+	// Delete the user's current API key
+	$scope.deleteKey = function () {
+		APIService.deleteKey(
+			function (response) {
+				if (response.status) {
+					$scope.api_key = false;
+					$scope.message = "Looks like you need an API key!";
+					$scope.date = "";
+				}
+				else {
+					$log.log("uh...");
+				}
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	// Check for the user's API key
+	$scope.retrieveKey();	
+}
+

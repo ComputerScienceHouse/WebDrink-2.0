@@ -17,6 +17,7 @@ class DrinkAPI extends API
 	private $data = array();
 	private $admin = false;
 	private $uid = false;
+	private $webauth = false;
 
 	private $debug = true;
 
@@ -26,10 +27,17 @@ class DrinkAPI extends API
 		// Grab the user's uid from Webauth
 		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
 			$this->uid = $_SERVER["WEBAUTH_USER"];
+			$this->webauth = true;
 		} 
+		else if ($this->api_key) {
+			$this->uid = $this->lookupAPIKey();
+			$this->webauth = false;
+		}
 		else {
 			//$this->uid = false;
+			//$this->webauth = false;
 			$this->uid = "bencentra";
+			$this->webauth = true;
 		}
 		// If the request is a POST method, verify the user is an admin
 		if ($this->method == "POST" || $this->debug) {
@@ -52,6 +60,19 @@ class DrinkAPI extends API
 		}
 	}
 
+	// Lookup api key
+	protected function lookupAPIKey() {
+		$sql = "SELECT * FROM api_keys WHERE api_key = :apiKey";
+		$params["apiKey"] = $this->api_key;
+		$query = db_select($sql, $params); 
+		if ($query) {
+			return $query[0]["uid"];
+		} 
+		else {
+			return false;
+		}
+	}
+
 	// Sanitize uid
 	protected function sanitizeUid($uid) {
 		return trim((string) $uid);
@@ -69,7 +90,18 @@ class DrinkAPI extends API
 
 	// Test endpoint - make sure you can contact the API
 	protected function test() {
-		return array("status" => true, "message" => "Test Success!", "data" => true);
+		switch ($this->verb) {
+			case "api":
+				if ($this->uid) {
+					return array("status" => true, "message" => "User Found!", "data" => $this->uid);
+				}
+				else {
+					return array("status" => false, "message" => "No User Found!", "data" => false);
+				}
+				break;
+			default:
+				return array("status" => true, "message" => "Test Success!", "data" => true);
+		}
 	}
 
 	// Users enpoint - call the various user-related API methods
@@ -222,6 +254,47 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
+			*	
+			*/
+			case "info":
+				if ($this->webauth && $this->api_key) {
+					$result["status"] = false;
+					$result["message"] = "Error: must include api_key (users.info)";
+					$result["data"] = false;
+					break;
+				}
+				if ($this->method == "GET") {
+ 					if (!$this->uid) {
+ 						$result["status"] = false;
+ 						$result["message"] = "Error: uid not supplied (users.info)";
+ 						$result["data"] = false;
+ 					}
+ 					$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
+ 					$data = ldap_lookup($this->uid, $fields);
+ 					if ($data) {
+ 						$tmp = array();
+ 						$tmp["uid"] = $this->uid;
+ 						$tmp["credits"] = $data[0]["drinkbalance"][0];
+ 						$tmp["admin"] = $data[0]["drinkadmin"][0];
+ 						$tmp["ibutton"] = $data[0]["ibutton"][0];
+ 						$tmp["cn"] = $data[0]["cn"][0];
+ 						$result["status"] = true;
+ 						$result["message"] = "Success (users.info)";
+ 						$result["data"] = $tmp;
+ 					}
+ 					else {
+ 						$result["status"] = false;
+ 						$result["message"] = "Error: failed to query LDAP (users.info)";
+ 						$result["data"] = false;
+ 					}
+ 				}
+ 				else {
+ 					$result["status"] = false;
+ 					$result["message"] = "Error: only accepts GET requests (users.info)";
+ 					$result["data"] = false;
+ 				}
+				break;
+			/*
 			*	Endpoint: users.ibutton
 			*
 			*	Methods:
@@ -278,7 +351,7 @@ class DrinkAPI extends API
 			*	Endpoint: users.drops
 			*
 			*	Methods:
-			*	- drops_one: GET /drops/:uid
+			*	- drops_one: GET /drops/user/:uid
 			*	- drops_all: GET /drops
 			*/
 			case "drops":
@@ -355,6 +428,102 @@ class DrinkAPI extends API
 				else {
 					$result["status"] = false;
 					$result["message"] = "Error: failed to query database (users.drops)";
+					$result["data"] = false;
+				}
+				break;
+			/*
+			*	Endpoint: users.apikey
+			*
+			*	Methods:
+			*	- get_key: GET /apikey
+			*	- generate_key: POST /apikey
+			*/
+			case "apikey": 
+				$delete = false;
+				// Must be on CSH systems (behind Webauth) to retrieve your API key
+				if (!$this->webauth) {
+					$result["status"] = false;
+					$result["message"] = "Error: must use WebDrink to retrieve API key (users.apikey)";
+					$result["data"] = false;
+					break;
+				}
+				// UID must be set
+				if (!$this->uid) {
+					$result["status"] = false;
+					$result["message"] = "Error: uid not found (users.apikey)";
+					$result["data"] = false;
+					break;
+				}
+				// Check if we're deleting the API key
+				if (array_key_exists(0, $this->args)) {
+					if ($this->args[0] == "delete") {
+						$delete = true;
+					}
+				}
+				// get_key: GET /apikey
+				if ($this->method == "GET") {
+					// Form the SQL query
+					$sql = "SELECT * FROM api_keys WHERE uid = :uid";
+					$params["uid"] = $this->uid;
+					// Query the database
+					$query = db_select($sql, $params);
+					if ($query) {
+						$result["status"] = true;
+						$result["message"] = "Success (users.apikey)";
+						$result["data"] = $query[0];
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query database (users.apikey)";
+						$result["data"] = false;
+					}
+				}
+				// generate_key: POST /apikey
+				else if ($this->method == "POST" && !$delete) {
+					// Generate an API key
+					$salt = time();
+					$apiKey = md5(sha1($this->uid.$salt));
+					// Form the SQL query
+					$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
+					$params["uid"] = $this->uid;
+					$params["apiKey"] = $apiKey;
+					// Query the database
+					$query = db_insert($sql, $params);
+					if ($query) {
+						$data["api_key"] = $apiKey;
+						$data["date"] = date("Y-m-d H:i:s");
+						$data["uid"] = $this->uid;
+						$result["status"] = true;
+						$result["message"] = "Success (users.apikey)";
+						$result["data"] = $data;
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query database (users.apikey)";
+						$result["data"] = false;
+					}
+				}
+				// delete_key: POST /apikey/delete
+				else if ($this->method == "POST" && $delete) {
+					// Form the SQL query
+					$sql = "DELETE FROM api_keys WHERE uid = :uid";
+					$params["uid"] = $this->uid;
+					// Query the database
+					$query = db_delete($sql, $params);
+					if ($query) {
+						$result["status"] = true;
+						$result["message"] = "Success (users.apikey)";
+						$result["data"] = true;
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query database (users.apikey)";
+						$result["data"] = false;
+					}
+				}
+				else {
+					$result["status"] = false;
+					$result["message"] = "Error: unsupported HTTP method (users.apikey)";
 					$result["data"] = false;
 				}
 				break;

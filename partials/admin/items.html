@@ -145,7 +145,7 @@
 				</div>
 				<table class="table table-striped">
 					<tr><th>Item</th><th>Price</th><th>Actions</th></tr>
-					<tr ng-repeat="item in items">
+					<tr ng-repeat="item in items | orderBy:'item_name'">
 						<td ng-class="(current_user.admin) ? 'item-admin' : 'item'">{{ item.item_name }}</td>
 						<td ng-class="(current_user.admin) ? 'price-admin' : 'price'">{{ item.item_price }}</td>
 						<td ng-class="(current_user.admin) ? 'actions-admin' : 'actions'">

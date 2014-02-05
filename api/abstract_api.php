@@ -14,6 +14,8 @@ abstract class API
 	protected $verb = '';
 	// Paramaters passed with the request
 	protected $args = array();
+	// API Key
+	protected $api_key = false;
 
 	// Constructor
 	public function __construct($request) {
@@ -35,19 +37,15 @@ abstract class API
 		}
 		$this->method = $_SERVER["REQUEST_METHOD"];
 
-		// Get the remainder of the arguments as key->value pairs
-		/*$tmp = array();
-		if (count($this->args) % 2) {
-			for ($i = 0; $i < count($this->args); $i += 2) {
-				$tmp[$this->args[$i]] = $this->args[$i+1];
+		// Check for an API key
+		//die(var_dump($this->args));
+		for ($i = 0; $i < count($this->args); $i++) {
+			if ($this->args[$i] == "api_key" && array_key_exists($i+1, $this->args)) {
+				$this->api_key = $this->args[$i+1];
+				array_slice($this->args, $i, 2);
+				break;
 			}
 		}
-		else { // Drop the last parameter if an odd number is provided
-			for ($i = 0; $i < count($this->args) - 1; $i += 2) {
-				$tmp[$this->args[$i]] = $this->args[$i+1];
-			}
-		}
-		$this->args = $tmp;*/
 
 		// Sanitise the input
 		if ($this->method == "POST") 
