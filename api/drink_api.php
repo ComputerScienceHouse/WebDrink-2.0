@@ -160,7 +160,7 @@ class DrinkAPI extends API
 					// Query LDAP
 					$fields = array('drinkBalance');
 					$data = ldap_lookup($uid, $fields);
-					if ($data) {
+					if (array_key_exists(0, $data)) {
 						$result["status"] = true;
 						$result["message"] = "Success (users.credits)";
 						$result["data"] = $data[0]['drinkbalance'][0];
@@ -187,21 +187,60 @@ class DrinkAPI extends API
 						$result["data"] = false;
 						break;
 					}
-					// Sanitize value
+					// Make sure the parameters are included
+					if (count($this->args) != 3) {
+						$result["status"] = false;
+						$result["message"] = "Error: invalid number of parameters (users.credits)";
+						$result["data"] = false;
+						break;
+					}
+					// Sanitize values
+					$uid = $this->sanitizeUid($this->args[0]);
 					$value = (int) trim($this->args[1]);
-					// Query LDAP
-					$replace = array('drinkBalance' => $value);
-					$data = ldap_update($uid, $replace);
-					if ($data) {
+					$type = strtolower(trim((string) $this->args[2]));
+					if ($type != "add" && $type != "subtract") {
+						$result["status"] = false;
+						$result["message"] = "Error: invalid type (users.credits)";
+						$result["data"] = false;
+						break;
+					}
+					// Check the direction of the transaction
+					$direction = "in";
+					if ($value < 0 && $type == "add" || $value >= 0 && $type == "subtract") {
+						$direction = "out";
+					}
+					// Query LDAP for old balance
+					$fields = array('drinkBalance');
+					$data = ldap_lookup($uid, $fields);
+					if (array_key_exists(0, $data)) {
+						$oldBalance = $data[0]['drinkbalance'][0];
+						// Determine the new balance
+						$newBalance = 0;
+						if ($type == "add") {
+							$newBalance = $oldBalance + $value;
+						}
+						else {
+							$newBalance = $oldBalance - $value;
+						}
+						// Query LDAP to update the balance
+						$replace = array('drinkBalance' => $newBalance);
+						$data = ldap_update($uid, $replace);
+						if ($data) {
 							$result["status"] = true;
 							$result["message"] = "Success (users.credits)";
-							$result["data"] = true;
+							$result["data"] = $newBalance;
 						}
 						else {
 							$result["status"] = false;
 							$result["message"] = "Error: failed to query LDAP (users.credits)";
 							$result["data"] = false;
 						}
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query LDAP (users.credits)";
+						$result["data"] = false;
+					}
 				}
 				break;
 			/*
@@ -280,7 +319,7 @@ class DrinkAPI extends API
  				}
 				$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
 				$data = ldap_lookup($this->uid, $fields);
-				if ($data) {
+				if (array_key_exists(0, $data)) {
 					$tmp = array();
 					$tmp["uid"] = $this->uid;
 					$tmp["credits"] = $data[0]["drinkbalance"][0];
@@ -339,7 +378,7 @@ class DrinkAPI extends API
 				// Query LDAP
 				$fields = array('ibutton');
 				$data = ldap_lookup($uid, $fields);
-				if ($data) {
+				if (array_key_exists(0, $data)) {
 					$result["status"] = true;
 					$result["message"] = "Success (users.ibutton)";
 					$result["data"] = $data[0]['ibutton'][0];

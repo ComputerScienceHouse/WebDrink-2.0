@@ -36,6 +36,10 @@ app.factory("UserService", function($http, $window, $log) {
 		updateCredits: function(uid, credits, successCallback, errorCallback) {
 			var url = baseUrl+"users/credits/"+uid+"/"+credits;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
+		},
+		updateCreditsDos: function(uid, amount, type, successCallback, errorCallback) {
+			var url = baseUrl+"users/credits/"+uid+"/"+amount+"/"+type;
+			$http.post(url, {}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -202,7 +206,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		else if ($scope.transactionType == "subtract") {
 			newCredits = Number($scope.activeUser.credits) - Number($scope.creditChange);
 		}
-		else if ($scope.transactionType == "update") {
+		else if ($scope.transactionType == "adjust") {
 			newCredits = $scope.creditChange;
 		}
 		else {
@@ -215,6 +219,44 @@ function UserCtrl($scope, $log, UserService, DropService) {
 					$scope.alert.type = "alert-success";
 					$scope.alert.message = "Credits updated successfully!"
 					$scope.activeUser.credits = newCredits;
+				}
+				else {
+					$scope.alert.type = "alert-danger";
+					$scope.alert.message = response.message;
+				}
+				// Show the success/failure alert
+				$scope.alert.show = true;
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	$scope.updateCreditsDos = function() {
+		var type = $scope.transactionType;
+		var amount = $scope.creditChange;
+		// If using the "adjust" feature, convert it to add or subtract
+		if ($scope.transactionType == "adjust") {
+			if ($scope.creditChange - $scope.activeUser.credits >= 0) {
+				amount = $scope.creditChange - $scope.activeUser.credits;
+				type = "add";
+			}
+			else {
+				amount = $scope.activeUser.credits - $scope.creditChange;
+				type = "subtract";
+			}
+		}
+		// Update the user's credits in LDAP
+		UserService.updateCreditsDos($scope.activeUser.uid, $scope.creditChange, type,
+			function (response) {
+				if (response.status) {
+					$scope.alert.type = "alert-success";
+					$scope.alert.message = "Credits updated successfully!"
+					$scope.activeUser.credits = response.data;
+					if ($scope.activeUser.uid == $scope.current_user.uid) {
+						$scope.current_user.credits = response.data;
+					}
 				}
 				else {
 					$scope.alert.type = "alert-danger";
