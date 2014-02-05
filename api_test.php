@@ -25,6 +25,9 @@
 		<p>press this to make it work: <button type="button" id="startup">click</button></p>
 	</div>
 	<hr/>
+	<div id="ohboy" class="hide">
+
+	</div>
 	<div id="therest" class="hide">
 		<h1>oh hullo there <span id="user"></span>, you have <span id="credits"></span> credits</h1>
 		<h2>here are some drinks</h2>
@@ -41,9 +44,6 @@
 			
 		</table>
 	</div>
-	<div id="ohboy" class="hide">
-
-	</div>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 	<script>
 		var baseUrl = "api/"; // "api/index.php?request="
@@ -51,7 +51,7 @@
 			$("#startup").on("click", function () {
 				var apikey = $("#apikeyholder").val();
 				$.ajax({
-					url: baseUrl+"/users/info/api_key/"+apikey, 
+					url: baseUrl+"users/info/api_key/"+apikey, 
 					method: "GET",
 					dataType: "json",
 					success: function (response) {
@@ -64,7 +64,7 @@
 							$("#ohboy").html("<h1>WRONG API KEY YOU DINGUS</h1>");
 						}
 						$.ajax({
-							url: baseUrl+"/machines/stock/api_key/"+apikey,
+							url: baseUrl+"machines/stock/api_key/"+apikey,
 							method: "GET",
 							dataType: "json",
 							success: function (response) {
@@ -97,8 +97,7 @@
 							error: function (error) {
 								console.log(error);
 							}
-						})
-						
+						});
 					},
 					error: function (error) {
 						console.log(error);
