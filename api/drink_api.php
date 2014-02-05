@@ -92,11 +92,14 @@ class DrinkAPI extends API
 	protected function test() {
 		switch ($this->verb) {
 			case "api":
-				if ($this->uid) {
+				if ($this->uid && $this->api_key) {
 					return array("status" => true, "message" => "User Found!", "data" => $this->uid);
 				}
-				else {
+				else if (!$this->uid && $this->api_key) {
 					return array("status" => false, "message" => "No User Found!", "data" => false);
+				}
+				else {
+					return array("status" => false, "message" => "No API key included!", "data" => false);
 				}
 				break;
 			default:
@@ -257,42 +260,42 @@ class DrinkAPI extends API
 			*	
 			*/
 			case "info":
-				if ($this->webauth && $this->api_key) {
+				if (!$this->api_key) {
 					$result["status"] = false;
-					$result["message"] = "Error: must include api_key (users.info)";
+					$result["message"] = "Error: must include api_key for this request (users.info)";
 					$result["data"] = false;
 					break;
 				}
-				if ($this->method == "GET") {
- 					if (!$this->uid) {
- 						$result["status"] = false;
- 						$result["message"] = "Error: uid not supplied (users.info)";
- 						$result["data"] = false;
- 					}
- 					$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
- 					$data = ldap_lookup($this->uid, $fields);
- 					if ($data) {
- 						$tmp = array();
- 						$tmp["uid"] = $this->uid;
- 						$tmp["credits"] = $data[0]["drinkbalance"][0];
- 						$tmp["admin"] = $data[0]["drinkadmin"][0];
- 						$tmp["ibutton"] = $data[0]["ibutton"][0];
- 						$tmp["cn"] = $data[0]["cn"][0];
- 						$result["status"] = true;
- 						$result["message"] = "Success (users.info)";
- 						$result["data"] = $tmp;
- 					}
- 					else {
- 						$result["status"] = false;
- 						$result["message"] = "Error: failed to query LDAP (users.info)";
- 						$result["data"] = false;
- 					}
- 				}
- 				else {
- 					$result["status"] = false;
+				if (!$this->uid || $this->uid == null) {
+					$result["status"] = false;
+					$result["message"] = "Error: user not found (users.info)";
+					$result["data"] = false;
+					break;
+				}
+				if ($this->method != "GET") {
+					$result["status"] = false;
  					$result["message"] = "Error: only accepts GET requests (users.info)";
  					$result["data"] = false;
+ 					break;
  				}
+				$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
+				$data = ldap_lookup($this->uid, $fields);
+				if ($data) {
+					$tmp = array();
+					$tmp["uid"] = $this->uid;
+					$tmp["credits"] = $data[0]["drinkbalance"][0];
+					$tmp["admin"] = $data[0]["drinkadmin"][0];
+					$tmp["ibutton"] = $data[0]["ibutton"][0];
+					$tmp["cn"] = $data[0]["cn"][0];
+					$result["status"] = true;
+					$result["message"] = "Success (users.info)";
+					$result["data"] = $tmp;
+				}
+				else {
+					$result["status"] = false;
+					$result["message"] = "Error: failed to query LDAP (users.info)";
+					$result["data"] = false;
+				}
 				break;
 			/*
 			*	Endpoint: users.ibutton

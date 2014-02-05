@@ -34,4 +34,4 @@ Front-end:
 Back-end:
 * ~~API Class~~    
 * ~~Private API (Webauth)~~
-* Public API (API keys)
+* ~~Public API (API keys)~~
