@@ -873,9 +873,16 @@ class DrinkAPI extends API
 				// Make the query
 				$query = db_insert($sql, $params);
 				if ($query) {
+					$item_id = db_last_insert_id();
 					$result["status"] = true;
 					$result["message"] = "Success (items.add)";
-					$result["data"] = db_last_insert_id();
+					$result["data"] = $item_id;
+					// Log price changes to the database
+					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
+					$params = array();
+					$params["itemId"] = $item_id;
+					$params["price"] = $price;
+					$query = db_insert($sql, $params);
 				}
 				else {
 					$result["status"] = false;
@@ -948,6 +955,12 @@ class DrinkAPI extends API
 					$result["status"] = true;
 					$result["message"] = "Success (items.update)";
 					$result["data"] = true;
+					// Log price changes to the database
+					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
+					$params = array();
+					$params["itemId"] = $item_id;
+					$params["price"] = $price;
+					$query = db_insert($sql, $params);
 				}
 				else {
 					$result["status"] = false;
