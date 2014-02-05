@@ -235,6 +235,16 @@ class DrinkAPI extends API
 							$result["message"] = "Error: failed to query LDAP (users.credits)";
 							$result["data"] = false;
 						}
+						// Add the change to the logs
+						$sql = "INSERT INTO money_log (username, admin, amount, direction, reason) VALUES (:uid, :admin, :amount, :direction, :reason)";
+						$params["uid"] = $uid;
+						$params["admin"] = $this->uid;
+						$params["amount"] = $value;
+						$params["direction"] = $direction;
+						$params["reason"] = $type;
+						$query = db_insert($sql, $params);
+						// (TODO: handle failure?)
+						//$result["message"] .= " also logs work";
 					}
 					else {
 						$result["status"] = false;
