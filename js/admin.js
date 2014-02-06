@@ -133,6 +133,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 					if (response.status) {
 						// Update the matched set of usernames
 						$scope.searchResults = response.data;
+						$log.log(response.data);
 					}
 					else {
 						$log.log(response.message);
@@ -181,14 +182,30 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		);
 	}
 
+	$scope.loadUserEnter = function(e) {
+		if (e.which==13)
+    		$scope.loadUser();
+	}
+
 	// Set the active user's data
 	$scope.loadUser = function() {
-		//$log.log($scope.searchTerm);
-		// Only load if the search result has one user
-		if ($scope.searchResults.length == 1) {
+		if ($scope.searchTerm != "") {
+			var foundUser = false;
+			var i = 0;
+			for (i = 0; i < $scope.searchResults.length; i++) {
+				if ($scope.searchTerm == $scope.searchResults[i].uid) {
+					foundUser = $scope.searchResults[i];
+					//$log.log("found it: " + foundUser.uid)
+					break;
+				}
+			}
+			if (!foundUser) {
+				return;
+			}
 			// Set the common name and uid of the active user
-			$scope.activeUser.cn = $scope.searchResults[0].cn;
-			$scope.activeUser.uid = $scope.searchResults[0].uid;
+			$scope.activeUser.cn = foundUser.cn;
+			$scope.activeUser.uid = foundUser.uid;
+			//$log.log($scope.activeUser);
 			// Get the active user's drink credit balance and drop history
 			$scope.getUserCredits();
 			$scope.getUserDrops();

@@ -3,7 +3,7 @@
 		<div class="col-md-6 col-sm-12">
 			<h3>Manage Users</h3>
 			<div class="input-group">
-				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();">
+				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();" ng-keypress="loadUserEnter($event);">
 		      	<span class="input-group-btn">
 		        	<button class="btn btn-primary" type="button" ng-click="loadUser();">
 		        		<span class="glyphicon glyphicon-search"></span>
