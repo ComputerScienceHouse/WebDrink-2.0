@@ -133,7 +133,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 					if (response.status) {
 						// Update the matched set of usernames
 						$scope.searchResults = response.data;
-						$log.log(response.data);
+						//$log.log(response.data);
 					}
 					else {
 						$log.log(response.message);
@@ -265,7 +265,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 			}
 		}
 		// Update the user's credits in LDAP
-		UserService.updateCreditsDos($scope.activeUser.uid, $scope.creditChange, type,
+		UserService.updateCreditsDos($scope.activeUser.uid, amount, type,
 			function (response) {
 				if (response.status) {
 					$scope.alert.type = "alert-success";
@@ -320,6 +320,20 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 
 	// Add the newItem to the database
 	$scope.addItem = function() {
+		// Handle empty name
+		if ($scope.newItem.item_name == "") {
+			$scope.alert.type = "alert-danger";
+			$scope.alert.message = "Invalide name: can't be empty!";
+			$scope.alert.show = true;
+			return;
+		}
+		// Handle undefined price
+		if (typeof $scope.newItem.item_price === "undefined") {
+			$scope.alert.type = "alert-danger";
+			$scope.alert.message = "Invalid price; must be a positive integer!";
+			$scope.alert.show = true;
+			return;
+		}	
 		// Add the item to the database
 		ItemService.addItem($scope.newItem.item_name, $scope.newItem.item_price,
 			function (response) {
@@ -359,6 +373,18 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 
 	// Save the updated item in the database
 	$scope.saveItem = function() {
+		// Handle empty name
+		if ($scope.updateItem.item_name == "") {
+			$scope.message = "Invalide name: can't be empty!";
+			jQuery("#saveItemModal").modal('show');
+			return;
+		}
+		// Handle undefined price
+		if (typeof $scope.updateItem.item_price === "undefined") {
+			$scope.message = "Invalid price; must be a positive integer!";
+			jQuery("#saveItemModal").modal('show');
+			return;
+		}	
 		ItemService.updateItem($scope.updateItem, 
 			function (response) {
 				if (response.status) {
