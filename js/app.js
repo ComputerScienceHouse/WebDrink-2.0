@@ -248,6 +248,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			$log.log(error); 
 		}
 	);
+
 	// Admin only functions
 	if ($scope.current_user.admin) {
 		// Get all items (for editing a slot)
@@ -337,6 +338,12 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 				}
 			}, 1000);
 		}
+	};
+	// See if a user can afford a drink
+	$scope.canAfford = function (price) {
+		if (Number($scope.current_user.credits) < Number(price)) 
+			return false;
+		return true;
 	};
 
 	// Request object
