@@ -88,6 +88,11 @@ class DrinkAPI extends API
 		return (int) trim($iid);
 	}
 
+	// Sanitize item_name
+	protected function sanitizeItemName($name) {
+		return trim((string)$name);
+	}
+
 	// Test endpoint - make sure you can contact the API
 	protected function test() {
 		switch ($this->verb) {
@@ -847,7 +852,7 @@ class DrinkAPI extends API
 				// Check for name
 				$name = "";
 				if (array_key_exists(0, $this->args)) {
-					$name = trim((string) $this->args[0]);
+					$name = $this->sanitizeItemName($this->args[0]);
 					$params["name"] = $name;
 				}
 				else {
@@ -860,6 +865,7 @@ class DrinkAPI extends API
 				$price = 0;
 				if (array_key_exists(1, $this->args)) {
 					$price = (int) trim($this->args[1]);
+					//die ("Price: " . $price);
 					$params["price"] = $price;
 				}
 				else {
@@ -868,6 +874,14 @@ class DrinkAPI extends API
 					$result["data"] = false;
 					break;
 				}
+				// Make sure price isn't negative
+				//die ("Price" . $price);
+				/*if ($price < 0) {
+					$result["status"] = false;
+					$result["message"] = "Error: price can't be negative (items.add)";
+					$result["data"] = false;
+					break;
+				}*/
 				// Form the SQL query
 				$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
 				// Make the query
@@ -927,12 +941,26 @@ class DrinkAPI extends API
 				$append = "";
 				$sql = "UPDATE drink_items SET";
 				if (array_key_exists(1, $this->args)) {
-					$name = trim((string) $this->args[1]);
+					$name = $this->sanitizeItemName($this->args[1]);
+					// Make sure the name isn't empty
+					if (strlen($name) <= 0) {
+						$result["status"] = false;
+						$result["message"] = "Error: name can't be empty (items.add)";
+						$result["data"] = false;
+						break;
+					}
 					$append .= " item_name = :name,";
 					$params["name"] = $name;
 				}
 				if (array_key_exists(2, $this->args)) {
 					$price = (int) trim($this->args[2]);
+					// Make sure price isn't negative
+					if ($price < 0) {
+						$result["status"] = false;
+						$result["message"] = "Error: price can't be negative (items.update)";
+						$result["data"] = false;
+						break;
+					}
 					$append .= " item_price = :price,";
 					$params["price"] = $price;
 				}
@@ -959,7 +987,6 @@ class DrinkAPI extends API
 					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
 					$params = array();
 					$params["itemId"] = $item_id;
-					$params["price"] = $price;
 					$query = db_insert($sql, $params);
 				}
 				else {
