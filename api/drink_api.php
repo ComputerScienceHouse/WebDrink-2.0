@@ -108,7 +108,7 @@ class DrinkAPI extends API
 				}
 				break;
 			default:
-				return array("status" => true, "message" => "Test Success!", "data" => true);
+				return array("status" => true, "message" => "Test Success!", "data" => $this->request);
 		}
 	}
 
@@ -129,16 +129,16 @@ class DrinkAPI extends API
 			*/
 			case "credits":
 				// uid must be provided for both get_credits and update_credits
-				$uid = "";
+				$uid = false;
 				if (array_key_exists(0, $this->args)) {
 					$uid = $this->args[0];
 				}
-				else {
-					$uid = $this->uid;
-				}
+				//else {
+				//	$uid = $this->uid;
+				//}
 				if (!$uid) {
 					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.ibutton)";
+					$result["message"] = "Error: uid not supplied (users.credits)";
 					$result["data"] = false;
 					break;
 				}

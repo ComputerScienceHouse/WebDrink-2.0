@@ -106,13 +106,22 @@ app.factory("APIService", function($http, $window, $log) {
 	return {
 		// Get a user's API key
 		retrieveKey: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"users/apikey").success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"users/apikey/delete"
+			}).success(successCallback).error(errorCallback);
 		},
 		generateKey: function(successCallback, errorCallback) {
-			$http.post(baseUrl+"users/apikey", {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"users/apikey"
+			}).success(successCallback).error(errorCallback);
 		},
 		deleteKey: function(successCallback, errorCallback) {
-			$http.post(baseUrl+"users/apikey/delete", {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"users/apikey/delete"
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -122,30 +131,44 @@ app.factory("MachineService", function($http, $window, $log) {
 	return {
 		// Get a list of information about all drink machines
 		getMachineAll: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"machines/info").success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"machines/info"
+			}).success(successCallback).error(errorCallback);
 		},
 		// Get the stock of all drink machines
 		getStockAll: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"machines/stock").success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"machines/stock"
+			}).success(successCallback).error(errorCallback);
 		},
 		// Get a list of all drink items
 		getItemAll: function(successCallback, errorCallback) {
-			$http.get(baseUrl+"items/list").success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"items/list"
+			}).success(successCallback).error(errorCallback);
 		},
 		// Update the items and state of a slot in a drink machine
 		updateSlot: function(data, successCallback, errorCallback) {
-			var url = baseUrl+"machines/slot/"+data.slot_num+"/"+data.machine_id;
-			if (data.hasOwnProperty("item_id"))
-				url += "/"+data.item_id;
-			if (data.hasOwnProperty("available")) 
-				url += "/"+data.available;
-			if (data.hasOwnProperty("status")) 
-				url += "/"+data.status;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"machines/slot",
+				//url: "./test.php",
+				data: jQuery.param(data),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		},
 		// Get the current user's drink credits
 		getCredits: function(uid, successCallback, errorCallback) {
-			$http.get(baseUrl+"users/credits").success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				//url: baseUrl+"users/credits/"+uid
+				url: baseUrl+"users/credits",
+				data: jQuery.param({"uid": uid, "test": "LOL"}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -297,6 +320,7 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 						}
 						else {
 							$scope.message = response.message;
+							console.log(response.data);
 						}
 						jQuery("#saveSlotModal").modal('show');
 					},

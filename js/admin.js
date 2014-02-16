@@ -90,7 +90,7 @@ app.factory("LogsService", function($http, $window) {
 });
 
 // Controller for the Manage Users page
-function UserCtrl($scope, $log, UserService, DropService) {
+function UserCtrl($scope, $log, UserService, DropService, MachineService) {
 	$scope.searchTerm = "";				// Username being searched for
 	$scope.searchResults = {};			// All matching usernames from a search
 	$scope.activeUser = {				// Current user being managed
@@ -148,7 +148,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 
 	// Get the drink credit balance for the active user
 	$scope.getUserCredits = function() {
-		UserService.getCredits($scope.activeUser.uid, 
+		MachineService.getCredits($scope.activeUser.uid, 
 			function (response) {
 				if (response.status) {
 					$scope.activeUser.credits = response.data;
