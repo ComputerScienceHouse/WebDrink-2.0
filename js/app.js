@@ -113,8 +113,8 @@ app.factory("APIService", function($http, $window, $log) {
 		},
 		deleteKey: function(successCallback, errorCallback) {
 			$http({
-				method: "POST",
-				url: baseUrl+"users/apikey/delete"
+				method: "DELETE",
+				url: baseUrl+"users/apikey"
 			}).success(successCallback).error(errorCallback);
 		}
 	};

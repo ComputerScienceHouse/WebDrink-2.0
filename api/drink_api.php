@@ -419,9 +419,9 @@ class DrinkAPI extends API
 			*	Methods:
 			*	- get_key: GET /apikey
 			*	- generate_key: POST /apikey
+			*	- delete_key: DELETE /apikey
 			*/
 			case "apikey": 
-				$delete = false;
 				// Must be on CSH systems (behind Webauth) to retrieve your API key
 				if (!$this->webauth) {
 					$result["status"] = false;
@@ -435,12 +435,6 @@ class DrinkAPI extends API
 					$result["message"] = "Error: uid not found (users.apikey)";
 					$result["data"] = false;
 					break;
-				}
-				// Check if we're deleting the API key
-				if (array_key_exists(0, $this->args)) {
-					if ($this->args[0] == "delete") {
-						$delete = true;
-					}
 				}
 				// get_key: GET /apikey
 				if ($this->method == "GET") {
@@ -461,7 +455,7 @@ class DrinkAPI extends API
 					}
 				}
 				// generate_key: POST /apikey
-				else if ($this->method == "POST" && !$delete) {
+				else if ($this->method == "POST") {
 					// Generate an API key
 					$salt = time();
 					$apiKey = hash("fnv164", hash("sha512", $this->uid.$salt));
@@ -485,8 +479,8 @@ class DrinkAPI extends API
 						$result["data"] = false;
 					}
 				}
-				// delete_key: POST /apikey/delete
-				else if ($this->method == "POST" && $delete) {
+				// delete_key: DELETE /apikey
+				else if ($this->method == "DELETE") {
 					// Form the SQL query
 					$sql = "DELETE FROM api_keys WHERE uid = :uid";
 					$params["uid"] = $this->uid;
@@ -547,8 +541,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = false;
-				if (array_key_exists(0, $this->args)) {
-					$mid = $this->args[0];
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->request["machine_id"];
 					// Sanitize uid
 					$mid = $this->sanitizeMachineId($mid);
 				}
@@ -594,8 +588,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = false;
-				if (array_key_exists(0, $this->args)) {
-					$mid = $this->args[0];
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->request["machine_id"];
 					// Sanitize uid
 					$mid = $this->sanitizeMachineId($mid);
 				}
@@ -643,8 +637,8 @@ class DrinkAPI extends API
 				}
 				// Check for slot_num
 				$slot = 0;
-				if (array_key_exists(0, $this->args)) {
-					$slot = (int) trim($this->args[0]);
+				if (array_key_exists("slot_num", $this->request)) {
+					$slot = (int) trim($this->request["slot_num"]);
 					$params["slotNum"] = $slot;
 				}
 				else {
@@ -655,8 +649,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = 0;
-				if (array_key_exists(1, $this->args)) {
-					$mid = $this->sanitizeMachineId($this->args[1]);
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->sanitizeMachineId($this->request["machine_id"]);
 					$params["machineId"] = $mid;
 				}
 				else {
@@ -668,18 +662,18 @@ class DrinkAPI extends API
 				// Form the SQL query (TODO: Find a good way to not require all parameters)
 				$sql = "UPDATE slots SET";
 				$append = "";
-				if (array_key_exists(2, $this->args)) {
-					$item_id = (int) trim($this->args[2]);
+				if (array_key_exists("item_id", $this->request)) {
+					$item_id = (int) trim($this->request["item_id"]);
 					$append .= " item_id = :itemId,";
 					$params["itemId"] = $item_id;
 				}
-				if (array_key_exists(3, $this->args)) {
-					$available = (int) trim($this->args[3]);
+				if (array_key_exists("available", $this->request)) {
+					$available = (int) trim($this->request["available"]);
 					$append .= " available = :available,";
 					$params["available"] = $available;
 				}
-				if (array_key_exists(4, $this->args)) {
-					$status = trim((string) $this->args[4]);
+				if (array_key_exists("status", $this->request)) {
+					$status = trim((string) $this->request["status"]);
 					$append .= " status = :status,";
 					$params["status"] = $status;
 				}
@@ -776,8 +770,8 @@ class DrinkAPI extends API
 				}
 				// Check for name
 				$name = "";
-				if (array_key_exists(0, $this->args)) {
-					$name = $this->sanitizeItemName($this->args[0]);
+				if (array_key_exists("name", $this->request)) {
+					$name = $this->sanitizeItemName($this->request["name"]);
 					$params["name"] = $name;
 				}
 				else {
@@ -788,9 +782,8 @@ class DrinkAPI extends API
 				}
 				// Check for price
 				$price = 0;
-				if (array_key_exists(1, $this->args)) {
-					$price = (int) trim($this->args[1]);
-					//die ("Price: " . $price);
+				if (array_key_exists("price", $this->request)) {
+					$price = (int) trim($this->request["price"]);
 					$params["price"] = $price;
 				}
 				else {
@@ -800,13 +793,12 @@ class DrinkAPI extends API
 					break;
 				}
 				// Make sure price isn't negative
-				//die ("Price" . $price);
-				/*if ($price < 0) {
+				if ($price < 0) {
 					$result["status"] = false;
 					$result["message"] = "Error: price can't be negative (items.add)";
 					$result["data"] = false;
 					break;
-				}*/
+				}
 				// Form the SQL query
 				$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
 				// Make the query
@@ -852,8 +844,8 @@ class DrinkAPI extends API
 				}
 				// Make sure an item_id was provided
 				$item_id = 0;
-				if (array_key_exists(0, $this->args)) {
-					$item_id = $this->sanitizeItemId($this->args[0]);
+				if (array_key_exists("item_id", $this->request)) {
+					$item_id = $this->sanitizeItemId($this->request["item_id"]);
 					$params["itemId"] = $item_id;
 				}
 				else {
@@ -865,8 +857,8 @@ class DrinkAPI extends API
 				// Form the SQL query
 				$append = "";
 				$sql = "UPDATE drink_items SET";
-				if (array_key_exists(1, $this->args)) {
-					$name = $this->sanitizeItemName($this->args[1]);
+				if (array_key_exists("name", $this->request)) {
+					$name = $this->sanitizeItemName($this->request["name"]);
 					// Make sure the name isn't empty
 					if (strlen($name) <= 0) {
 						$result["status"] = false;
@@ -877,8 +869,8 @@ class DrinkAPI extends API
 					$append .= " item_name = :name,";
 					$params["name"] = $name;
 				}
-				if (array_key_exists(2, $this->args)) {
-					$price = (int) trim($this->args[2]);
+				if (array_key_exists("price", $this->request)) {
+					$price = (int) trim($this->request["price"]);
 					// Make sure price isn't negative
 					if ($price < 0) {
 						$result["status"] = false;
@@ -889,8 +881,8 @@ class DrinkAPI extends API
 					$append .= " item_price = :price,";
 					$params["price"] = $price;
 				}
-				if (array_key_exists(3, $this->args)) {
-					$state = trim((string) $this->args[3]);
+				if (array_key_exists("state", $this->request)) {
+					$state = trim((string) $this->request["state"]);
 					$append .= " state = :state,";
 					$params["state"] = $state;
 				}
@@ -943,8 +935,8 @@ class DrinkAPI extends API
 				}
 				// Make sure an item_id was provided
 				$item_id = 0;
-				if (array_key_exists(0, $this->args)) {
-					$item_id = $this->sanitizeItemId($this->args[0]);
+				if (array_key_exists("item_id", $this->request)) {
+					$item_id = $this->sanitizeItemId($this->request["item_id"]);
 					$params["itemId"] = $item_id;
 				}
 				else {
@@ -1005,8 +997,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = false;
-				if (array_key_exists(0, $this->args)) {
-					$mid = $this->sanitizeMachineId($this->args[0]);
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->sanitizeMachineId($this->request["machine_id"]);
 					$params["machineId"] = $mid;
 				}
 				else {
@@ -1017,15 +1009,20 @@ class DrinkAPI extends API
 				}
 				// Check for limit (TODO: Allow for offset as well)
 				$limit = 300;
-				if (array_key_exists(1, $this->args)) {
-					$limit = (int) trim($this->args[1]);
+				if (array_key_exists("limit", $this->request)) {
+					$limit = (int) trim($this->request["limit"]);
 				}
 				$params["limit"] = $limit;
+				$offset = 0;
+				if (array_key_exists("offset", $this->request)) {
+					$offset = (int) trim($this->request["offset"]);
+				}
+				$params["offset"] = $offset;
 				// Form the SQL query
 				$sql = "SELECT t.machine_id, t.time, t.temp, m.display_name 
 						FROM temperature_log as t, machines as m
 						WHERE t.machine_id = m.machine_id AND t.machine_id = :machineId
-						ORDER BY t.time DESC LIMIT :limit";
+						ORDER BY t.time DESC LIMIT :limit OFFSET :offset";
 				// Query the database
 				$query = db_select($sql, $params);	
 				if ($query) {

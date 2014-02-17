@@ -54,8 +54,16 @@ abstract class API
 			$this->request = $this->_sanitizeInput($_POST);
 		else if ($this->method == "GET")
 			$this->request = $this->_sanitizeInput($_GET);
-		else if ($this->method == "DELETE")
-			$this->request = $this->_sanitizeInput($_DELETE);
+		else if ($this->method == "PUT") {
+			$tmp = array();
+			parse_str(file_get_contents("php://input"), $tmp);
+			$this->request = $this->_sanitizeInput($tmp);
+		}
+		else if ($this->method == "DELETE") {
+			$tmp = array();
+			parse_str(file_get_contents("php://input"), $tmp);
+			$this->request = $this->_sanitizeInput($tmp);
+		}
 		else
 			$this->_response("Invalid Method", 405);
 

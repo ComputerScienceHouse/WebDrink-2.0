@@ -59,25 +59,28 @@ app.factory("ItemService", function($http, $window) {
 	return {
 		// Add a new item
 		addItem: function(name, price, successCallback, errorCallback) {
-			var url = baseUrl+"items/add/"+name+"/"+price;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"items/add",
+				data: jQuery.param({"name": name, "price": price}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		},
 		updateItem: function(data, successCallback, errorCallback) {
-			var url = baseUrl+"items/update/"+data.item_id;
-			if (data.hasOwnProperty("item_name")) {
-				url += "/"+data.item_name;
-			}
-			if (data.hasOwnProperty("item_price")) {
-				url += "/"+data.item_price;
-			}
-			if (data.hasOwnProperty("state")) {
-				url += "/"+data.state;
-			}
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"items/update",
+				data: jQuery.param(data),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		},
 		deleteItem: function(itemId, successCallback, errorCallback) {
-			var url = baseUrl+"items/delete/"+itemId;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"items/delete",
+				data: jQuery.param({"item_id": itemId}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -86,8 +89,13 @@ app.factory("ItemService", function($http, $window) {
 app.factory("TempService", function($http, $window) {
 	return {
 		getTempsOne: function(machineId, successCallback, errorCallback) {
-			var url = baseUrl+"temps/machines/"+machineId;
-			$http.get(url).success(successCallback).error(errorCallback);
+			//var url = baseUrl+"temps/machines/"+machineId;
+			//$http.get(url).success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"temps/machines",
+				params: {"machine_id": machineId}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -398,7 +406,13 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 			jQuery("#saveItemModal").modal('show');
 			return;
 		}	
-		ItemService.updateItem($scope.updateItem, 
+		var data = {
+			item_id: $scope.updateItem.item_id,
+			name: $scope.updateItem.item_name,
+			price: $scope.updateItem.item_price,
+			state: $scope.updateItem.state
+		};
+		ItemService.updateItem(data,
 			function (response) {
 				if (response.status) {
 					// Update the currentItem to reflect changes
