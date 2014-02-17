@@ -24,22 +24,32 @@ app.factory("UserService", function($http, $window, $log) {
 	return {	
 		// Search for usernames that match a string
 		searchUsers: function(search, successCallback, errorCallback) {
-			var url = baseUrl+"users/search/"+search;
-			$http.get(url).success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"users/search",
+				params: {"uid": search}
+			}).success(successCallback).error(errorCallback);
 		},
-		// Get the drink credit amount for a user
+		// Get the balance of a user's drink credits
 		getCredits: function(uid, successCallback, errorCallback) {
-			var url = baseUrl+"users/credits/"+uid;
-			$http.get(url).success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"users/credits",
+				params: {"uid": uid}
+			}).success(successCallback).error(errorCallback);
 		},
 		// Update the drink credit amount for a user
-		updateCredits: function(uid, credits, successCallback, errorCallback) {
+		/*updateCredits: function(uid, credits, successCallback, errorCallback) {
 			var url = baseUrl+"users/credits/"+uid+"/"+credits;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
-		},
+		},*/
 		updateCreditsDos: function(uid, amount, type, successCallback, errorCallback) {
-			var url = baseUrl+"users/credits/"+uid+"/"+amount+"/"+type;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"users/credits",
+				data: jQuery.param({"uid":uid, "value":amount, "type":type}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -148,7 +158,7 @@ function UserCtrl($scope, $log, UserService, DropService, MachineService) {
 
 	// Get the drink credit balance for the active user
 	$scope.getUserCredits = function() {
-		MachineService.getCredits($scope.activeUser.uid, 
+		UserService.getCredits($scope.activeUser.uid, 
 			function (response) {
 				if (response.status) {
 					$scope.activeUser.credits = response.data;
@@ -165,10 +175,13 @@ function UserCtrl($scope, $log, UserService, DropService, MachineService) {
 
 	// Get the drop history for the active user
 	$scope.getUserDrops = function() {
-		DropService.getDrops($scope.activeUser.uid, $scope.dropsToLoad, 0,
+		var data = {
+			"uid": $scope.activeUser.uid,
+			"limit": $scope.dropsToLoad
+		};
+		DropService.getDrops(data,
 			function (response) {
 				if (response.status) {
-					//$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
 					$scope.activeUser.drops = response.data;
 					$scope.drops_table.drops = $scope.activeUser.drops;
 				}
@@ -511,7 +524,11 @@ function LogsCtrl($scope, $log, LogsService, DropService) {
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
-		DropService.getDrops(false, $scope.dropsToLoad , $scope.pagesLoaded * $scope.dropsToLoad,
+		var data = {
+			"limit": $scope.dropsToLoad,
+			"offset": $scope.dropsToLoad * $scope.pagesLoaded
+		};
+		DropService.getDrops(data,
 			function (response) {
 				if (response.status) {
 					$scope.logs = $scope.logs.concat(response.data);

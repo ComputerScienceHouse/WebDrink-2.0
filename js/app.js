@@ -85,18 +85,12 @@ app.factory('socket', function ($rootScope) {
 app.factory("DropService", function($http, $window, $log) {
 	return {
 		// Get a user's drop history
-		getDrops: function(uid, limit, offset, successCallback, errorCallback) {
-			var url = baseUrl+"users/drops";
-			if (uid !== false) {
-				url += "/user/"+uid;
-			}
-			if (limit > 0) {
-				url += "/"+limit;
-			}
-			if (limit > 0 && offset > 0) {
-				url += "/"+offset;
-			}
-			$http.get(url).success(successCallback).error(errorCallback);
+		getDrops: function(data, successCallback, errorCallback) {
+			$http({
+				method: "GET",
+				url: baseUrl+"users/drops",
+				params: data
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -166,7 +160,7 @@ app.factory("MachineService", function($http, $window, $log) {
 				method: "GET",
 				//url: baseUrl+"users/credits/"+uid
 				url: baseUrl+"users/credits",
-				data: jQuery.param({"uid": uid, "test": "LOL"}),
+				params: {"uid": uid, "test": "LOL"},
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(successCallback).error(errorCallback);
 		}
@@ -602,7 +596,12 @@ function DropCtrl($scope, $window, $log, DropService) {
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
-		DropService.getDrops($window.current_user.uid, $scope.dropsToLoad, $scope.pagesLoaded * $scope.dropsToLoad,
+		var data = {
+			"uid": $scope.current_user.uid,
+			"limit": $scope.dropsToLoad,
+			"offset": $scope.dropsToLoad * $scope.pagesLoaded
+		};
+		DropService.getDrops(data,
 			function (response) {
 				if (response.status) {
 					$scope.drops = $scope.drops.concat(response.data);

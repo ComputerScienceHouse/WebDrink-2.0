@@ -130,8 +130,8 @@ class DrinkAPI extends API
 			case "credits":
 				// uid must be provided for both get_credits and update_credits
 				$uid = false;
-				if (array_key_exists(0, $this->args)) {
-					$uid = $this->args[0];
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->request["uid"];
 				}
 				//else {
 				//	$uid = $this->uid;
@@ -139,13 +139,13 @@ class DrinkAPI extends API
 				if (!$uid) {
 					$result["status"] = false;
 					$result["message"] = "Error: uid not supplied (users.credits)";
-					$result["data"] = false;
+					$result["data"] = $this->request;
 					break;
 				}
 				// Sanitize uid
 				$uid = $this->sanitizeUid($uid);
 				// get_credits - GET /credits/:uid
-				if (!array_key_exists(1, $this->args)) {
+				if (!array_key_exists("value", $this->request)) {
 					// Check method type
 					if ($this->method != "GET") {
 						$result["status"] = false;
@@ -193,16 +193,16 @@ class DrinkAPI extends API
 						break;
 					}
 					// Make sure the parameters are included
-					if (count($this->args) != 3) {
+					/*if (count($this->args) != 3) {
 						$result["status"] = false;
 						$result["message"] = "Error: invalid number of parameters (users.credits)";
 						$result["data"] = false;
 						break;
-					}
-					// Sanitize values
-					$uid = $this->sanitizeUid($this->args[0]);
-					$value = (int) trim($this->args[1]);
-					$type = strtolower(trim((string) $this->args[2]));
+					}*/
+					// Determine the type and amount of credit change
+					$value = (int) trim($this->request["value"]);
+					$type = (array_key_exists("type", $this->request)) ? $this->request["type"] : "add";
+					$type = strtolower(trim((string) $type));
 					if ($type != "add" && $type != "subtract") {
 						$result["status"] = false;
 						$result["message"] = "Error: invalid type (users.credits)";
@@ -273,17 +273,17 @@ class DrinkAPI extends API
 					break;
 				}
 				// uid must be provided
-				$uid = "";
-				if (array_key_exists(0, $this->args)) {
-					$uid = $this->args[0];
+				$uid = false;
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->request["uid"];
 				}
-				else {
-					$uid = $this->uid;
-				}
+				//else {
+				//	$uid = $this->uid;
+				//}
 				if (!$uid) {
 					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.ibutton)";
-					$result["data"] = false;
+					$result["message"] = "Error: uid not supplied (users.search)";
+					$result["data"] = $this->request;
 					break;
 				}
 				// Sanitize uid
@@ -352,59 +352,6 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	Endpoint: users.ibutton
-			*
-			*	Methods:
-			*	- get_ibutton: GET /ibutton/:uid
-			*/
-			/*case "ibutton":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (users.ibutton)";
-					$result["data"] = false;
-					break;
-				}
-				// uid must be provided
-				$uid = "";
-				if (array_key_exists(0, $this->args)) {
-					$uid = $this->args[0];
-				}
-				else {
-					$uid = $this->uid;
-				}
-				if (!$uid) {
-					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.ibutton)";
-					$result["data"] = false;
-					break;
-				}
-				// Sanitize uid
-				$uid = $this->sanitizeUid($uid);
-				// Must be an admin (if not getting your own ibutton)
-				if ($this->uid != $uid) {
-					if (!$this->admin) {
-						$result["status"] = false;
-						$result["message"] = "Error: must be an admin to get another's ibutton (users.ibutton)";
-						$result["data"] = false;
-						break;
-					}
-				}
-				// Query LDAP
-				$fields = array('ibutton');
-				$data = ldap_lookup($uid, $fields);
-				if (array_key_exists(0, $data)) {
-					$result["status"] = true;
-					$result["message"] = "Success (users.ibutton)";
-					$result["data"] = $data[0]['ibutton'][0];
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query LDAP (users.ibutton)";
-					$result["data"] = false;
-				}
-				break;*/
-			/*
 			*	Endpoint: users.drops
 			*
 			*	Methods:
@@ -423,40 +370,16 @@ class DrinkAPI extends API
 				$uid = false;
 				$limit = false;
 				$offset = false;
-				if (array_key_exists(0, $this->args)) {
-					if ($this->args[0] == "user") {
-						// Check for uid
-						if (array_key_exists(1, $this->args)) {
-							$uid = $this->args[1];
-							// Sanitize uid
-							$uid = $this->sanitizeUid($uid);
-						}
-						else {
-							$result["status"] = false;
-							$result["message"] = "Error: uid not provided (users.drops)";
-							$result["data"] = false;
-							break;
-						}
-						// Add a limit and offset, if provided
-						if (array_key_exists(2, $this->args)) {
-							$limit = (int) trim($this->args[2]);
-							$params["limit"] = $limit;
-						}
-						if (array_key_exists(2, $this->args) && array_key_exists(3, $this->args)) {
-							$offset = (int) trim($this->args[3]);
-							$params["offset"] = $offset;
-						}
-					}
-					else {
-						// Add a limit and offset, if provided
-						if (array_key_exists(0, $this->args)) {
-							$limit = (int) trim($this->args[0]);
-							$params["limit"] = $limit;
-						}
-						if (array_key_exists(0, $this->args) && array_key_exists(1, $this->args)) {
-							$offset = (int) trim($this->args[1]);
-							$params["offset"] = $offset;
-						}
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->request["uid"];
+					$uid = $this->sanitizeUid($uid);
+				}
+				if (array_key_exists("limit", $this->request)) {
+					$limit = $this->request["limit"];
+					$limit = (int) trim($limit);
+					if (array_key_exists("offset", $this->request)) {
+						$offset = $this->request["offset"];
+						$offset = (int) trim($offset);
 					}
 				}
 				// Form the SQL query
@@ -471,9 +394,11 @@ class DrinkAPI extends API
 						ORDER BY l.drop_log_id DESC";
 				if ($limit) {
 					$sql .= " LIMIT :limit";
+					$params["limit"] = $limit;
 				}
 				if ($offset) {
 					$sql .= " OFFSET :offset";
+					$params["offset"] = $offset;
 				}
 				// Query the database
 				$query = db_select($sql, $params);

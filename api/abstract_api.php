@@ -14,6 +14,8 @@ abstract class API
 	protected $verb = '';
 	// Paramaters passed with the request
 	protected $args = array();
+	// Request params/data
+	protected $request = array();
 	// API Key
 	protected $api_key = false;
 
@@ -39,21 +41,26 @@ abstract class API
 
 		// Check for an API key
 		//die(var_dump($this->args));
-		for ($i = 0; $i < count($this->args); $i++) {
+		/*for ($i = 0; $i < count($this->args); $i++) {
 			if ($this->args[$i] == "api_key" && array_key_exists($i+1, $this->args)) {
 				$this->api_key = $this->args[$i+1];
 				array_slice($this->args, $i, 2);
 				break;
 			}
-		}
+		}*/
 
 		// Sanitise the input
 		if ($this->method == "POST") 
 			$this->request = $this->_sanitizeInput($_POST);
 		else if ($this->method == "GET")
 			$this->request = $this->_sanitizeInput($_GET);
+		else if ($this->method == "DELETE")
+			$this->request = $this->_sanitizeInput($_DELETE);
 		else
 			$this->_response("Invalid Method", 405);
+
+		// Grab the API key
+		$this->api_key = (array_key_exists("api_key", $this->request)) ? $this->request["api_key"] : false;
 	}
 
 	// Call the endpoint method in the concrete class
