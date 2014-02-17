@@ -88,6 +88,11 @@ class DrinkAPI extends API
 		return (int) trim($iid);
 	}
 
+	// Sanitize item_name
+	protected function sanitizeItemName($name) {
+		return trim((string)$name);
+	}
+
 	// Test endpoint - make sure you can contact the API
 	protected function test() {
 		switch ($this->verb) {
@@ -103,7 +108,7 @@ class DrinkAPI extends API
 				}
 				break;
 			default:
-				return array("status" => true, "message" => "Test Success!", "data" => true);
+				return array("status" => true, "message" => "Test Success!", "data" => $this->request);
 		}
 	}
 
@@ -124,23 +129,23 @@ class DrinkAPI extends API
 			*/
 			case "credits":
 				// uid must be provided for both get_credits and update_credits
-				$uid = "";
-				if (array_key_exists(0, $this->args)) {
-					$uid = $this->args[0];
+				$uid = false;
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->request["uid"];
 				}
-				else {
-					$uid = $this->uid;
-				}
+				//else {
+				//	$uid = $this->uid;
+				//}
 				if (!$uid) {
 					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.ibutton)";
-					$result["data"] = false;
+					$result["message"] = "Error: uid not supplied (users.credits)";
+					$result["data"] = $this->request;
 					break;
 				}
 				// Sanitize uid
 				$uid = $this->sanitizeUid($uid);
 				// get_credits - GET /credits/:uid
-				if (!array_key_exists(1, $this->args)) {
+				if (!array_key_exists("value", $this->request)) {
 					// Check method type
 					if ($this->method != "GET") {
 						$result["status"] = false;
@@ -160,7 +165,7 @@ class DrinkAPI extends API
 					// Query LDAP
 					$fields = array('drinkBalance');
 					$data = ldap_lookup($uid, $fields);
-					if ($data) {
+					if (array_key_exists(0, $data)) {
 						$result["status"] = true;
 						$result["message"] = "Success (users.credits)";
 						$result["data"] = $data[0]['drinkbalance'][0];
@@ -187,21 +192,70 @@ class DrinkAPI extends API
 						$result["data"] = false;
 						break;
 					}
-					// Sanitize value
-					$value = (int) trim($this->args[1]);
-					// Query LDAP
-					$replace = array('drinkBalance' => $value);
-					$data = ldap_update($uid, $replace);
-					if ($data) {
+					// Make sure the parameters are included
+					/*if (count($this->args) != 3) {
+						$result["status"] = false;
+						$result["message"] = "Error: invalid number of parameters (users.credits)";
+						$result["data"] = false;
+						break;
+					}*/
+					// Determine the type and amount of credit change
+					$value = (int) trim($this->request["value"]);
+					$type = (array_key_exists("type", $this->request)) ? $this->request["type"] : "add";
+					$type = strtolower(trim((string) $type));
+					if ($type != "add" && $type != "subtract") {
+						$result["status"] = false;
+						$result["message"] = "Error: invalid type (users.credits)";
+						$result["data"] = false;
+						break;
+					}
+					// Check the direction of the transaction
+					$direction = "in";
+					if ($value < 0 && $type == "add" || $value >= 0 && $type == "subtract") {
+						$direction = "out";
+					}
+					// Query LDAP for old balance
+					$fields = array('drinkBalance');
+					$data = ldap_lookup($uid, $fields);
+					if (array_key_exists(0, $data)) {
+						$oldBalance = $data[0]['drinkbalance'][0];
+						// Determine the new balance
+						$newBalance = 0;
+						if ($type == "add") {
+							$newBalance = $oldBalance + $value;
+						}
+						else {
+							$newBalance = $oldBalance - $value;
+						}
+						// Query LDAP to update the balance
+						$replace = array('drinkBalance' => $newBalance);
+						$data = ldap_update($uid, $replace);
+						if ($data) {
 							$result["status"] = true;
 							$result["message"] = "Success (users.credits)";
-							$result["data"] = true;
+							$result["data"] = $newBalance;
 						}
 						else {
 							$result["status"] = false;
 							$result["message"] = "Error: failed to query LDAP (users.credits)";
 							$result["data"] = false;
 						}
+						// Add the change to the logs
+						$sql = "INSERT INTO money_log (username, admin, amount, direction, reason) VALUES (:uid, :admin, :amount, :direction, :reason)";
+						$params["uid"] = $uid;
+						$params["admin"] = $this->uid;
+						$params["amount"] = $value;
+						$params["direction"] = $direction;
+						$params["reason"] = $type;
+						$query = db_insert($sql, $params);
+						// (TODO: handle failure?)
+						//$result["message"] .= " also logs work";
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query LDAP (users.credits)";
+						$result["data"] = false;
+					}
 				}
 				break;
 			/*
@@ -219,17 +273,17 @@ class DrinkAPI extends API
 					break;
 				}
 				// uid must be provided
-				$uid = "";
-				if (array_key_exists(0, $this->args)) {
-					$uid = $this->args[0];
+				$uid = false;
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->request["uid"];
 				}
-				else {
-					$uid = $this->uid;
-				}
+				//else {
+				//	$uid = $this->uid;
+				//}
 				if (!$uid) {
 					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.ibutton)";
-					$result["data"] = false;
+					$result["message"] = "Error: uid not supplied (users.search)";
+					$result["data"] = $this->request;
 					break;
 				}
 				// Sanitize uid
@@ -280,7 +334,7 @@ class DrinkAPI extends API
  				}
 				$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
 				$data = ldap_lookup($this->uid, $fields);
-				if ($data) {
+				if (array_key_exists(0, $data)) {
 					$tmp = array();
 					$tmp["uid"] = $this->uid;
 					$tmp["credits"] = $data[0]["drinkbalance"][0];
@@ -297,59 +351,6 @@ class DrinkAPI extends API
 					$result["data"] = false;
 				}
 				break;
-			/*
-			*	Endpoint: users.ibutton
-			*
-			*	Methods:
-			*	- get_ibutton: GET /ibutton/:uid
-			*/
-			/*case "ibutton":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (users.ibutton)";
-					$result["data"] = false;
-					break;
-				}
-				// uid must be provided
-				$uid = "";
-				if (array_key_exists(0, $this->args)) {
-					$uid = $this->args[0];
-				}
-				else {
-					$uid = $this->uid;
-				}
-				if (!$uid) {
-					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.ibutton)";
-					$result["data"] = false;
-					break;
-				}
-				// Sanitize uid
-				$uid = $this->sanitizeUid($uid);
-				// Must be an admin (if not getting your own ibutton)
-				if ($this->uid != $uid) {
-					if (!$this->admin) {
-						$result["status"] = false;
-						$result["message"] = "Error: must be an admin to get another's ibutton (users.ibutton)";
-						$result["data"] = false;
-						break;
-					}
-				}
-				// Query LDAP
-				$fields = array('ibutton');
-				$data = ldap_lookup($uid, $fields);
-				if ($data) {
-					$result["status"] = true;
-					$result["message"] = "Success (users.ibutton)";
-					$result["data"] = $data[0]['ibutton'][0];
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query LDAP (users.ibutton)";
-					$result["data"] = false;
-				}
-				break;*/
 			/*
 			*	Endpoint: users.drops
 			*
@@ -369,40 +370,16 @@ class DrinkAPI extends API
 				$uid = false;
 				$limit = false;
 				$offset = false;
-				if (array_key_exists(0, $this->args)) {
-					if ($this->args[0] == "user") {
-						// Check for uid
-						if (array_key_exists(1, $this->args)) {
-							$uid = $this->args[1];
-							// Sanitize uid
-							$uid = $this->sanitizeUid($uid);
-						}
-						else {
-							$result["status"] = false;
-							$result["message"] = "Error: uid not provided (users.drops)";
-							$result["data"] = false;
-							break;
-						}
-						// Add a limit and offset, if provided
-						if (array_key_exists(2, $this->args)) {
-							$limit = (int) trim($this->args[2]);
-							$params["limit"] = $limit;
-						}
-						if (array_key_exists(2, $this->args) && array_key_exists(3, $this->args)) {
-							$offset = (int) trim($this->args[3]);
-							$params["offset"] = $offset;
-						}
-					}
-					else {
-						// Add a limit and offset, if provided
-						if (array_key_exists(0, $this->args)) {
-							$limit = (int) trim($this->args[0]);
-							$params["limit"] = $limit;
-						}
-						if (array_key_exists(0, $this->args) && array_key_exists(1, $this->args)) {
-							$offset = (int) trim($this->args[1]);
-							$params["offset"] = $offset;
-						}
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->request["uid"];
+					$uid = $this->sanitizeUid($uid);
+				}
+				if (array_key_exists("limit", $this->request)) {
+					$limit = $this->request["limit"];
+					$limit = (int) trim($limit);
+					if (array_key_exists("offset", $this->request)) {
+						$offset = $this->request["offset"];
+						$offset = (int) trim($offset);
 					}
 				}
 				// Form the SQL query
@@ -417,9 +394,11 @@ class DrinkAPI extends API
 						ORDER BY l.drop_log_id DESC";
 				if ($limit) {
 					$sql .= " LIMIT :limit";
+					$params["limit"] = $limit;
 				}
 				if ($offset) {
 					$sql .= " OFFSET :offset";
+					$params["offset"] = $offset;
 				}
 				// Query the database
 				$query = db_select($sql, $params);
@@ -440,9 +419,9 @@ class DrinkAPI extends API
 			*	Methods:
 			*	- get_key: GET /apikey
 			*	- generate_key: POST /apikey
+			*	- delete_key: DELETE /apikey
 			*/
 			case "apikey": 
-				$delete = false;
 				// Must be on CSH systems (behind Webauth) to retrieve your API key
 				if (!$this->webauth) {
 					$result["status"] = false;
@@ -456,12 +435,6 @@ class DrinkAPI extends API
 					$result["message"] = "Error: uid not found (users.apikey)";
 					$result["data"] = false;
 					break;
-				}
-				// Check if we're deleting the API key
-				if (array_key_exists(0, $this->args)) {
-					if ($this->args[0] == "delete") {
-						$delete = true;
-					}
 				}
 				// get_key: GET /apikey
 				if ($this->method == "GET") {
@@ -482,10 +455,10 @@ class DrinkAPI extends API
 					}
 				}
 				// generate_key: POST /apikey
-				else if ($this->method == "POST" && !$delete) {
+				else if ($this->method == "POST") {
 					// Generate an API key
 					$salt = time();
-					$apiKey = md5(sha1($this->uid.$salt));
+					$apiKey = hash("fnv164", hash("sha512", $this->uid.$salt));
 					// Form the SQL query
 					$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
 					$params["uid"] = $this->uid;
@@ -506,8 +479,8 @@ class DrinkAPI extends API
 						$result["data"] = false;
 					}
 				}
-				// delete_key: POST /apikey/delete
-				else if ($this->method == "POST" && $delete) {
+				// delete_key: DELETE /apikey
+				else if ($this->method == "DELETE") {
 					// Form the SQL query
 					$sql = "DELETE FROM api_keys WHERE uid = :uid";
 					$params["uid"] = $this->uid;
@@ -568,8 +541,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = false;
-				if (array_key_exists(0, $this->args)) {
-					$mid = $this->args[0];
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->request["machine_id"];
 					// Sanitize uid
 					$mid = $this->sanitizeMachineId($mid);
 				}
@@ -615,8 +588,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = false;
-				if (array_key_exists(0, $this->args)) {
-					$mid = $this->args[0];
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->request["machine_id"];
 					// Sanitize uid
 					$mid = $this->sanitizeMachineId($mid);
 				}
@@ -664,8 +637,8 @@ class DrinkAPI extends API
 				}
 				// Check for slot_num
 				$slot = 0;
-				if (array_key_exists(0, $this->args)) {
-					$slot = (int) trim($this->args[0]);
+				if (array_key_exists("slot_num", $this->request)) {
+					$slot = (int) trim($this->request["slot_num"]);
 					$params["slotNum"] = $slot;
 				}
 				else {
@@ -676,8 +649,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = 0;
-				if (array_key_exists(1, $this->args)) {
-					$mid = $this->sanitizeMachineId($this->args[1]);
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->sanitizeMachineId($this->request["machine_id"]);
 					$params["machineId"] = $mid;
 				}
 				else {
@@ -689,18 +662,18 @@ class DrinkAPI extends API
 				// Form the SQL query (TODO: Find a good way to not require all parameters)
 				$sql = "UPDATE slots SET";
 				$append = "";
-				if (array_key_exists(2, $this->args)) {
-					$item_id = (int) trim($this->args[2]);
+				if (array_key_exists("item_id", $this->request)) {
+					$item_id = (int) trim($this->request["item_id"]);
 					$append .= " item_id = :itemId,";
 					$params["itemId"] = $item_id;
 				}
-				if (array_key_exists(3, $this->args)) {
-					$available = (int) trim($this->args[3]);
+				if (array_key_exists("available", $this->request)) {
+					$available = (int) trim($this->request["available"]);
 					$append .= " available = :available,";
 					$params["available"] = $available;
 				}
-				if (array_key_exists(4, $this->args)) {
-					$status = trim((string) $this->args[4]);
+				if (array_key_exists("status", $this->request)) {
+					$status = trim((string) $this->request["status"]);
 					$append .= " status = :status,";
 					$params["status"] = $status;
 				}
@@ -797,8 +770,8 @@ class DrinkAPI extends API
 				}
 				// Check for name
 				$name = "";
-				if (array_key_exists(0, $this->args)) {
-					$name = trim((string) $this->args[0]);
+				if (array_key_exists("name", $this->request)) {
+					$name = $this->sanitizeItemName($this->request["name"]);
 					$params["name"] = $name;
 				}
 				else {
@@ -809,8 +782,8 @@ class DrinkAPI extends API
 				}
 				// Check for price
 				$price = 0;
-				if (array_key_exists(1, $this->args)) {
-					$price = (int) trim($this->args[1]);
+				if (array_key_exists("price", $this->request)) {
+					$price = (int) trim($this->request["price"]);
 					$params["price"] = $price;
 				}
 				else {
@@ -819,14 +792,28 @@ class DrinkAPI extends API
 					$result["data"] = false;
 					break;
 				}
+				// Make sure price isn't negative
+				if ($price < 0) {
+					$result["status"] = false;
+					$result["message"] = "Error: price can't be negative (items.add)";
+					$result["data"] = false;
+					break;
+				}
 				// Form the SQL query
 				$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
 				// Make the query
 				$query = db_insert($sql, $params);
 				if ($query) {
+					$item_id = db_last_insert_id();
 					$result["status"] = true;
 					$result["message"] = "Success (items.add)";
-					$result["data"] = db_last_insert_id();
+					$result["data"] = $item_id;
+					// Log price changes to the database
+					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
+					$params = array();
+					$params["itemId"] = $item_id;
+					$params["price"] = $price;
+					$query = db_insert($sql, $params);
 				}
 				else {
 					$result["status"] = false;
@@ -857,8 +844,8 @@ class DrinkAPI extends API
 				}
 				// Make sure an item_id was provided
 				$item_id = 0;
-				if (array_key_exists(0, $this->args)) {
-					$item_id = $this->sanitizeItemId($this->args[0]);
+				if (array_key_exists("item_id", $this->request)) {
+					$item_id = $this->sanitizeItemId($this->request["item_id"]);
 					$params["itemId"] = $item_id;
 				}
 				else {
@@ -870,18 +857,32 @@ class DrinkAPI extends API
 				// Form the SQL query
 				$append = "";
 				$sql = "UPDATE drink_items SET";
-				if (array_key_exists(1, $this->args)) {
-					$name = trim((string) $this->args[1]);
+				if (array_key_exists("name", $this->request)) {
+					$name = $this->sanitizeItemName($this->request["name"]);
+					// Make sure the name isn't empty
+					if (strlen($name) <= 0) {
+						$result["status"] = false;
+						$result["message"] = "Error: name can't be empty (items.add)";
+						$result["data"] = false;
+						break;
+					}
 					$append .= " item_name = :name,";
 					$params["name"] = $name;
 				}
-				if (array_key_exists(2, $this->args)) {
-					$price = (int) trim($this->args[2]);
+				if (array_key_exists("price", $this->request)) {
+					$price = (int) trim($this->request["price"]);
+					// Make sure price isn't negative
+					if ($price < 0) {
+						$result["status"] = false;
+						$result["message"] = "Error: price can't be negative (items.update)";
+						$result["data"] = false;
+						break;
+					}
 					$append .= " item_price = :price,";
 					$params["price"] = $price;
 				}
-				if (array_key_exists(3, $this->args)) {
-					$state = trim((string) $this->args[3]);
+				if (array_key_exists("state", $this->request)) {
+					$state = trim((string) $this->request["state"]);
 					$append .= " state = :state,";
 					$params["state"] = $state;
 				}
@@ -899,6 +900,11 @@ class DrinkAPI extends API
 					$result["status"] = true;
 					$result["message"] = "Success (items.update)";
 					$result["data"] = true;
+					// Log price changes to the database
+					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
+					$params = array();
+					$params["itemId"] = $item_id;
+					$query = db_insert($sql, $params);
 				}
 				else {
 					$result["status"] = false;
@@ -929,8 +935,8 @@ class DrinkAPI extends API
 				}
 				// Make sure an item_id was provided
 				$item_id = 0;
-				if (array_key_exists(0, $this->args)) {
-					$item_id = $this->sanitizeItemId($this->args[0]);
+				if (array_key_exists("item_id", $this->request)) {
+					$item_id = $this->sanitizeItemId($this->request["item_id"]);
 					$params["itemId"] = $item_id;
 				}
 				else {
@@ -991,8 +997,8 @@ class DrinkAPI extends API
 				}
 				// Check for machine_id
 				$mid = false;
-				if (array_key_exists(0, $this->args)) {
-					$mid = $this->sanitizeMachineId($this->args[0]);
+				if (array_key_exists("machine_id", $this->request)) {
+					$mid = $this->sanitizeMachineId($this->request["machine_id"]);
 					$params["machineId"] = $mid;
 				}
 				else {
@@ -1003,15 +1009,20 @@ class DrinkAPI extends API
 				}
 				// Check for limit (TODO: Allow for offset as well)
 				$limit = 300;
-				if (array_key_exists(1, $this->args)) {
-					$limit = (int) trim($this->args[1]);
+				if (array_key_exists("limit", $this->request)) {
+					$limit = (int) trim($this->request["limit"]);
 				}
 				$params["limit"] = $limit;
+				$offset = 0;
+				if (array_key_exists("offset", $this->request)) {
+					$offset = (int) trim($this->request["offset"]);
+				}
+				$params["offset"] = $offset;
 				// Form the SQL query
 				$sql = "SELECT t.machine_id, t.time, t.temp, m.display_name 
 						FROM temperature_log as t, machines as m
 						WHERE t.machine_id = m.machine_id AND t.machine_id = :machineId
-						ORDER BY t.time DESC LIMIT :limit";
+						ORDER BY t.time DESC LIMIT :limit OFFSET :offset";
 				// Query the database
 				$query = db_select($sql, $params);	
 				if ($query) {

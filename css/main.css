@@ -2,7 +2,7 @@
 /* No media query since this is the default in Bootstrap */
 
 body {
-	padding-top: 60px;
+	padding-top: 70px;
 	min-width: 320px;
 }
 
@@ -18,6 +18,11 @@ body {
 	top: 60px;
 	z-index: -1;
 }*/
+
+.btn-primary:disabled {
+	border-color: #CCC;
+	background-color: #DDD;
+}
 
 .slot-disabled {
 	color: #999;

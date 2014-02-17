@@ -3,7 +3,7 @@
 		<div class="col-md-6 col-sm-12">
 			<h3>Manage Users</h3>
 			<div class="input-group">
-				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();">
+				<input type="text" class="form-control" placeholder="Username" list="usernames" ng-model="searchTerm" ng-change="getUsers();" ng-keypress="loadUserEnter($event);">
 		      	<span class="input-group-btn">
 		        	<button class="btn btn-primary" type="button" ng-click="loadUser();">
 		        		<span class="glyphicon glyphicon-search"></span>
@@ -38,7 +38,7 @@
 							    <button type="button" class="btn btn-default" ng-click="changeType('subtract');" ng-class="(transactionType == 'subtract') ? 'pressed' : ''">
 							    	<span class="glyphicon glyphicon-minus"></span>
 							    </button>
-							    <button type="button" class="btn btn-default" ng-click="changeType('update');" ng-class="(transactionType == 'update') ? 'pressed' : ''">
+							    <button type="button" class="btn btn-default" ng-click="changeType('adjust');" ng-class="(transactionType == 'adjust') ? 'pressed' : ''">
 							    	<span class="glyphicon glyphicon-pencil"></span>
 							    </button>
 							</div>
@@ -49,7 +49,7 @@
 					</div>
 					<div class="row center">
 						<div class="col-md-6 col-md-offset-3 col-sm-12">
-							<button class="btn btn-success" ng-click="updateCredits();">Update</button>
+							<button class="btn btn-success" ng-click="updateCreditsDos();">Update</button>
 						</div>
 					</div>
 				</div>

@@ -51,9 +51,10 @@
 			$("#startup").on("click", function () {
 				var apikey = $("#apikeyholder").val();
 				$.ajax({
-					url: baseUrl+"users/info/api_key/"+apikey, 
+					url: baseUrl+"users/info",
 					method: "GET",
 					dataType: "json",
+					data: { "api_key": apikey },
 					success: function (response) {
 						if (response.status) {
 							$("#user").html(response.data.cn);
@@ -64,9 +65,10 @@
 							$("#ohboy").html("<h1>WRONG API KEY YOU DINGUS</h1>");
 						}
 						$.ajax({
-							url: baseUrl+"machines/stock/api_key/"+apikey,
+							url: baseUrl+"machines/stock",
 							method: "GET",
 							dataType: "json",
+							data: { "api_key": apikey },
 							success: function (response) {
 								if (response.status) {
 									var i = 1;

@@ -24,18 +24,32 @@ app.factory("UserService", function($http, $window, $log) {
 	return {	
 		// Search for usernames that match a string
 		searchUsers: function(search, successCallback, errorCallback) {
-			var url = baseUrl+"users/search/"+search;
-			$http.get(url).success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"users/search",
+				params: {"uid": search}
+			}).success(successCallback).error(errorCallback);
 		},
-		// Get the drink credit amount for a user
+		// Get the balance of a user's drink credits
 		getCredits: function(uid, successCallback, errorCallback) {
-			var url = baseUrl+"users/credits/"+uid;
-			$http.get(url).success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"users/credits",
+				params: {"uid": uid}
+			}).success(successCallback).error(errorCallback);
 		},
 		// Update the drink credit amount for a user
-		updateCredits: function(uid, credits, successCallback, errorCallback) {
+		/*updateCredits: function(uid, credits, successCallback, errorCallback) {
 			var url = baseUrl+"users/credits/"+uid+"/"+credits;
 			$http.post(url, {}).success(successCallback).error(errorCallback);
+		},*/
+		updateCreditsDos: function(uid, amount, type, successCallback, errorCallback) {
+			$http({
+				method: "POST",
+				url: baseUrl+"users/credits",
+				data: jQuery.param({"uid":uid, "value":amount, "type":type}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -45,25 +59,28 @@ app.factory("ItemService", function($http, $window) {
 	return {
 		// Add a new item
 		addItem: function(name, price, successCallback, errorCallback) {
-			var url = baseUrl+"items/add/"+name+"/"+price;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"items/add",
+				data: jQuery.param({"name": name, "price": price}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		},
 		updateItem: function(data, successCallback, errorCallback) {
-			var url = baseUrl+"items/update/"+data.item_id;
-			if (data.hasOwnProperty("item_name")) {
-				url += "/"+data.item_name;
-			}
-			if (data.hasOwnProperty("item_price")) {
-				url += "/"+data.item_price;
-			}
-			if (data.hasOwnProperty("state")) {
-				url += "/"+data.state;
-			}
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"items/update",
+				data: jQuery.param(data),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		},
 		deleteItem: function(itemId, successCallback, errorCallback) {
-			var url = baseUrl+"items/delete/"+itemId;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
+			$http({
+				method: "POST",
+				url: baseUrl+"items/delete",
+				data: jQuery.param({"item_id": itemId}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -72,8 +89,13 @@ app.factory("ItemService", function($http, $window) {
 app.factory("TempService", function($http, $window) {
 	return {
 		getTempsOne: function(machineId, successCallback, errorCallback) {
-			var url = baseUrl+"temps/machines/"+machineId;
-			$http.get(url).success(successCallback).error(errorCallback);
+			//var url = baseUrl+"temps/machines/"+machineId;
+			//$http.get(url).success(successCallback).error(errorCallback);
+			$http({
+				method: "GET",
+				url: baseUrl+"temps/machines",
+				params: {"machine_id": machineId}
+			}).success(successCallback).error(errorCallback);
 		}
 	};
 });
@@ -86,7 +108,7 @@ app.factory("LogsService", function($http, $window) {
 });
 
 // Controller for the Manage Users page
-function UserCtrl($scope, $log, UserService, DropService) {
+function UserCtrl($scope, $log, UserService, DropService, MachineService) {
 	$scope.searchTerm = "";				// Username being searched for
 	$scope.searchResults = {};			// All matching usernames from a search
 	$scope.activeUser = {				// Current user being managed
@@ -129,6 +151,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 					if (response.status) {
 						// Update the matched set of usernames
 						$scope.searchResults = response.data;
+						//$log.log(response.data);
 					}
 					else {
 						$log.log(response.message);
@@ -160,10 +183,13 @@ function UserCtrl($scope, $log, UserService, DropService) {
 
 	// Get the drop history for the active user
 	$scope.getUserDrops = function() {
-		DropService.getDrops($scope.activeUser.uid, $scope.dropsToLoad, 0,
+		var data = {
+			"uid": $scope.activeUser.uid,
+			"limit": $scope.dropsToLoad
+		};
+		DropService.getDrops(data,
 			function (response) {
 				if (response.status) {
-					//$scope.activeUser.drops.push.apply($scope.activeUser.drops, response.data);
 					$scope.activeUser.drops = response.data;
 					$scope.drops_table.drops = $scope.activeUser.drops;
 				}
@@ -177,14 +203,30 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		);
 	}
 
+	$scope.loadUserEnter = function(e) {
+		if (e.which==13)
+    		$scope.loadUser();
+	}
+
 	// Set the active user's data
 	$scope.loadUser = function() {
-		//$log.log($scope.searchTerm);
-		// Only load if the search result has one user
-		if ($scope.searchResults.length == 1) {
+		if ($scope.searchTerm != "") {
+			var foundUser = false;
+			var i = 0;
+			for (i = 0; i < $scope.searchResults.length; i++) {
+				if ($scope.searchTerm == $scope.searchResults[i].uid) {
+					foundUser = $scope.searchResults[i];
+					//$log.log("found it: " + foundUser.uid)
+					break;
+				}
+			}
+			if (!foundUser) {
+				return;
+			}
 			// Set the common name and uid of the active user
-			$scope.activeUser.cn = $scope.searchResults[0].cn;
-			$scope.activeUser.uid = $scope.searchResults[0].uid;
+			$scope.activeUser.cn = foundUser.cn;
+			$scope.activeUser.uid = foundUser.uid;
+			//$log.log($scope.activeUser);
 			// Get the active user's drink credit balance and drop history
 			$scope.getUserCredits();
 			$scope.getUserDrops();
@@ -202,7 +244,7 @@ function UserCtrl($scope, $log, UserService, DropService) {
 		else if ($scope.transactionType == "subtract") {
 			newCredits = Number($scope.activeUser.credits) - Number($scope.creditChange);
 		}
-		else if ($scope.transactionType == "update") {
+		else if ($scope.transactionType == "adjust") {
 			newCredits = $scope.creditChange;
 		}
 		else {
@@ -215,6 +257,44 @@ function UserCtrl($scope, $log, UserService, DropService) {
 					$scope.alert.type = "alert-success";
 					$scope.alert.message = "Credits updated successfully!"
 					$scope.activeUser.credits = newCredits;
+				}
+				else {
+					$scope.alert.type = "alert-danger";
+					$scope.alert.message = response.message;
+				}
+				// Show the success/failure alert
+				$scope.alert.show = true;
+			},
+			function (error) {
+				$log.log(error);
+			}
+		);
+	}
+
+	$scope.updateCreditsDos = function() {
+		var type = $scope.transactionType;
+		var amount = $scope.creditChange;
+		// If using the "adjust" feature, convert it to add or subtract
+		if ($scope.transactionType == "adjust") {
+			if ($scope.creditChange - $scope.activeUser.credits >= 0) {
+				amount = $scope.creditChange - $scope.activeUser.credits;
+				type = "add";
+			}
+			else {
+				amount = $scope.activeUser.credits - $scope.creditChange;
+				type = "subtract";
+			}
+		}
+		// Update the user's credits in LDAP
+		UserService.updateCreditsDos($scope.activeUser.uid, amount, type,
+			function (response) {
+				if (response.status) {
+					$scope.alert.type = "alert-success";
+					$scope.alert.message = "Credits updated successfully!"
+					$scope.activeUser.credits = response.data;
+					if ($scope.activeUser.uid == $scope.current_user.uid) {
+						$scope.current_user.credits = response.data;
+					}
 				}
 				else {
 					$scope.alert.type = "alert-danger";
@@ -261,6 +341,20 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 
 	// Add the newItem to the database
 	$scope.addItem = function() {
+		// Handle empty name
+		if ($scope.newItem.item_name == "") {
+			$scope.alert.type = "alert-danger";
+			$scope.alert.message = "Invalide name: can't be empty!";
+			$scope.alert.show = true;
+			return;
+		}
+		// Handle undefined price
+		if (typeof $scope.newItem.item_price === "undefined") {
+			$scope.alert.type = "alert-danger";
+			$scope.alert.message = "Invalid price; must be a positive integer!";
+			$scope.alert.show = true;
+			return;
+		}	
 		// Add the item to the database
 		ItemService.addItem($scope.newItem.item_name, $scope.newItem.item_price,
 			function (response) {
@@ -300,7 +394,25 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 
 	// Save the updated item in the database
 	$scope.saveItem = function() {
-		ItemService.updateItem($scope.updateItem, 
+		// Handle empty name
+		if ($scope.updateItem.item_name == "") {
+			$scope.message = "Invalide name: can't be empty!";
+			jQuery("#saveItemModal").modal('show');
+			return;
+		}
+		// Handle undefined price
+		if (typeof $scope.updateItem.item_price === "undefined") {
+			$scope.message = "Invalid price; must be a positive integer!";
+			jQuery("#saveItemModal").modal('show');
+			return;
+		}	
+		var data = {
+			item_id: $scope.updateItem.item_id,
+			name: $scope.updateItem.item_name,
+			price: $scope.updateItem.item_price,
+			state: $scope.updateItem.state
+		};
+		ItemService.updateItem(data,
 			function (response) {
 				if (response.status) {
 					// Update the currentItem to reflect changes
@@ -426,7 +538,11 @@ function LogsCtrl($scope, $log, LogsService, DropService) {
 
 	// Get a user's drop history
 	$scope.getDrops = function() {
-		DropService.getDrops(false, $scope.dropsToLoad , $scope.pagesLoaded * $scope.dropsToLoad,
+		var data = {
+			"limit": $scope.dropsToLoad,
+			"offset": $scope.dropsToLoad * $scope.pagesLoaded
+		};
+		DropService.getDrops(data,
 			function (response) {
 				if (response.status) {
 					$scope.logs = $scope.logs.concat(response.data);
