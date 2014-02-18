@@ -1,5 +1,6 @@
 .DS_Store
 .htaccess
+wiki.md
 samples.sql
 drink_v2.sql
 drink_v2_schema.sql

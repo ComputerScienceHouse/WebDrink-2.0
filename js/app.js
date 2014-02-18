@@ -102,7 +102,7 @@ app.factory("APIService", function($http, $window, $log) {
 		retrieveKey: function(successCallback, errorCallback) {
 			$http({
 				method: "GET",
-				url: baseUrl+"users/apikey/delete"
+				url: baseUrl+"users/apikey"
 			}).success(successCallback).error(errorCallback);
 		},
 		generateKey: function(successCallback, errorCallback) {
