@@ -2,12 +2,13 @@
 
 // Include the database connectivity functions
 require_once('../utils/db_utils.php');
-
 // Include the LDAP connectivity functions
 require_once('../utils/ldap_utils.php');
-
 // Include the abstract API class
 require_once('./abstract_api.php');
+// Include configuration info
+require_once("../config.php");
+//define("DEBUG", true);
 
 /*
 *	Concrete API implementation for WebDrink
@@ -18,8 +19,6 @@ class DrinkAPI extends API
 	private $admin = false;
 	private $uid = false;
 	private $webauth = false;
-
-	private $debug = true;
 
 	// Constructor
 	public function __construct($request) {
@@ -33,19 +32,22 @@ class DrinkAPI extends API
 			$this->uid = $this->lookupAPIKey();
 			$this->webauth = false;
 		}
-		else {
-			//$this->uid = false;
-			//$this->webauth = false;
+		else if (DEBUG) {
 			$this->uid = "bencentra";
 			$this->webauth = true;
 		}
-		// If the request is a POST method, verify the user is an admin
-		if ($this->method == "POST" || $this->debug) {
-			// Check if the user is an admin
-			if ($this->uid != false) {
-				$this->admin = $this->isAdmin($this->uid);
-			}
+		else {
+			$this->uid = false;
+			$this->webauth = false;
 		}
+		// Check if the user is an admin
+		if ($this->uid != false) {
+			$this->admin = $this->isAdmin($this->uid);
+		}
+		// If the request is a POST method, verify the user is an admin
+		//if ($this->method != "POST" || DEBUG) {
+			
+		//}
 	}
 
 	// Determine if the user is a Drink Admin or not
@@ -179,7 +181,7 @@ class DrinkAPI extends API
 				// update_credits - POST /credits/:uid/:value
 				else {
 					// Check method type
-					if ($this->method != "POST" && !$this->debug) {
+					if ($this->method != "POST") {
 						$result["status"] = false;
 						$result["message"] = "Error: only accepts POST requests (users.credits)";
 						$result["data"] = false;
@@ -623,7 +625,7 @@ class DrinkAPI extends API
 			*/
 			case "slot":
 				// Check method type
-				if ($this->method != "POST" && !$this->debug) {
+				if ($this->method != "POST") {
 					$result["status"] = false;
 					$result["message"] = "Error: only accepts POST requests (machines.slot)";
 					$result["data"] = false;
@@ -756,7 +758,7 @@ class DrinkAPI extends API
 			*/
 			case "add":
 				// Check method type
-				if ($this->method != "POST" && !$this->debug) {
+				if ($this->method != "POST") {
 					$result["status"] = false;
 					$result["message"] = "Error: only accepts POST requests (items.add)";
 					$result["data"] = false;
@@ -830,7 +832,7 @@ class DrinkAPI extends API
 			*/
 			case "update":
 				// Check method type
-				if ($this->method != "POST" && !$this->debug) {
+				if ($this->method != "POST") {
 					$result["status"] = false;
 					$result["message"] = "Error: only accepts POST requests (items.update)";
 					$result["data"] = false;
@@ -921,7 +923,7 @@ class DrinkAPI extends API
 			*/
 			case "delete":
 				// Check method type
-				if ($this->method != "POST" && !$this->debug) {
+				if ($this->method != "POST") {
 					$result["status"] = false;
 					$result["message"] = "Error: only accepts POST requests (items.delete)";
 					$result["data"] = false;

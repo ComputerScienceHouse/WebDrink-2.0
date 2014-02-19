@@ -1,5 +1,3 @@
-var baseUrl = "api/"; // "api/index.php?request="
-
 // Have the navbar collapse (on mobile) after a page is selected
 document.addEventListener("DOMContentLoaded", function() {
 	jQuery('.navitem').click(function() {
