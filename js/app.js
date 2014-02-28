@@ -1,5 +1,3 @@
-var baseUrl = "api/"; // "api/index.php?request="
-
 // Have the navbar collapse (on mobile) after a page is selected
 document.addEventListener("DOMContentLoaded", function() {
 	jQuery('.navitem').click(function() {
@@ -102,7 +100,7 @@ app.factory("APIService", function($http, $window, $log) {
 		retrieveKey: function(successCallback, errorCallback) {
 			$http({
 				method: "GET",
-				url: baseUrl+"users/apikey/delete"
+				url: baseUrl+"users/apikey"
 			}).success(successCallback).error(errorCallback);
 		},
 		generateKey: function(successCallback, errorCallback) {

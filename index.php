@@ -5,13 +5,19 @@
 */
 // Include the LDAP connection info
 require_once("./ldapInfo.inc");
+// Include configuration info
+require_once("./config.php");
 
 // Grab some necessary info from webauth
 $user_data = array();
-//$user_data['cn'] = $_SERVER['WEBAUTH_LDAP_CN'];
-$user_data['cn'] = "Ben Centra";
-//$user_data['uid'] = $_SERVER['WEBAUTH_USER'];
-$user_data['uid'] = "bencentra";
+if (DEBUG) {
+	$user_data['cn'] = "Ben Centra";
+	$user_data['uid'] = "bencentra";
+}
+else {
+	$user_data['uid'] = $_SERVER['WEBAUTH_USER'];
+	$user_data['cn'] = $_SERVER['WEBAUTH_LDAP_CN'];
+}
 
 // Get some initial data from LDAP
 $filter = "(uid=".$user_data['uid'].")";
@@ -41,6 +47,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<script src="js/socket.io-client.js"></script>
 	<script type="text/javascript">
 		window.current_user = <?php echo json_encode($user_data); ?>;
+		var baseUrl = "api/"; // "api/index.php?request="
 	</script>
 	<script type="text/javascript" src="js/app.js"></script>
 	<?php if ($user_data['admin']): ?>
