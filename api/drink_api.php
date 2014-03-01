@@ -18,31 +18,36 @@ class DrinkAPI extends API
 	private $data = array();
 	private $admin = false;
 	private $uid = false;
+	private $uuid = false;
 	private $webauth = false;
 
 	// Constructor
 	public function __construct($request) {
 		parent::__construct($request);
 		// Grab the user's uid from Webauth
-		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
-			$this->uid = $_SERVER["WEBAUTH_USER"];
+		if (array_key_exists("WEBAUTH_LDAP_ENTRYUUID", $_SERVER)) {
+			$this->uuid = $_SERVER["WEBAUTH_LDAP_ENTRYUUID"];
+			$this->uid = $this->getUidByUuid($this->uuid);
 			$this->webauth = true;
 		} 
 		else if ($this->api_key) {
-			$this->uid = $this->lookupAPIKey();
+			$this->uuid = $this->lookupAPIKey();
+			$this->uid = $this->getUidByUuid($this->uuid);
 			$this->webauth = false;
 		}
 		else if (DEBUG) {
+			$this->uuid = "1c624ae8-5a2e-102f-98fa-b57270bb12b3";
 			$this->uid = "bencentra";
 			$this->webauth = true;
 		}
 		else {
+			$this->uuid = false;
 			$this->uid = false;
 			$this->webauth = false;
 		}
 		// Check if the user is an admin
-		if ($this->uid != false) {
-			$this->admin = $this->isAdmin($this->uid);
+		if ($this->uuid != false) {
+			$this->admin = $this->isAdmin($this->uuid);
 		}
 		// If the request is a POST method, verify the user is an admin
 		//if ($this->method != "POST" || DEBUG) {
@@ -51,9 +56,9 @@ class DrinkAPI extends API
 	}
 
 	// Determine if the user is a Drink Admin or not
-	protected function isAdmin($uid) {
+	protected function isAdmin($uuid) {
 		$fields = array('drinkAdmin');
-		$result = ldap_lookup($uid, $fields);
+		$result = ldap_lookup($uuid, $fields);
 		if (isset($result[0]['drinkadmin'][0])) {
 			return $result[0]['drinkadmin'][0];
 		}
@@ -62,16 +67,40 @@ class DrinkAPI extends API
 		}
 	}
 
-	// Lookup api key
+	// Lookup uuid by api key
 	protected function lookupAPIKey() {
 		$sql = "SELECT * FROM api_keys WHERE api_key = :apiKey";
 		$params["apiKey"] = $this->api_key;
 		$query = db_select($sql, $params); 
 		if ($query) {
-			return $query[0]["uid"];
+			return $query[0]["uuid"];
 		} 
 		else {
 			return false;
+		}
+	}
+
+	// Lookup uid by api key
+	protected function getUidByUuid($uuid) {
+		$fields = array('uid');
+		$result = ldap_lookup($uuid, $fields);
+		if (isset($result[0]['uid'][0])) {
+			return $result[0]['uid'][0];
+		}
+		else {
+			return false;
+		}
+	}
+
+	// Add a 'uid' column in query result rows with a 'uuid'
+	protected function getUidByUuidAll($data) {
+		$uids = array();
+		foreach ($data as $row) {
+			$uuid = $row['uuid'];
+			if (!array_key_exists($uuid, $uids)) {
+				$uids[$uuid] = $this->getUidByUuid($uuid);
+			}
+			$row['uid'] = $uids[$uuid];
 		}
 	}
 
@@ -99,10 +128,10 @@ class DrinkAPI extends API
 	protected function test() {
 		switch ($this->verb) {
 			case "api":
-				if ($this->uid && $this->api_key) {
-					return array("status" => true, "message" => "User Found!", "data" => $this->uid);
+				if ($this->uuid && $this->api_key) {
+					return array("status" => true, "message" => "User Found!", "data" => array("entryuuid" => $this->uuid, "uid" => $this->getUidByUuid($this->uuid)));
 				}
-				else if (!$this->uid && $this->api_key) {
+				else if (!$this->uuid && $this->api_key) {
 					return array("status" => false, "message" => "No User Found!", "data" => false);
 				}
 				else {
@@ -141,7 +170,7 @@ class DrinkAPI extends API
 				if (!$uid) {
 					$result["status"] = false;
 					$result["message"] = "Error: uid not supplied (users.credits)";
-					$result["data"] = $this->request;
+					$result["data"] = false;
 					break;
 				}
 				// Sanitize uid
@@ -322,7 +351,7 @@ class DrinkAPI extends API
 					$result["data"] = false;
 					break;
 				}
-				if (!$this->uid || $this->uid == null) {
+				if (!$this->uuid || $this->uuid == null) {
 					$result["status"] = false;
 					$result["message"] = "Error: user not found (users.info)";
 					$result["data"] = false;
@@ -343,6 +372,7 @@ class DrinkAPI extends API
 					$tmp["admin"] = $data[0]["drinkadmin"][0];
 					$tmp["ibutton"] = $data[0]["ibutton"][0];
 					$tmp["cn"] = $data[0]["cn"][0];
+					$tmp["entryuuid"] = $this->uuid;
 					$result["status"] = true;
 					$result["message"] = "Success (users.info)";
 					$result["data"] = $tmp;
