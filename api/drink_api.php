@@ -58,7 +58,7 @@ class DrinkAPI extends API
 	// Determine if the user is a Drink Admin or not
 	protected function isAdmin($uuid) {
 		$fields = array('drinkAdmin');
-		$result = ldap_lookup($uuid, $fields);
+		$result = ldap_lookup_uuid($uuid, $fields);
 		if (isset($result[0]['drinkadmin'][0])) {
 			return $result[0]['drinkadmin'][0];
 		}
@@ -101,7 +101,7 @@ class DrinkAPI extends API
 			if (!array_key_exists($uuid, $uids)) {
 				$uids[$uuid] = $this->getUidByUuid($uuid);
 			}
-			$row['uid'] = $uids[$uuid];
+			$row['username'] = $uids[$uuid];
 			$tmp[] = $row;
 		}
 		return $tmp;
@@ -144,7 +144,7 @@ class DrinkAPI extends API
 		switch ($this->verb) {
 			case "api":
 				if ($this->uuid && $this->api_key) {
-					return array("status" => true, "message" => "User Found!", "data" => array("entryuuid" => $this->uuid, "uid" => $this->getUidByUuid($this->uuid)));
+					return array("status" => true, "message" => "User Found!", "data" => array("entryuuid" => $this->uuid, "uid" => $this->getUidByUuid($this->uuid), "admin" => $this->admin));
 				}
 				else if (!$this->uuid && $this->api_key) {
 					return array("status" => false, "message" => "No User Found!", "data" => false);
