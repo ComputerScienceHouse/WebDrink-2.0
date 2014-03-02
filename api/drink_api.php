@@ -80,10 +80,10 @@ class DrinkAPI extends API
 		}
 	}
 
-	// Lookup uid by api key
+	// Lookup uid by entryuuid
 	protected function getUidByUuid($uuid) {
 		$fields = array('uid');
-		$result = ldap_lookup($uuid, $fields);
+		$result = ldap_lookup_uuid($uuid, $fields);
 		if (isset($result[0]['uid'][0])) {
 			return $result[0]['uid'][0];
 		}
@@ -95,12 +95,27 @@ class DrinkAPI extends API
 	// Add a 'uid' column in query result rows with a 'uuid'
 	protected function getUidByUuidAll($data) {
 		$uids = array();
+		$tmp = array();
 		foreach ($data as $row) {
 			$uuid = $row['uuid'];
 			if (!array_key_exists($uuid, $uids)) {
 				$uids[$uuid] = $this->getUidByUuid($uuid);
 			}
 			$row['uid'] = $uids[$uuid];
+			$tmp[] = $row;
+		}
+		return $tmp;
+	}
+
+	// Lookup entryuuid by uid
+	protected function getUuidByUid($uid) {
+		$fields = array('entryuuid');
+		$result = ldap_lookup_uid($uid, $fields);
+		if (isset($result[0]['entryuuid'][0])) {
+			return $result[0]['entryuuid'][0];
+		}
+		else {
+			return false;
 		}
 	}
 
@@ -272,8 +287,8 @@ class DrinkAPI extends API
 							$result["data"] = false;
 						}
 						// Add the change to the logs
-						$sql = "INSERT INTO money_log (username, admin, amount, direction, reason) VALUES (:uid, :admin, :amount, :direction, :reason)";
-						$params["uid"] = $uid;
+						$sql = "INSERT INTO money_log (uuid, admin, amount, direction, reason) VALUES (:uuid, :admin, :amount, :direction, :reason)";
+						$params["uuid"] = $this->getUuidByUid($uid);
 						$params["admin"] = $this->uid;
 						$params["amount"] = $value;
 						$params["direction"] = $direction;
@@ -364,7 +379,7 @@ class DrinkAPI extends API
  					break;
  				}
 				$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
-				$data = ldap_lookup($this->uid, $fields);
+				$data = ldap_lookup_uuid($this->uuid, $fields);
 				if (array_key_exists(0, $data)) {
 					$tmp = array();
 					$tmp["uid"] = $this->uid;
@@ -400,11 +415,19 @@ class DrinkAPI extends API
 				}
 				// See if we're getting a specific user's drops
 				$uid = false;
+				$uuid = false;
 				$limit = false;
 				$offset = false;
 				if (array_key_exists("uid", $this->request)) {
 					$uid = $this->request["uid"];
 					$uid = $this->sanitizeUid($uid);
+					$uuid = $this->getUuidByUid($uid);
+					if (!$uuid) {
+						$result["status"] = false;
+						$result["message"] = "Error: user not found (users.drops)";
+						$result["data"] = false;
+						break;
+					}
 				}
 				if (array_key_exists("limit", $this->request)) {
 					$limit = $this->request["limit"];
@@ -415,26 +438,27 @@ class DrinkAPI extends API
 					}
 				}
 				// Form the SQL query
-				$sql = "SELECT l.drop_log_id, l.machine_id, m.display_name, l.slot, l.username, l.time, l.status, l.item_id, i.item_name, l.current_item_price 
+				$sql = "SELECT l.drop_log_id, l.machine_id, m.display_name, l.slot, l.uuid, l.time, l.status, l.item_id, i.item_name, l.current_item_price 
 						FROM drop_log as l, machines as m, drink_items as i WHERE";
 				// Add the uid, if provided
-				if ($uid) {
-					$sql .= " l.username = :username AND";
-					$params["username"] = $uid;
+				if ($uuid) {
+					$sql .= " l.uuid = :uuid AND";
+					$params["uuid"] = $uuid;
 				}
 				$sql .= " m.machine_id = l.machine_id AND i.item_id = l.item_id 
 						ORDER BY l.drop_log_id DESC";
 				if ($limit) {
 					$sql .= " LIMIT :limit";
 					$params["limit"] = $limit;
-				}
-				if ($offset) {
-					$sql .= " OFFSET :offset";
-					$params["offset"] = $offset;
+					if ($offset) {
+						$sql .= " OFFSET :offset";
+						$params["offset"] = $offset;
+					}
 				}
 				// Query the database
 				$query = db_select($sql, $params);
 				if ($query) {
+					$query = $this->getUidByUuidAll($query);
 					$result["status"] = true;
 					$result["message"] = "Success (users.drops)";
 					$result["data"] = $query;
@@ -442,7 +466,7 @@ class DrinkAPI extends API
 				else {
 					$result["status"] = false;
 					$result["message"] = "Error: failed to query database (users.drops)";
-					$result["data"] = false;
+					$result["data"] = $uuid;
 				}
 				break;
 			/*
@@ -462,17 +486,17 @@ class DrinkAPI extends API
 					break;
 				}
 				// UID must be set
-				if (!$this->uid) {
+				if (!$this->uuid) {
 					$result["status"] = false;
-					$result["message"] = "Error: uid not found (users.apikey)";
+					$result["message"] = "Error: uuid not found (users.apikey)";
 					$result["data"] = false;
 					break;
 				}
 				// get_key: GET /apikey
 				if ($this->method == "GET") {
 					// Form the SQL query
-					$sql = "SELECT * FROM api_keys WHERE uid = :uid";
-					$params["uid"] = $this->uid;
+					$sql = "SELECT * FROM api_keys WHERE uuid = :uuid";
+					$params["uuid"] = $this->uuid;
 					// Query the database
 					$query = db_select($sql, $params);
 					if ($query) {
@@ -491,17 +515,17 @@ class DrinkAPI extends API
 					// Generate an API key
 					$salt = time();
 					//$apiKey = hash("fnv164", hash("sha512", $this->uid.$salt));
-					$apiKey = md5(hash("sha512", $this->uid.$salt));
+					$apiKey = md5(hash("sha512", $this->uuid.$salt));
 					// Form the SQL query
-					$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
-					$params["uid"] = $this->uid;
+					$sql = "REPLACE INTO api_keys (uuid, api_key) VALUES (:uuid, :apiKey)";
+					$params["uuid"] = $this->uuid;
 					$params["apiKey"] = $apiKey;
 					// Query the database
 					$query = db_insert($sql, $params);
 					if ($query) {
 						$data["api_key"] = $apiKey;
 						$data["date"] = date("Y-m-d H:i:s");
-						$data["uid"] = $this->uid;
+						$data["uuid"] = $this->uuid;
 						$result["status"] = true;
 						$result["message"] = "Success (users.apikey)";
 						$result["data"] = $data;
@@ -515,8 +539,8 @@ class DrinkAPI extends API
 				// delete_key: DELETE /apikey
 				else if ($this->method == "DELETE") {
 					// Form the SQL query
-					$sql = "DELETE FROM api_keys WHERE uid = :uid";
-					$params["uid"] = $this->uid;
+					$sql = "DELETE FROM api_keys WHERE uuid = :uuid";
+					$params["uuid"] = $this->uuid;
 					// Query the database
 					$query = db_delete($sql, $params);
 					if ($query) {
