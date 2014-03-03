@@ -13,14 +13,16 @@ $user_data = array();
 if (DEBUG) {
 	$user_data['cn'] = "Ben Centra";
 	$user_data['uid'] = "bencentra";
+	$user_data['entryuuid'] = "1c624ae8-5a2e-102f-98fa-b57270bb12b3";
 }
 else {
 	$user_data['uid'] = $_SERVER['WEBAUTH_USER'];
 	$user_data['cn'] = $_SERVER['WEBAUTH_LDAP_CN'];
+	$user_data['entryuuid'] = $_SERVER['WEBAUTH_LDAP_ENTRYUUID'];
 }
 
 // Get some initial data from LDAP
-$filter = "(uid=".$user_data['uid'].")";
+$filter = "(entryuuid=".$user_data['entryuuid'].")";
 $fields = array('drinkAdmin', 'drinkBalance', 'ibutton');
 $search = ldap_search($conn, $userDn, $filter, $fields);
 $data = ldap_get_entries($conn, $search);
