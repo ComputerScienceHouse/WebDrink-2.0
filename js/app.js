@@ -772,7 +772,7 @@ function ThunderdomeCtrl($scope, $log, MachineService, ThunderdomeService) {
 				$scope.active = (response.data == "1") ? true : false;
 			}
 			else {
-				$log.log($response.message);
+				$log.log(response.message);
 			}
 		},
 		function (error) {
