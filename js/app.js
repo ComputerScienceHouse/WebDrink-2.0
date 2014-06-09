@@ -24,10 +24,12 @@ app.config(['$routeProvider', function($routeProvider) {
 			templateUrl: 'partials/api.html',
 			controller: 'APICtrl'
 		}).
+		/*
 		when('/thunderdome', {
 			templateUrl: 'partials/thunderdome.html',
 			controller: 'ThunderdomeCtrl'
 		}).
+		*/
 		otherwise({
 			redirectTo: '/machines'
 		});
