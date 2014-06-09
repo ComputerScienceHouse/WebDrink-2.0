@@ -4,6 +4,8 @@
 require_once('../utils/db_utils.php');
 // Include the LDAP connectivity functions
 require_once('../utils/ldap_utils.php');
+// Include the Twitter API methods
+require_once('../utils/twitter_utils.php');
 // Include the abstract API class
 require_once('./abstract_api.php');
 // Include configuration info
@@ -1057,6 +1059,45 @@ class DrinkAPI extends API
 				break;
 		}
 		// Return the response data
+		return $result;
+	}
+
+	// Thunderdome endpoint, perform thunderdome drops and operations
+	protected function thunderdome() {
+		// Create an array to store response data
+		$result = array();
+		// Create an array to store parameters for SQL queries
+		$params = array();
+		// Determine the specific method to call
+		switch($this->verb) {
+			case 'status':
+				// Check the method type
+				if ($this->method != "GET") {
+					$result["status"] = false;
+					$result["message"] = "Error: only accepts GET requests (thunderdome.status)";
+					$result["data"] = false;
+					break;
+				}
+				// Get the status of thunderdome
+				$sql = "SELECT active FROM thunderdome_active WHERE id = 1";
+				$query = db_select($sql, $params);
+				if ($query) {
+					$result["status"] = true;
+					$result["message"] = "Success (thunderdome.status)";
+					$result["data"] = $query[0]["active"];
+				}
+				else {
+					$result["status"] = false;
+					$result["message"] = "Error: failed to query database (thunderdome.status)";
+					$result["data"] = false;
+				}
+				break;
+			default:
+				$result["status"] = false;
+				$result["message"] = "Invalid API method call (thunderdome)";
+				$result["data"] = $this->verb;
+				break;
+		}
 		return $result;
 	}
 }

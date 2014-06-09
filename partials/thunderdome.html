@@ -1,0 +1,49 @@
+<div ng-controller="ThunderdomeCtrl">
+	<alert data="websocket_alert"></alert>
+	<alert data="info_alert" class="center"></alert>
+	<alert data="notdone_alert" class="center"></alert>
+	<!-- Drop Drink Modal -->
+	<div class="modal fade" id="dropModal" tabindex="-1" role="dialog" aria-labelledby="Drop Drink" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Dropping Drink...</h4>
+				</div>
+				<div class="modal-body">
+					<p class="center">{{ dropping_message }}</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- The Rest -->
+	<h1 class="center">THUNDERDOME IS {{ active ? "ACTIVE" : "INACTIVE" }}</h1>
+	<div class="row">
+		<div class="col-md-6 col-sm-12">
+			<h3>Video Goes Here</h3>
+		</div>
+		<div class="col-md-6 col-sm-12">
+			<br/>
+			<!--<pre>{{ stock | json }}</pre>-->
+			<!--<machine data="stock"></machine>-->
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">{{ stock[0].display_name }}</h3>
+				</div>
+				<table class="table table-striped">
+					<tr><th>Item</th><th>Price</th><th class="actions">Actions</th>
+					<tr ng-repeat="slot in stock" ng-class="(slot.status == 'disabled' || slot.available == 0) ? 'slot-disabled' : 'slot-enabled'">
+						<td ng-class="(current_user.admin) ? 'item-admin' : 'item'">{{ slot.item_name }}</td>
+						<td ng-class="(current_user.admin) ? 'price-admin' : 'price'">{{ slot.item_price }}</td>
+						<td ng-class="(current_user.admin) ? 'actions-admin' : 'actions'">
+							<button type="button" ng-disabled="(slot.status == 'disabled') || (slot.available == 0) || !canAfford(slot.item_price)" class="btn btn-primary" data-toggle="modal" data-target="#dropModal" ng-click="dropDrink(slot);">Drop</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
