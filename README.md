@@ -1,37 +1,30 @@
-WebDrink 2.0
-============
+# WebDrink 2.0
 
-Rewrite of CSH WebDrink. Includes updated interface and new API.
+Rewrite of CSH WebDrink. Includes updated interface and new API. 
+
+Based on the original [WebDrink](https://github.com/ComputerScienceHouse/WebDrink). Uses [Drink-JS](https://github.com/ComputerScienceHouse/Drink-JS) to communicate with the Drink hardware.
 
 CSH-Public Demo: https://members.csh.rit.edu/~bencentra/webdrink/
 
-Why?
+Check out the [wiki](https://github.com/bencentra/WebDrink-2.0/wiki) for API docs and more.
+
+__Why?__
 * Address usability concerns (make it mobile friendly, improve admin experience, etc)    
 * Make improved API for current/future development (mobile apps, new new webdrink, etc)
 * Learning, I guess (Angular, RESTful API, etc)
 
-It Uses:
+__It Uses:__
 * [Twitter Bootstrap](http://getbootstrap.com/)    
 * [AngularJS](http://angularjs.org/)    
 * [A RESTful API](http://coreymaynard.com/blog/creating-a-restful-api-with-php/)    
 * Boring ol' PHP        
 
-The project is still in active development. Let me know (via email or GitHub issue) of any feature requests or glaring implementation/security issues.
+Let me know (via email or GitHub issue) of any feature requests or glaring implementation/security issues.
 
-Feature Checklist
------------------
+### What happened to UUIDs?
 
-Front-end:
-* ~~Machines (Minus Drops)~~
-* ~~Machines (With Drops)~~     
-* ~~Machines Admin Stuff~~
-* ~~User's Drop History~~  
-* ~~Admin Panel: Users~~
-* ~~Admin Panel: Items~~
-* ~~Admin Panel: Machine Temps~~
-* ~~Admin Panel: Log~~
+Due to difficulties upgrading [Drink-JS](https://github.com/ComputerScienceHouse/Drink-JS), the integration of UUID-based changes is on hold. Despite its issues Drink-JS does remain functional, so WebDrink-2.0 should be able to run on the current configuration. 
 
-Back-end:
-* ~~API Class~~    
-* ~~Private API (Webauth)~~
-* ~~Public API (API keys)~~
+If Drink-JS should be upgraded, or if it should be replaced by a new Drink server, there are several options for updating WebDrink-2.0:
+* Replace the websockets stuff in `app.js` with logic for talking to the new server.    
+* Add API methods to `drink_api.php` that talk directly to the new server and add the appropriate calls to the services in `app.js`.    
