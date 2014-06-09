@@ -47,7 +47,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<script src="js/socket.io-client.js"></script>
 	<script type="text/javascript">
 		window.current_user = <?php echo json_encode($user_data); ?>;
-		var baseUrl = "api/"; // "api/index.php?request="
+		var baseUrl = "<?php echo API_BASE_URL; ?>";
 	</script>
 	<script type="text/javascript" src="js/app.js"></script>
 	<?php if ($user_data['admin']): ?>
