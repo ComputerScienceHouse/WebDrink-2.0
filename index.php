@@ -70,7 +70,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 				<ul class="nav navbar-nav">
 					<li ng-class="(location.path() == '/machines') ? 'active' : ''" class="navitem"><a href="#/machines">Machines</a></li>	
 					<li ng-class="(location.path() == '/api') ? 'active' : ''" class="navitem"><a href="#/api">API</a></li>
-					<li ng-class="(location.path() == '/thunderdome') ? 'active' : ''" class="navitem"><a href="#/thunderdome">Thunderdome</a></li>
+					<!--<li ng-class="(location.path() == '/thunderdome') ? 'active' : ''" class="navitem"><a href="#/thunderdome">Thunderdome</a></li>-->
 					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown" ng-show="current_user.admin">
 						<a href="" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 						<ul class="dropdown-menu">
