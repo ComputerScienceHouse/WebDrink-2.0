@@ -508,6 +508,95 @@ class DrinkAPI extends API
 					$result["data"] = false;
 				}
 				break;
+			case "thunderdome":
+				// UID must be set
+				if (!$this->uid) {
+					$result["status"] = false;
+					$result["message"] = "Error: uid not found (users.thunderdome)";
+					$result["data"] = false;
+					break;
+				}
+				// GET - Get a user's settings (only your own)
+				if ($this->method == "GET") {
+					// Form the query
+					$sql = "SELECT twitter, quiet_hours, enabled FROM thunderdome_settings WHERE  username = :uid";
+					$params["uid"] = $this->uid;
+					// Make the query
+					$query = db_select($sql, $params);
+					if ($query) {
+						$result["status"] = true;
+						$result["message"] = "Success (users.thunderdome)";
+						$result["data"] = $query[0];
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query database (users.thunderdome)";
+						$result["data"] = false;
+					}
+				}
+				// POST - Update a user's settings
+				else if ($this->method == "POST") {
+					// Form the query
+					$sql = "UPDATE thunderdome_settings SET ";
+					if (array_key_exists("twitter", $this->request)) {
+						$params["twitter"] = $this->request["twitter"];
+						$sql .= "twitter = :twitter, ";
+					}
+					if (array_key_exists("quiet_hours", $this->request)) {
+						$params["quiet_hours"] = $this->request["quiet_hours"];
+						$sql .= "quiet_hours = :quiet_hours, ";
+					}
+					if (array_key_exists("enabled", $this->request)) {
+						$params["enabled"] = $this->request["enabled"];
+						$sql .= "enabled = :enabled, ";
+					}
+					if (count($params) == 0) {
+						$result["status"] = false;
+						$result["message"] = "Error: invalid number of parameters (users.thunderdome)";
+						$result["data"] = false;
+						break;
+					}
+					$sql = substr($sql, 0, strlen($sql)-2);
+					$sql .= " WHERE username = :uid";
+					$params["uid"] = $this->uid;
+					// Make the query
+					$query = db_update($sql, $params);
+					if ($query) {
+						$result["status"] = true;
+						$result["message"] = "Success (users.thunderdome)";
+						$result["data"] = true;
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query database (users.thunderdome)";
+						$result["data"] = false;
+					}
+				}
+				// DELETE - Delete a user's settings
+				else if ($this->method == "DELETE") {
+					// Form the query
+					$sql = "DELETE FROM thunderdome_settings WHERE username = :uid";
+					$params["uid"] = $this->uid;
+					// Make the query
+					$query = db_delete($sql, $params);
+					if ($query) {
+						$result["status"] = true;
+						$result["message"] = "Success (users.thunderdome)";
+						$result["data"] = true;
+					}
+					else {
+						$result["status"] = false;
+						$result["message"] = "Error: failed to query database (users.thunderdome)";
+						$result["data"] = false;
+					}
+				}
+				// Default
+				else {
+					$result["status"] = false;
+					$result["message"] = "Error: unsupported HTTP method (users.thunderdome)";
+					$result["data"] = false;
+				}
+				break;
 			/*
 			*	Base case - no specific API method called
 			*/
