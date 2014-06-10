@@ -536,19 +536,23 @@ class DrinkAPI extends API
 				}
 				// POST - Update a user's settings
 				else if ($this->method == "POST") {
-					// Form the query
-					$sql = "UPDATE thunderdome_settings SET ";
+					// Check for parameters
+					$fields = "";
+					$values = "";
 					if (array_key_exists("twitter", $this->request)) {
 						$params["twitter"] = $this->request["twitter"];
-						$sql .= "twitter = :twitter, ";
+						$fields .= "twitter, ";
+						$values .= ":twitter, ";
 					}
 					if (array_key_exists("quiet_hours", $this->request)) {
 						$params["quiet_hours"] = $this->request["quiet_hours"];
-						$sql .= "quiet_hours = :quiet_hours, ";
+						$fields .= "quiet_hours, ";
+						$values .= ":quiet_hours, ";
 					}
 					if (array_key_exists("enabled", $this->request)) {
 						$params["enabled"] = $this->request["enabled"];
-						$sql .= "enabled = :enabled, ";
+						$fields .= "enabled, ";
+						$values .= ":enabled, ";
 					}
 					if (count($params) == 0) {
 						$result["status"] = false;
@@ -556,11 +560,13 @@ class DrinkAPI extends API
 						$result["data"] = false;
 						break;
 					}
-					$sql = substr($sql, 0, strlen($sql)-2);
-					$sql .= " WHERE username = :uid";
+					$fields = substr($fields, 0, strlen($fields) - 2);
+					$values = substr($values, 0, strlen($values) - 2);
+					// Form the query
+					$sql = "REPLACE INTO thunderdome_settings (username, $fields) VALUES (:uid, $values)";
 					$params["uid"] = $this->uid;
 					// Make the query
-					$query = db_update($sql, $params);
+					$query = db_insert($sql, $params);
 					if ($query) {
 						$result["status"] = true;
 						$result["message"] = "Success (users.thunderdome)";
