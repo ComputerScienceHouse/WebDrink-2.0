@@ -1,0 +1,66 @@
+<div ng-controller="SettingsCtrl">
+	<div class="row">
+		<div class="col-md-6 col-sm-12">
+			<h3>API Settings:</h3>
+			<div class="col-md-12 center" ng-show="(api_key != false)">
+				<h4>Your API Key Is:</h4>
+				<h3>{{ api_key }}</h3>
+				<p>This API key was generated on {{ date }}</p>
+				<button type="button" class="btn btn-primary spacer-v" ng-click="generateKey();">Generate New API Key</button>
+				<button type="button" class="btn btn-danger spacer-v" ng-click="deleteKey();">Delete API Key</button>
+				<br/><br/>
+			</div>
+			<div class="col-md-12 center" ng-show="(api_key == false)">
+				<h4>{{ api_message }}</h4>
+				<button type="button" class="btn btn-primary btn-lg" ng-click="generateKey();">Generate API Key</button>
+				<br/><br/>
+			</div>
+			<div class="col-md-12 center">
+				<div class="well">
+					<p>Use this API key to authenticate with other Drink clients.</p>
+					<p class="small-text">Your API key is equivalent to your username and password. Anyone who knows it can log into Drink clients (other than WebDrink) as you. Only give your key to applications you trust, and generate a new one if you suspect it has been compromised.</p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6 col-sm-12">
+			<h3>Thunderdome Settings:</h3>
+			<form role="form">
+				<div class="form-group">
+					<label for="twitter">Twitter Username:</label>
+					<input type="text" class="form-control" id="twitter" placeholder="TheBenCentra" ng-model="twitter" ng-disabled="!enabled"/>
+					<p class="help-block">By adding your Twitter username, notifications of impending Thunderdome drops will be sent to you as a Twitter Direct Message</p>
+				</div>
+				<label>Quiet Hours:</label>
+				<div ng-repeat="hours in quiet_hours">
+					<div class="form-group col-md-5 col-sm-5 col-xs-12">
+						<label for="start">Start:</label>
+						<input type="text" class="form-control" id="start" placeholder="20:00" ng-model="hours.start" ng-disabled="!enabled"/>
+					</div>
+					<div class="form-group col-md-5 col-sm-5 col-xs-12">
+						<label for="end">End:</label>
+						<input type="text" class="form-control" id="end" placeholder="08:00" ng-model="hours.end" ng-disabled="!enabled"/>
+					</div>
+					<div class="form-group col-md-2 col-sm-2 col-xs-12">
+						<label for="delete">Delete:</label>
+						<button type="button" class="btn btn-danger" id="delete" ng-click="removeQuietHours(hours)" ng-disabled="!enabled">
+							<span class="glyphicon glyphicon-trash"></span>
+						</button>
+					</div>
+				</div>
+				<button type="button" class="btn btn-link" ng-click="addQuietHours()" ng-disabled="!enabled">Add Another Quiet Hours</button>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="enabled" ng-checked="enabled" ng-click="toggleThunderdome()"/> <strong>Enable Thunderdome</strong>
+					</label>
+				</div>
+				<div class="center">
+					<button type="button" class="btn btn-success" ng-click="updateThunderdome()">Save Settings</button>
+					<button type="button" class="btn btn-danger" ng-click="deleteThunderdome()">Clear Settings</button>
+				</div>
+			</form>
+		</div>
+		<div class="col-md-12">
+			<br/>
+		</div>
+	</div>
+</div>
