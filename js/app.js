@@ -24,10 +24,12 @@ app.config(['$routeProvider', function($routeProvider) {
 			templateUrl: 'partials/settings.html',
 			controller: 'SettingsCtrl'
 		}).
+		/*
 		when('/thunderdome', {
 			templateUrl: 'partials/thunderdome.html',
 			controller: 'ThunderdomeCtrl'
 		}).
+		*/
 		otherwise({
 			redirectTo: '/machines'
 		});
@@ -287,6 +289,13 @@ function RootCtrl($scope, $log, $window, $location, socket) {
 			jQuery("#adminDropdown").dropdown('toggle');
 		}
 	}
+
+	// See if a user can afford a drink
+	$scope.canAfford = function (price) {
+		if (Number($scope.current_user.credits) < Number(price)) 
+			return false;
+		return true;
+	};
 
 	/*
 	* Websocket Things
@@ -642,12 +651,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			}, 1000);
 		}
 	};
-	// See if a user can afford a drink
-	$scope.canAfford = function (price) {
-		if (Number($scope.current_user.credits) < Number(price)) 
-			return false;
-		return true;
-	};
 }
 
 // Controller for the drops page
@@ -900,6 +903,13 @@ function ThunderdomeCtrl($scope, $log, MachineService, ThunderdomeService) {
 			$log.log(error);
 		}
 	);
+
+	$scope.triggerThunderdome = function(slot) {
+		// Set Thunderdome to "active" in the database
+		// TO-DO: A secure way to do this, both here and in the API
+		// Drop the drink
+		$scope.dropDrink(slot);
+	}
 
 	// Drop a drink
 	$scope.dropDrink = function(slot) {
