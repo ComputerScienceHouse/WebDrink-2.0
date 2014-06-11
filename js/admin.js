@@ -39,11 +39,7 @@ app.factory("UserService", function($http, $window, $log) {
 			}).success(successCallback).error(errorCallback);
 		},
 		// Update the drink credit amount for a user
-		/*updateCredits: function(uid, credits, successCallback, errorCallback) {
-			var url = baseUrl+"users/credits/"+uid+"/"+credits;
-			$http.post(url, {}).success(successCallback).error(errorCallback);
-		},*/
-		updateCreditsDos: function(uid, amount, type, successCallback, errorCallback) {
+		updateCredits: function(uid, amount, type, successCallback, errorCallback) {
 			$http({
 				method: "POST",
 				url: baseUrl+"users/credits",
@@ -89,8 +85,6 @@ app.factory("ItemService", function($http, $window) {
 app.factory("TempService", function($http, $window) {
 	return {
 		getTempsOne: function(machineId, successCallback, errorCallback) {
-			//var url = baseUrl+"temps/machines/"+machineId;
-			//$http.get(url).success(successCallback).error(errorCallback);
 			$http({
 				method: "GET",
 				url: baseUrl+"temps/machines",
@@ -271,7 +265,7 @@ function UserCtrl($scope, $log, UserService, DropService, MachineService) {
 		);
 	}
 
-	$scope.updateCreditsDos = function() {
+	$scope.updateCredits = function() {
 		var type = $scope.transactionType;
 		var amount = $scope.creditChange;
 		// If using the "adjust" feature, convert it to add or subtract
@@ -286,7 +280,7 @@ function UserCtrl($scope, $log, UserService, DropService, MachineService) {
 			}
 		}
 		// Update the user's credits in LDAP
-		UserService.updateCreditsDos($scope.activeUser.uid, amount, type,
+		UserService.updateCredits($scope.activeUser.uid, amount, type,
 			function (response) {
 				if (response.status) {
 					$scope.alert.type = "alert-success";

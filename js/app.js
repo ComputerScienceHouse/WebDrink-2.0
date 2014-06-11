@@ -24,10 +24,10 @@ app.config(['$routeProvider', function($routeProvider) {
 			templateUrl: 'partials/settings.html',
 			controller: 'SettingsCtrl'
 		}).
-		/*when('/thunderdome', {
+		when('/thunderdome', {
 			templateUrl: 'partials/thunderdome.html',
 			controller: 'ThunderdomeCtrl'
-		}).*/
+		}).
 		otherwise({
 			redirectTo: '/machines'
 		});
@@ -695,6 +695,7 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 	$scope.twitter = "";
 	$scope.quiet_hours = [];
 	$scope.enabled = true;
+	$scope.thunderdome_alert = new $scope.Alert();
 
 	// Get the user's API key
 	$scope.retrieveKey = function() {
@@ -787,6 +788,9 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 				}
 				else {
 					console.log(response.message);
+					// $scope.thunderdome_alert.message = response.message;
+					// $scope.thunderdome_alert.type = "alert-warning";
+					// $scope.thunderdome_alert.show = true;
 				}
 			},
 			function (error) {
@@ -803,10 +807,14 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 		SettingsService.updateThunderdome(twitter, quiet_hours, enabled,
 			function (response) {
 				if (response.status) {
-					console.log("Success");
+					$scope.thunderdome_alert.message = "Thunderdome Settings Saved";
+					$scope.thunderdome_alert.type = "alert-info";
+					$scope.thunderdome_alert.show = true;
 				}
 				else {
-					console.log(response.message);
+					$scope.thunderdome_alert.message = response.message;
+					$scope.thunderdome_alert.type = "alert-danger";
+					$scope.thunderdome_alert.show = true;
 				}
 			},
 			function (error) {
@@ -820,13 +828,17 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 		SettingsService.deleteThunderdome(
 			function (response) {
 				if (response.status) {
-					console.log("Success");
+					$scope.thunderdome_alert.message = "Thunderdome Settings Deleted";
+					$scope.thunderdome_alert.type = "alert-info";
+					$scope.thunderdome_alert.show = true;
 					$scope.twitter = "";
 					$scope.quiet_hours = [];
 					$scope.enabled = true;
 				}
 				else {
-					console.log(response.message);
+					$scope.thunderdome_alert.message = response.message;
+					$scope.thunderdome_alert.type = "alert-danger";
+					$scope.thunderdome_alert.show = true;
 				}
 			},
 			function (error) {
