@@ -1,11 +1,6 @@
 /* Extra small devices (phones, less than 768px) */
 /* No media query since this is the default in Bootstrap */
 
-body {
-	padding-top: 70px;
-	min-width: 320px;
-}
-
 /*#admin-navbar {
 	position: fixed;
 	background-color: white;
