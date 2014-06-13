@@ -5,9 +5,7 @@ samples.sql
 drink_v2.sql
 drink_v2_schema.sql
 exceptions.txt
-dbInfo.inc
-ldapInfo.inc
-twitterInfo.inc
+*.inc
 poop/*
 utils/log_utils.php
 angular-1.2.2/*
