@@ -39,6 +39,12 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<!-- Styles -->
 	<link href="css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
 	<link href="css/main.css" rel="stylesheet" media="screen" type="text/css"/>
+	<style type="text/css">
+		body {
+			padding-top: 70px;
+			min-width: 320px;
+		}
+	</style>
 	<!-- Scripts -->
 	<script src="js/angular.min.js"></script>
 	<script src="js/angular-route.min.js"></script>
