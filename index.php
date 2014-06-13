@@ -46,12 +46,28 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/socket.io-client.js"></script>
 	<script type="text/javascript">
+		// Get the current user's info
 		window.current_user = <?php echo json_encode($user_data); ?>;
+		// Base URL of the API
 		var baseUrl = "<?php echo API_BASE_URL; ?>";
+		// Have the navbar collapse (on mobile) after a page is selected
+		document.addEventListener("DOMContentLoaded", function() {
+			jQuery('.navitem').click(function() {
+				if (jQuery(window).width() <= 768)
+					jQuery('#navbar').collapse("hide");
+			});
+		}, true);
 	</script>
-	<script type="text/javascript" src="js/app.js"></script>
+	<script type="text/javascript" src="js/app/app.js"></script>
+	<script type="text/javascript" src="js/app/machines.js"></script>
+	<script type="text/javascript" src="js/app/drops.js"></script>
+	<script type="text/javascript" src="js/app/settings.js"></script>
+	<script type="text/javascript" src="js/app/thunderdome.js"></script>
 	<?php if ($user_data['admin']): ?>
-	<script type="text/javascript" src="js/admin.js"></script>
+	<script type="text/javascript" src="js/admin/users.js"></script>
+	<script type="text/javascript" src="js/admin/items.js"></script>
+	<script type="text/javascript" src="js/admin/temps.js"></script>
+	<script type="text/javascript" src="js/admin/logs.js"></script>
 	<script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script>
 	<?php endif; ?>
 </head>
