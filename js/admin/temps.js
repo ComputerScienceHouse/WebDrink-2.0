@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/admin/temps', {
-			templateUrl: 'partials/admin/temps.html',
+			templateUrl: 'views/admin/temps.html',
 			controller: 'TempCtrl'
 		});
 }]);

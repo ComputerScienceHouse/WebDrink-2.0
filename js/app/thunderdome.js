@@ -2,7 +2,7 @@
 // app.config(['$routeProvider', function($routeProvider) {
 // 	$routeProvider.
 // 		when('/thunderdome', {
-// 			templateUrl: 'partials/thunderdome.html',
+// 			templateUrl: 'views/thunderdome.html',
 // 			controller: 'ThunderdomeCtrl'
 // 		}).
 // }]);

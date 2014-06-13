@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/drops', {
-			templateUrl: 'partials/drops.html',
+			templateUrl: 'views/drops.html',
 			controller: 'DropCtrl'
 		});
 }]);

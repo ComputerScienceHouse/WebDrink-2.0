@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/admin/users', {
-			templateUrl: 'partials/admin/users.html',
+			templateUrl: 'views/admin/users.html',
 			controller: 'UserCtrl'
 		});
 }]);

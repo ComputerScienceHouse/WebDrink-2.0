@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/admin/items', {
-			templateUrl: 'partials/admin/items.html',
+			templateUrl: 'views/admin/items.html',
 			controller: 'ItemCtrl'
 		});
 }]);

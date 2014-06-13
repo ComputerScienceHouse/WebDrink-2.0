@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/settings', {
-			templateUrl: 'partials/settings.html',
+			templateUrl: 'views/settings.html',
 			controller: 'SettingsCtrl'
 		});
 }]);

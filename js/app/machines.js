@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/machines', {
-			templateUrl: 'partials/machines.html',
+			templateUrl: 'views/machines.html',
 			controller: 'MachineCtrl'
 		}).
 		otherwise({

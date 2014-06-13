@@ -2,7 +2,7 @@
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
 		when('/admin/logs', {
-			templateUrl: 'partials/admin/logs.html',
+			templateUrl: 'views/admin/logs.html',
 			controller: 'LogsCtrl'
 		});
 }]);
