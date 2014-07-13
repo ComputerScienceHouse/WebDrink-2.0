@@ -37,45 +37,46 @@ abstract class API
 		if (array_key_exists(0, $this->args) && !is_numeric($this->args[0])) {
 			$this->verb = array_shift($this->args);
 		}
-		$this->method = $_SERVER["REQUEST_METHOD"];
 
-		// Check for an API key
-		//die(var_dump($this->args));
-		/*for ($i = 0; $i < count($this->args); $i++) {
-			if ($this->args[$i] == "api_key" && array_key_exists($i+1, $this->args)) {
-				$this->api_key = $this->args[$i+1];
-				array_slice($this->args, $i, 2);
-				break;
-			}
-		}*/
+		// Grab the HTTP method
+		$this->method = $_SERVER['REQUEST_METHOD'];
+        if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
+            if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'DELETE') {
+                $this->method = 'DELETE';
+            } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
+                $this->method = 'PUT';
+            } else {
+                throw new Exception("Unexpected Header");
+            }
+        }
 
-		// Sanitise the input
-		if ($this->method == "POST") 
-			$this->request = $this->_sanitizeInput($_POST);
-		else if ($this->method == "GET")
-			$this->request = $this->_sanitizeInput($_GET);
-		else if ($this->method == "PUT") {
-			$tmp = array();
-			parse_str(file_get_contents("php://input"), $tmp);
-			$this->request = $this->_sanitizeInput($tmp);
-		}
-		else if ($this->method == "DELETE") {
-			$tmp = array();
-			parse_str(file_get_contents("php://input"), $tmp);
-			$this->request = $this->_sanitizeInput($tmp);
-		}
-		else
-			$this->_response("Invalid Method", 405);
-
-		// Grab the API key
+        // Grab the API key
 		$this->api_key = (array_key_exists("api_key", $this->request)) ? $this->request["api_key"] : false;
 	}
 
 	// Call the endpoint method in the concrete class
 	public function processAPI() {
+		switch($this->method) {
+        case 'DELETE':
+        case 'POST':
+            $this->request = $this->_sanitizeInput($_POST);
+            break;
+        case 'GET':
+            $this->request = $this->_sanitizeInput($_GET);
+            break;
+        case 'PUT':
+            $this->request = $this->_sanitizeInput($_GET);
+            $this->file = file_get_contents("php://input");
+            break;
+        default:
+            return $this->_response('Invalid Method', 405);
+            break;
+        }
+
 		if ((int) method_exists($this, $this->endpoint) > 0) 
 			return $this->_response($this->{$this->endpoint}($this->args));
-		return $this->_response("", 400);
+		
+		return $this->_response("No Endpoint: $this->endpoint", 404);
 	}
 
 	// Return the JSON-encoded response from the API
@@ -100,50 +101,13 @@ abstract class API
 
 	// Look up the corresponding name for a status code
 	private function _requestStatus($code) {
-        $status = array( 
-            100 => 'Continue',   
-            101 => 'Switching Protocols',   
-            200 => 'OK', 
-            201 => 'Created',   
-            202 => 'Accepted',   
-            203 => 'Non-Authoritative Information',   
-            204 => 'No Content',   
-            205 => 'Reset Content',   
-            206 => 'Partial Content',   
-            300 => 'Multiple Choices',   
-            301 => 'Moved Permanently',   
-            302 => 'Found',   
-            303 => 'See Other',   
-            304 => 'Not Modified',   
-            305 => 'Use Proxy',   
-            306 => '(Unused)',   
-            307 => 'Temporary Redirect',   
-            400 => 'Bad Request',   
-            401 => 'Unauthorized',   
-            402 => 'Payment Required',   
-            403 => 'Forbidden',   
+        $status = array(  
+            200 => 'OK',
             404 => 'Not Found',   
-            405 => 'Method Not Allowed',   
-            406 => 'Not Acceptable',   
-            407 => 'Proxy Authentication Required',   
-            408 => 'Request Timeout',   
-            409 => 'Conflict',   
-            410 => 'Gone',   
-            411 => 'Length Required',   
-            412 => 'Precondition Failed',   
-            413 => 'Request Entity Too Large',   
-            414 => 'Request-URI Too Long',   
-            415 => 'Unsupported Media Type',   
-            416 => 'Requested Range Not Satisfiable',   
-            417 => 'Expectation Failed',   
-            500 => 'Internal Server Error',   
-            501 => 'Not Implemented',   
-            502 => 'Bad Gateway',   
-            503 => 'Service Unavailable',   
-            504 => 'Gateway Timeout',   
-            505 => 'HTTP Version Not Supported'
+            405 => 'Method Not Allowed',
+            500 => 'Internal Server Error',
         ); 
-        return ($status[$code]) ? $status[$code] : $status[500]; 
+        return ($status[$code])?$status[$code]:$status[500]; 
     }
 }
 
