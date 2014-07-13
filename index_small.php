@@ -4,7 +4,7 @@
 *	Page initialization data 
 */
 // Include the LDAP connection info
-require_once("./ldapInfo.inc");
+require_once("../../webdrink_info/ldapInfo.inc");
 // Include configuration info
 require_once("./config.php");
 
