@@ -2,10 +2,10 @@
 
 // Include the Twitter API connection class
 require_once("../utils/twitter-api-php/TwitterAPIExchange.php");
-// Include the connection info
-require_once("../twitterInfo.inc");
 // Include the database methods
 require_once("../utils/db_utils.php");
+// Include the connection info
+require_once("../../../webdrink_info/twitterInfo.inc");
 
 // Set the default timezone
 date_default_timezone_set("AMERICA/NEW_YORK");

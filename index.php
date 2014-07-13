@@ -4,7 +4,7 @@
 *	Page initialization data 
 */
 // Include the LDAP connection info
-require_once("./ldapInfo.inc");
+require_once("../../webdrink_info/ldapInfo.inc");
 // Include configuration info
 require_once("./config.php");
 
@@ -34,7 +34,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 <!DOCTYPE HTML>
 <html ng-app="WebDrink">
 <head>
-	<title>WebDrink 2.0</title>
+	<title>WebDrink</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- Styles -->
 	<link href="css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
@@ -86,7 +86,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#/machines">WebDrink 2.0</a>
+				<a class="navbar-brand" href="#/machines">WebDrink</a>
 			</div>
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">

@@ -1,7 +1,7 @@
 <?php
 
 // Include the database connection info
-require_once("../dbInfo.inc");
+require_once("../../../webdrink_info/dbInfo.inc");
 
 /*
 *	Database methods
