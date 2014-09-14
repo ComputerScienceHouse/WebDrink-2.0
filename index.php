@@ -11,12 +11,12 @@ require_once("./config.php");
 // Grab some necessary info from webauth
 $user_data = array();
 if (DEBUG) {
-	$user_data['cn'] = "Ben Centra";
-	$user_data['uid'] = "bencentra";
+	$user_data['cn'] = htmlentities("Ben Centra");
+	$user_data['uid'] = htmlentities("bencentra");
 }
 else {
-	$user_data['uid'] = $_SERVER['WEBAUTH_USER'];
-	$user_data['cn'] = $_SERVER['WEBAUTH_LDAP_CN'];
+	$user_data['uid'] = htmlentities($_SERVER['WEBAUTH_USER']);
+	$user_data['cn'] = htmlentities($_SERVER['WEBAUTH_LDAP_CN']);
 }
 
 // Get some initial data from LDAP

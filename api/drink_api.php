@@ -5,12 +5,11 @@ require_once('../utils/db_utils.php');
 // Include the LDAP connectivity functions
 require_once('../utils/ldap_utils.php');
 // Include the Twitter API methods
-require_once('../utils/twitter_utils.php');
+// require_once('../utils/twitter_utils.php');
 // Include the abstract API class
 require_once('./abstract_api.php');
 // Include configuration info
 require_once("../config.php");
-//define("DEBUG", true);
 
 /*
 *	Concrete API implementation for WebDrink
@@ -27,7 +26,7 @@ class DrinkAPI extends API
 		parent::__construct($request);
 		// Grab the user's uid from Webauth
 		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
-			$this->uid = $_SERVER["WEBAUTH_USER"];
+			$this->uid = htmlentities($_SERVER["WEBAUTH_USER"]);
 			$this->webauth = true;
 		} 
 		else if ($this->api_key) {
@@ -46,10 +45,6 @@ class DrinkAPI extends API
 		if ($this->uid != false) {
 			$this->admin = $this->isAdmin($this->uid);
 		}
-		// If the request is a POST method, verify the user is an admin
-		//if ($this->method != "POST" || DEBUG) {
-			
-		//}
 	}
 
 	// Determine if the user is a Drink Admin or not
@@ -79,7 +74,7 @@ class DrinkAPI extends API
 
 	// Sanitize uid
 	protected function sanitizeUid($uid) {
-		return trim((string) $uid);
+		return htmlentities(trim((string) $uid));
 	}
 
 	// Sanitize machine_id
@@ -94,7 +89,7 @@ class DrinkAPI extends API
 
 	// Sanitize item_name
 	protected function sanitizeItemName($name) {
-		return trim((string)$name);
+		return htmlentities(trim((string)$name));
 	}
 
 	// Test endpoint - make sure you can contact the API
@@ -315,7 +310,10 @@ class DrinkAPI extends API
 				}
 				break;
 			/*
-			*	
+			*	Endpoint: users.info
+			*
+			*	Methods:
+			*	- info: GET /info/:api_key
 			*/
 			case "info":
 				if (!$this->api_key) {
@@ -508,6 +506,7 @@ class DrinkAPI extends API
 					$result["data"] = false;
 				}
 				break;
+			/*
 			case "thunderdome":
 				// UID must be set
 				if (!$this->uid) {
@@ -603,6 +602,7 @@ class DrinkAPI extends API
 					$result["data"] = false;
 				}
 				break;
+			*/
 			/*
 			*	Base case - no specific API method called
 			*/
@@ -1157,6 +1157,7 @@ class DrinkAPI extends API
 		return $result;
 	}
 
+	/*
 	// Thunderdome endpoint, perform thunderdome drops and operations
 	protected function thunderdome() {
 		// Create an array to store response data
@@ -1195,6 +1196,7 @@ class DrinkAPI extends API
 		}
 		return $result;
 	}
+	*/
 }
 
 ?>

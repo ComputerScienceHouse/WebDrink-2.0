@@ -30,7 +30,8 @@ app.factory("SettingsService", function($http, $window, $log) {
 				method: "DELETE",
 				url: baseUrl+"users/apikey"
 			}).success(successCallback).error(errorCallback);
-		},
+		}
+		/*
 		// Get your thunderdome settings
 		getThunderdome: function(successCallback, errorCallback) {
 			$http({
@@ -54,6 +55,7 @@ app.factory("SettingsService", function($http, $window, $log) {
 				url: baseUrl+"users/thunderdome"
 			}).success(successCallback).error(errorCallback);
 		}
+		*/
 	};
 });
 
@@ -126,6 +128,7 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 		);
 	}
 
+	/*
 	// Add another quiet hours
 	$scope.addQuietHours = function () {
 		$scope.quiet_hours.push({"id":$scope.quiet_hours.length+1, "start":"00:00", "end":"00:00"});
@@ -216,9 +219,10 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 			}
 		);
 	}
+	*/
 
 	// Check for the user's API key
 	$scope.retrieveKey();	
 	// Get a user's Thunderdome settings
-	$scope.getThunderdome();
+	// $scope.getThunderdome();
 }
