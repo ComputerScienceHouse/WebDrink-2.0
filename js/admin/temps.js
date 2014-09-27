@@ -22,6 +22,7 @@ app.factory("TempService", function($http, $window) {
 
 // Controller for the Machine Temperatures page
 function TempCtrl($scope, $log, TempService) {
+
 	// Get a machine's tempereature data
 	$scope.getMachineTemps = function(machineId) {
 		TempService.getTempsOne(machineId, 
@@ -42,7 +43,6 @@ function TempCtrl($scope, $log, TempService) {
 	// Draw a temperature chart
 	$scope.drawChart = function(id, data) {
 		jQuery(function () {
-			console.log("drawChart("+id+")");
 		    jQuery("#"+$scope.machines[id].name).highcharts({
 		        chart: {
 		            type: 'line'
@@ -66,7 +66,6 @@ function TempCtrl($scope, $log, TempService) {
 		            data: data
 		        }]
 		    });
-		    console.log("done");
 		});
 	}
 

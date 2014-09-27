@@ -68,6 +68,7 @@ app.factory("MachineService", function($http, $window, $log) {
 
 // Controller for the machines page
 function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
+
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
 	$scope.items = {};			// All existing drink items (admin only)
