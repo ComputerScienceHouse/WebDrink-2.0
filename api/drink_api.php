@@ -226,7 +226,7 @@ class DrinkAPI extends API
 		$fields = array("drinkBalance");
 		$data = ldap_lookup($uid, $fields);
 		if (array_key_exists(0, $data)) {
-			return $this->_result(true, "Success (/users/credits)", $data[0]["drinkbalance"][0]);
+			return $this->_result(true, "Success (/users/credits)", (int) $data[0]["drinkbalance"][0]);
 		}
 		else {
 			return $this->_result(false, "Failed to query LDAP (/users/credits)", false);
@@ -356,8 +356,8 @@ class DrinkAPI extends API
 			$uid = $this->_sanitizeString($this->request["uid"]);
 		}
 		// Check for a limit and offset
-		$limit = false;
-		$offset = false;
+		$limit = 100;
+		$offset = 0;
 		if (array_key_exists("limit", $this->request)) {
 			$limit = $this->_sanitizeInt($this->request["limit"]);
 			if (array_key_exists("offset", $this->request)) {
@@ -372,15 +372,9 @@ class DrinkAPI extends API
 			$params["username"] = $uid;
 		}
 		$sql .= " m.machine_id = l.machine_id AND i.item_id = l.item_id 
-				ORDER BY l.drop_log_id DESC";
-		if ($limit) {
-			$sql .= " LIMIT :limit";
-			$params["limit"] = $limit;
-		}
-		if ($offset) {
-			$sql .= " OFFSET :offset";
-			$params["offset"] = $offset;
-		}
+				ORDER BY l.drop_log_id DESC LIMIT :limit OFFSET :offset";
+		$params["limit"] = $limit;
+		$params["offset"] = $offset;
 		// Query the database
 		$query = db_select($sql, $params);
 		if ($query) {
@@ -746,7 +740,7 @@ class DrinkAPI extends API
 			$params["itemId"] = $item_id;
 			$params["price"] = $price;
 			db_insert($sql, $params);
-			return $this->_result(true, "Success (/items/add)", $item_id);
+			return $this->_result(true, "Success (/items/add)", (int) $item_id);
 		}
 		else {
 			return $this->_result(false, "Failed to query database (/items/add)", false);
