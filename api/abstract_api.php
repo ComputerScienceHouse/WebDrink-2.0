@@ -51,7 +51,7 @@ abstract class API
         }
 
         // Grab the API key
-		$this->api_key = (array_key_exists("api_key", $this->request)) ? $this->request["api_key"] : false;
+		$this->api_key = (array_key_exists("api_key", $_REQUEST)) ? htmlentities($_REQUEST["api_key"]) : false;
 	}
 
 	// Call the endpoint method in the concrete class
@@ -76,7 +76,16 @@ abstract class API
 		if ((int) method_exists($this, $this->endpoint) > 0) 
 			return $this->_response($this->{$this->endpoint}($this->args));
 		
-		return $this->_response("No Endpoint: $this->endpoint", 404);
+		return $this->_response($this->_result(false, "No Endpoint: $this->endpoint", false), 404);
+	}
+
+	// Format the result of an API call
+	protected function _result($status, $message, $data) {
+		return array(
+			"status" => $status,
+			"message" => $message,
+			"data" => $data
+		);
 	}
 
 	// Return the JSON-encoded response from the API

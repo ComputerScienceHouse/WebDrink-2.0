@@ -4,8 +4,6 @@
 require_once('../utils/db_utils.php');
 // Include the LDAP connectivity functions
 require_once('../utils/ldap_utils.php');
-// Include the Twitter API methods
-// require_once('../utils/twitter_utils.php');
 // Include the abstract API class
 require_once('./abstract_api.php');
 // Include configuration info
@@ -16,21 +14,21 @@ require_once("../config.php");
 */
 class DrinkAPI extends API
 {
-	private $data = array();
-	private $admin = false;
-	private $uid = false;
-	private $webauth = false;
+	private $admin = false; 	// Am I a drink admin?
+	private $uid = false;		// My uid (username)
+	private $webauth = false;	// Am I authenticated with Webauth?
 
 	// Constructor
 	public function __construct($request) {
 		parent::__construct($request);
-		// Grab the user's uid from Webauth
+
+		// Grab the uid from Webauth, API Key lookup, etc
 		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
 			$this->uid = htmlentities($_SERVER["WEBAUTH_USER"]);
 			$this->webauth = true;
-		} 
+		}
 		else if ($this->api_key) {
-			$this->uid = $this->lookupAPIKey();
+			$this->uid = $this->_lookupUser($this->api_key);
 			$this->webauth = false;
 		}
 		else if (DEBUG) {
@@ -41,1162 +39,885 @@ class DrinkAPI extends API
 			$this->uid = false;
 			$this->webauth = false;
 		}
-		// Check if the user is an admin
+		// Check if the user is a drink admin
 		if ($this->uid != false) {
-			$this->admin = $this->isAdmin($this->uid);
+			$this->admin = $this->_isAdmin($this->uid);
 		}
 	}
 
-	// Determine if the user is a Drink Admin or not
-	protected function isAdmin($uid) {
-		$fields = array('drinkAdmin');
+	/* 
+	*	Helpful utility methods
+	*/
+
+	// Check if a user is a drink admin
+	private function _isAdmin($uid) {
+		$fields = array("drinkAdmin");
 		$result = ldap_lookup($uid, $fields);
-		if (isset($result[0]['drinkadmin'][0])) {
-			return $result[0]['drinkadmin'][0];
+		if (isset($result[0]["drinkadmin"][0])) {
+			return $result[0]["drinkadmin"][0];
 		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
-	// Lookup api key
-	protected function lookupAPIKey() {
+	// Lookup a uid by API key
+	private function _lookupUser($api_key) {
 		$sql = "SELECT * FROM api_keys WHERE api_key = :apiKey";
-		$params["apiKey"] = $this->api_key;
+		$params["apiKey"] = $api_key;
 		$query = db_select($sql, $params); 
 		if ($query) {
 			return $query[0]["uid"];
 		} 
-		else {
-			return false;
-		}
+		return false;
 	}
 
-	// Sanitize uid
-	protected function sanitizeUid($uid) {
-		return htmlentities(trim((string) $uid));
+	// Sanitize a string
+	private function _sanitizeString($str) {
+		return htmlentities(trim((string) $str));
 	}
 
-	// Sanitize machine_id
-	protected function sanitizeMachineId($mid) {
-		return (int) trim($mid);
-	}
-
-	// Sanitize item_id
-	protected function sanitizeItemId($iid) {
-		return (int) trim($iid);
-	}
-
-	// Sanitize item_name
-	protected function sanitizeItemName($name) {
-		return htmlentities(trim((string)$name));
-	}
-
-	// Test endpoint - make sure you can contact the API
-	protected function test() {
-		switch ($this->verb) {
-			case "api":
-				if ($this->uid && $this->api_key) {
-					return array("status" => true, "message" => "User Found!", "data" => $this->uid);
-				}
-				else if (!$this->uid && $this->api_key) {
-					return array("status" => false, "message" => "No User Found!", "data" => false);
-				}
-				else {
-					return array("status" => false, "message" => "No API key included!", "data" => false);
-				}
-				break;
-			default:
-				return array("status" => true, "message" => "Test Success!", "data" => $this->request);
-		}
-	}
-
-	// Users enpoint - call the various user-related API methods
-	protected function users() {
-		// Create an array to store response data
-		$result = array();
-		// Create an array to store parameters for SQL queries
-		$params = array();
-		// Determine the specific method to call
-		switch($this->verb) {
-			/*
-			*	Endpoint: users.credits
-			*
-			*	Methods: 
-			*	- get_credits - GET /credits/:uid
-			*	- update_credits - POST /credits/:uid/:value
-			*/
-			case "credits":
-				// uid must be provided for both get_credits and update_credits
-				$uid = false;
-				if (array_key_exists("uid", $this->request)) {
-					$uid = $this->request["uid"];
-				}
-				//else {
-				//	$uid = $this->uid;
-				//}
-				if (!$uid) {
-					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.credits)";
-					$result["data"] = $this->request;
-					break;
-				}
-				// Sanitize uid
-				$uid = $this->sanitizeUid($uid);
-				// get_credits - GET /credits/:uid
-				if (!array_key_exists("value", $this->request)) {
-					// Check method type
-					if ($this->method != "GET") {
-						$result["status"] = false;
-						$result["message"] = "Error: only accepts GET requests (users.credits)";
-						$result["data"] = false;
-						break;
-					}
-					// Must be an admin (if not getting your own credits)
-					if ($this->uid != $uid) {
-						if (!$this->admin) {
-							$result["status"] = false;
-							$result["message"] = "Error: must be an admin to get another's credits (users.credits)";
-							$result["data"] = false;
-							break;
-						}
-					}
-					// Query LDAP
-					$fields = array('drinkBalance');
-					$data = ldap_lookup($uid, $fields);
-					if (array_key_exists(0, $data)) {
-						$result["status"] = true;
-						$result["message"] = "Success (users.credits)";
-						$result["data"] = $data[0]['drinkbalance'][0];
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query LDAP (users.credits)";
-						$result["data"] = false;
-					}
-				}
-				// update_credits - POST /credits/:uid/:value
-				else {
-					// Check method type
-					if ($this->method != "POST") {
-						$result["status"] = false;
-						$result["message"] = "Error: only accepts POST requests (users.credits)";
-						$result["data"] = false;
-						break;
-					}
-					// Must be an admin
-					if (!$this->admin) {
-						$result["status"] = false;
-						$result["message"] = "Error: must be an admin to update credits (users.credits)";
-						$result["data"] = false;
-						break;
-					}
-					// Make sure the parameters are included
-					/*if (count($this->args) != 3) {
-						$result["status"] = false;
-						$result["message"] = "Error: invalid number of parameters (users.credits)";
-						$result["data"] = false;
-						break;
-					}*/
-					// Determine the type and amount of credit change
-					$value = (int) trim($this->request["value"]);
-					$type = (array_key_exists("type", $this->request)) ? $this->request["type"] : "add";
-					$type = strtolower(trim((string) $type));
-					if ($type != "add" && $type != "subtract") {
-						$result["status"] = false;
-						$result["message"] = "Error: invalid type (users.credits)";
-						$result["data"] = false;
-						break;
-					}
-					// Check the direction of the transaction
-					$direction = "in";
-					if ($value < 0 && $type == "add" || $value >= 0 && $type == "subtract") {
-						$direction = "out";
-					}
-					// Query LDAP for old balance
-					$fields = array('drinkBalance');
-					$data = ldap_lookup($uid, $fields);
-					if (array_key_exists(0, $data)) {
-						$oldBalance = $data[0]['drinkbalance'][0];
-						// Determine the new balance
-						$newBalance = 0;
-						if ($type == "add") {
-							$newBalance = $oldBalance + $value;
-						}
-						else {
-							$newBalance = $oldBalance - $value;
-						}
-						// Query LDAP to update the balance
-						$replace = array('drinkBalance' => $newBalance);
-						$data = ldap_update($uid, $replace);
-						if ($data) {
-							$result["status"] = true;
-							$result["message"] = "Success (users.credits)";
-							$result["data"] = $newBalance;
-						}
-						else {
-							$result["status"] = false;
-							$result["message"] = "Error: failed to query LDAP (users.credits)";
-							$result["data"] = false;
-						}
-						// Add the change to the logs
-						$sql = "INSERT INTO money_log (username, admin, amount, direction, reason) VALUES (:uid, :admin, :amount, :direction, :reason)";
-						$params["uid"] = $uid;
-						$params["admin"] = $this->uid;
-						$params["amount"] = $value;
-						$params["direction"] = $direction;
-						$params["reason"] = $type;
-						$query = db_insert($sql, $params);
-						// (TODO: handle failure?)
-						//$result["message"] .= " also logs work";
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query LDAP (users.credits)";
-						$result["data"] = false;
-					}
-				}
-				break;
-			/*
-			*	Endpoint: users.search
-			*
-			*	Methods:
-			*	- search: GET /search/:uid
-			*/
-			case "search":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (users.search)";
-					$result["data"] = false;
-					break;
-				}
-				// uid must be provided
-				$uid = false;
-				if (array_key_exists("uid", $this->request)) {
-					$uid = $this->request["uid"];
-				}
-				//else {
-				//	$uid = $this->uid;
-				//}
-				if (!$uid) {
-					$result["status"] = false;
-					$result["message"] = "Error: uid not supplied (users.search)";
-					$result["data"] = $this->request;
-					break;
-				}
-				// Sanitize uid
-				$uid = $this->sanitizeUid($uid);
-				// Query LDAP
-				$fields = array('uid', 'cn');
-				$data = ldap_lookup($uid."*", $fields);
-				if ($data) {
-					$result["status"] = true;
-					$result["message"] = "Success (users.search)";
-					// Format the data
-					$tmp = array();
-					$i = 0;
-					foreach ($data as $user) {
-						$tmp[$i] = array("uid" => $user["uid"][0], "cn" => $user["cn"][0]);
-						$i++;
-					}
-					array_shift($tmp);
-					$result["data"] = $tmp;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query LDAP (users.search)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Endpoint: users.info
-			*
-			*	Methods:
-			*	- info: GET /info/:api_key
-			*/
-			case "info":
-				if (!$this->api_key) {
-					$result["status"] = false;
-					$result["message"] = "Error: must include api_key for this request (users.info)";
-					$result["data"] = false;
-					break;
-				}
-				if (!$this->uid || $this->uid == null) {
-					$result["status"] = false;
-					$result["message"] = "Error: user not found (users.info)";
-					$result["data"] = false;
-					break;
-				}
-				if ($this->method != "GET") {
-					$result["status"] = false;
- 					$result["message"] = "Error: only accepts GET requests (users.info)";
- 					$result["data"] = false;
- 					break;
- 				}
-				$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
-				$data = ldap_lookup($this->uid, $fields);
-				if (array_key_exists(0, $data)) {
-					$tmp = array();
-					$tmp["uid"] = $this->uid;
-					$tmp["credits"] = $data[0]["drinkbalance"][0];
-					$tmp["admin"] = $data[0]["drinkadmin"][0];
-					$tmp["ibutton"] = $data[0]["ibutton"][0];
-					$tmp["cn"] = $data[0]["cn"][0];
-					$result["status"] = true;
-					$result["message"] = "Success (users.info)";
-					$result["data"] = $tmp;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query LDAP (users.info)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Endpoint: users.drops
-			*
-			*	Methods:
-			*	- drops_one: GET /drops/user/:uid
-			*	- drops_all: GET /drops
-			*/
-			case "drops":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (users.drops)";
-					$result["data"] = false;
-					break;
-				}
-				// See if we're getting a specific user's drops
-				$uid = false;
-				$limit = false;
-				$offset = false;
-				if (array_key_exists("uid", $this->request)) {
-					$uid = $this->request["uid"];
-					$uid = $this->sanitizeUid($uid);
-				}
-				if (array_key_exists("limit", $this->request)) {
-					$limit = $this->request["limit"];
-					$limit = (int) trim($limit);
-					if (array_key_exists("offset", $this->request)) {
-						$offset = $this->request["offset"];
-						$offset = (int) trim($offset);
-					}
-				}
-				// Form the SQL query
-				$sql = "SELECT l.drop_log_id, l.machine_id, m.display_name, l.slot, l.username, l.time, l.status, l.item_id, i.item_name, l.current_item_price 
-						FROM drop_log as l, machines as m, drink_items as i WHERE";
-				// Add the uid, if provided
-				if ($uid) {
-					$sql .= " l.username = :username AND";
-					$params["username"] = $uid;
-				}
-				$sql .= " m.machine_id = l.machine_id AND i.item_id = l.item_id 
-						ORDER BY l.drop_log_id DESC";
-				if ($limit) {
-					$sql .= " LIMIT :limit";
-					$params["limit"] = $limit;
-				}
-				if ($offset) {
-					$sql .= " OFFSET :offset";
-					$params["offset"] = $offset;
-				}
-				// Query the database
-				$query = db_select($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (users.drops)";
-					$result["data"] = $query;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (users.drops)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Endpoint: users.apikey
-			*
-			*	Methods:
-			*	- get_key: GET /apikey
-			*	- generate_key: POST /apikey
-			*	- delete_key: DELETE /apikey
-			*/
-			case "apikey": 
-				// Must be on CSH systems (behind Webauth) to retrieve your API key
-				if (!$this->webauth) {
-					$result["status"] = false;
-					$result["message"] = "Error: must use WebDrink to retrieve API key (users.apikey)";
-					$result["data"] = false;
-					break;
-				}
-				// UID must be set
-				if (!$this->uid) {
-					$result["status"] = false;
-					$result["message"] = "Error: uid not found (users.apikey)";
-					$result["data"] = false;
-					break;
-				}
-				// get_key: GET /apikey
-				if ($this->method == "GET") {
-					// Form the SQL query
-					$sql = "SELECT * FROM api_keys WHERE uid = :uid";
-					$params["uid"] = $this->uid;
-					// Query the database
-					$query = db_select($sql, $params);
-					if ($query) {
-						$result["status"] = true;
-						$result["message"] = "Success (users.apikey)";
-						$result["data"] = $query[0];
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query database (users.apikey)";
-						$result["data"] = false;
-					}
-				}
-				// generate_key: POST /apikey
-				else if ($this->method == "POST") {
-					// Generate an API key
-					$salt = time();
-					//$apiKey = hash("fnv164", hash("sha512", $this->uid.$salt));
-					$apiKey = md5(hash("sha512", $this->uid.$salt));
-					// Form the SQL query
-					$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
-					$params["uid"] = $this->uid;
-					$params["apiKey"] = $apiKey;
-					// Query the database
-					$query = db_insert($sql, $params);
-					if ($query) {
-						$data["api_key"] = $apiKey;
-						$data["date"] = date("Y-m-d H:i:s");
-						$data["uid"] = $this->uid;
-						$result["status"] = true;
-						$result["message"] = "Success (users.apikey)";
-						$result["data"] = $data;
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query database (users.apikey)";
-						$result["data"] = false;
-					}
-				}
-				// delete_key: DELETE /apikey
-				else if ($this->method == "DELETE") {
-					// Form the SQL query
-					$sql = "DELETE FROM api_keys WHERE uid = :uid";
-					$params["uid"] = $this->uid;
-					// Query the database
-					$query = db_delete($sql, $params);
-					if ($query) {
-						$result["status"] = true;
-						$result["message"] = "Success (users.apikey)";
-						$result["data"] = true;
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query database (users.apikey)";
-						$result["data"] = false;
-					}
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: unsupported HTTP method (users.apikey)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			case "thunderdome":
-				// UID must be set
-				if (!$this->uid) {
-					$result["status"] = false;
-					$result["message"] = "Error: uid not found (users.thunderdome)";
-					$result["data"] = false;
-					break;
-				}
-				// GET - Get a user's settings (only your own)
-				if ($this->method == "GET") {
-					// Form the query
-					$sql = "SELECT twitter, quiet_hours, enabled FROM thunderdome_settings WHERE  username = :uid";
-					$params["uid"] = $this->uid;
-					// Make the query
-					$query = db_select($sql, $params);
-					if ($query) {
-						$result["status"] = true;
-						$result["message"] = "Success (users.thunderdome)";
-						$result["data"] = $query[0];
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query database (users.thunderdome)";
-						$result["data"] = false;
-					}
-				}
-				// POST - Update a user's settings
-				else if ($this->method == "POST") {
-					// Check for parameters
-					$fields = "";
-					$values = "";
-					if (array_key_exists("twitter", $this->request)) {
-						$params["twitter"] = $this->request["twitter"];
-						$fields .= "twitter, ";
-						$values .= ":twitter, ";
-					}
-					if (array_key_exists("quiet_hours", $this->request)) {
-						$params["quiet_hours"] = $this->request["quiet_hours"];
-						$fields .= "quiet_hours, ";
-						$values .= ":quiet_hours, ";
-					}
-					if (array_key_exists("enabled", $this->request)) {
-						$params["enabled"] = $this->request["enabled"];
-						$fields .= "enabled, ";
-						$values .= ":enabled, ";
-					}
-					if (count($params) == 0) {
-						$result["status"] = false;
-						$result["message"] = "Error: invalid number of parameters (users.thunderdome)";
-						$result["data"] = false;
-						break;
-					}
-					$fields = substr($fields, 0, strlen($fields) - 2);
-					$values = substr($values, 0, strlen($values) - 2);
-					// Form the query
-					$sql = "REPLACE INTO thunderdome_settings (username, $fields) VALUES (:uid, $values)";
-					$params["uid"] = $this->uid;
-					// Make the query
-					$query = db_insert($sql, $params);
-					if ($query) {
-						$result["status"] = true;
-						$result["message"] = "Success (users.thunderdome)";
-						$result["data"] = true;
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query database (users.thunderdome)";
-						$result["data"] = false;
-					}
-				}
-				// DELETE - Delete a user's settings
-				else if ($this->method == "DELETE") {
-					// Form the query
-					$sql = "DELETE FROM thunderdome_settings WHERE username = :uid";
-					$params["uid"] = $this->uid;
-					// Make the query
-					$query = db_delete($sql, $params);
-					if ($query) {
-						$result["status"] = true;
-						$result["message"] = "Success (users.thunderdome)";
-						$result["data"] = true;
-					}
-					else {
-						$result["status"] = false;
-						$result["message"] = "Error: failed to query database (users.thunderdome)";
-						$result["data"] = false;
-					}
-				}
-				// Default
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: unsupported HTTP method (users.thunderdome)";
-					$result["data"] = false;
-				}
-				break;
-			*/
-			/*
-			*	Base case - no specific API method called
-			*/
-			default:
-				$result["status"] = false;
-				$result["message"] = "Invalid API method call (users)";
-				$result["data"] = false;
-				break;
-		}
-		// Return the response data
-		return $result;
-	}
-
-	// Machines endpoint - call the various machine-related API methods
-	protected function machines() {
-		// Create an array to store response data
-		$result = array();
-		// Create an array to store parameters for SQL queries
-		$params = array();
-		// Determine the specific method to call
-		switch($this->verb) {
-			/*
-			*	Enpoint: machines.stock
-			*	
-			*	Methods:
-			*	- stock_one: GET stock/:machine_id
-			*	- stock_all: GET stock
-			*/
-			case "stock":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (machines.stock)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for machine_id
-				$mid = false;
-				if (array_key_exists("machine_id", $this->request)) {
-					$mid = $this->request["machine_id"];
-					// Sanitize uid
-					$mid = $this->sanitizeMachineId($mid);
-				}
-				// Form the SQL query
-				$sql = "SELECT s.slot_num, s.machine_id, m.display_name, i.item_id, i.item_name, i.item_price, s.available, s.status 
-						FROM slots as s, machines as m, drink_items as i 
-						WHERE i.item_id = s.item_id AND m.machine_id = s.machine_id";
-				if ($mid) {	
-					$sql .= " AND s.machine_id = :machineId";
-					$params["machineId"] = $mid;
-				}
-				// Query the database
-				$query = db_select($sql, $params);
-				if ($query) {
-					$data = array();
-					foreach($query as $q) {
-						$data[$q["machine_id"]][] = $q;
-					}
-					$result["status"] = true;
-					$result["message"] = "Success (machines.stock)";
-					$result["data"] = $data;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (machines.stock)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Endpoint: machines.info
-			*
-			*	Methods: 
-			*	- info_one: GET /info/:machine_id
-			*	- info_all: GET /info
-			*/
-			case "info":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (machines.info)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for machine_id
-				$mid = false;
-				if (array_key_exists("machine_id", $this->request)) {
-					$mid = $this->request["machine_id"];
-					// Sanitize uid
-					$mid = $this->sanitizeMachineId($mid);
-				}
-				// Form the SQL query
-				$sql = "SELECT m.machine_id, m.name, m.display_name, a.alias_id, a.alias 
-						FROM machines as m, machine_aliases as a 
-						WHERE a.machine_id = m.machine_id";
-				if ($mid) {	
-					$sql .= " AND m.machine_id = :machineId";
-					$params["machineId"] = $mid;
-				}
-				// Query the database
-				$query = db_select($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (machines.info)";
-					$result["data"] = $query;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (machines.info)";
-					$result["data"] = false;
-				}		
-				break;
-			/*
-			*	Endpoint: machines.slot
-			*
-			*	Methods:
-			*	- update_slot: POST slot/:slot_num/:machine_id/:item_id/:available/:status
-			*/
-			case "slot":
-				// Check method type
-				if ($this->method != "POST") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts POST requests (machines.slot)";
-					$result["data"] = false;
-					break;
-				}
-				// Must be an admin
-				if (!$this->admin) {
-					$result["status"] = false;
-					$result["message"] = "Error: must be an admin to update slots (machines.slot)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for slot_num
-				$slot = 0;
-				if (array_key_exists("slot_num", $this->request)) {
-					$slot = (int) trim($this->request["slot_num"]);
-					$params["slotNum"] = $slot;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: slot_num number not supplied (machines.slot)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for machine_id
-				$mid = 0;
-				if (array_key_exists("machine_id", $this->request)) {
-					$mid = $this->sanitizeMachineId($this->request["machine_id"]);
-					$params["machineId"] = $mid;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: machine_id number not supplied (machines.slot)";
-					$result["data"] = false;
-					break;
-				}
-				// Form the SQL query (TODO: Find a good way to not require all parameters)
-				$sql = "UPDATE slots SET";
-				$append = "";
-				if (array_key_exists("item_id", $this->request)) {
-					$item_id = (int) trim($this->request["item_id"]);
-					$append .= " item_id = :itemId,";
-					$params["itemId"] = $item_id;
-				}
-				if (array_key_exists("available", $this->request)) {
-					$available = (int) trim($this->request["available"]);
-					$append .= " available = :available,";
-					$params["available"] = $available;
-				}
-				if (array_key_exists("status", $this->request)) {
-					$status = trim((string) $this->request["status"]);
-					$append .= " status = :status,";
-					$params["status"] = $status;
-				}
-				if ($append == "") {
-					$result["status"] = false;
-					$result["message"] = "Error: nothing to update (machines.slot)";
-					$result["data"] = false;
-					break;
-				}
-				$append = substr($append, 0, -1);
-				$sql .= $append . " WHERE slot_num = :slotNum AND machine_id = :machineId";
-				// Query the database
-				$query = db_update($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (machines.slot)";
-					$result["data"] = true;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (machines.slot)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Base case - no specific API method called
-			*/
-			default:
-				$result["status"] = false;
-				$result["message"] = "Invalid API method call (machines)";
-				$result["data"] = false;
-				break;
-		}
-		// Return the response data
-		return $result;
-	}
-
-	protected function items() {
-		// Create an array to store response data
-		$result = array();
-		// Create an array to store parameters for SQL queries
-		$params = array();
-		// Determine the specific method to call
-		switch($this->verb) {
-			/*
-			*	Endpoint: items.list
-			*
-			*	Methods:
-			*	- list: GET /list
-			*/
-			case "list":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (items.list)";
-					$result["data"] = false;
-					break;
-				}
-				// Form the SQL query (TODO: Either clean up database or make a toggle for active/inactive)
-				$sql = "SELECT item_id, item_name, item_price, state FROM drink_items WHERE state = 'active'";
-				// Query the database
-				$query = db_select($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (items.list)";
-					$result["data"] = $query;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (items.list)";
-					$result["data"] = $query;
-				}
-				break;
-			/*
-			*	Endpoint: items.add
-			*
-			*	Methods:
-			*	- add: GET /items/add/:name/:price
-			*/
-			case "add":
-				// Check method type
-				if ($this->method != "POST") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts POST requests (items.add)";
-					$result["data"] = false;
-					break;
-				}
-				// Must be an admin
-				if (!$this->admin) {
-					$result["status"] = false;
-					$result["message"] = "Error: must be an admin to update items (items.add)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for name
-				$name = "";
-				if (array_key_exists("name", $this->request)) {
-					$name = $this->sanitizeItemName($this->request["name"]);
-					$params["name"] = $name;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: name not supplied (items.add)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for price
-				$price = 0;
-				if (array_key_exists("price", $this->request)) {
-					$price = (int) trim($this->request["price"]);
-					$params["price"] = $price;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: price not supplied (items.add)";
-					$result["data"] = false;
-					break;
-				}
-				// Make sure price isn't negative
-				if ($price < 0) {
-					$result["status"] = false;
-					$result["message"] = "Error: price can't be negative (items.add)";
-					$result["data"] = false;
-					break;
-				}
-				// Form the SQL query
-				$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
-				// Make the query
-				$query = db_insert($sql, $params);
-				if ($query) {
-					$item_id = db_last_insert_id();
-					$result["status"] = true;
-					$result["message"] = "Success (items.add)";
-					$result["data"] = $item_id;
-					// Log price changes to the database
-					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
-					$params = array();
-					$params["itemId"] = $item_id;
-					$params["price"] = $price;
-					$query = db_insert($sql, $params);
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (items.add)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Endpoint: items.update
-			*
-			*	Methods:
-			*	- update_item: POST /update/:item_id/:name/:price/:status
-			*/
-			case "update":
-				// Check method type
-				if ($this->method != "POST") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts POST requests (items.update)";
-					$result["data"] = false;
-					break;
-				}
-				// Must be an admin
-				if (!$this->admin) {
-					$result["status"] = false;
-					$result["message"] = "Error: must be an admin to update items (items.update)";
-					$result["data"] = false;
-					break;
-				}
-				// Make sure an item_id was provided
-				$item_id = 0;
-				if (array_key_exists("item_id", $this->request)) {
-					$item_id = $this->sanitizeItemId($this->request["item_id"]);
-					$params["itemId"] = $item_id;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: item_id not provided (items.update)";
-					$result["data"] = false;
-					break;
-				}
-				// Form the SQL query
-				$append = "";
-				$sql = "UPDATE drink_items SET";
-				if (array_key_exists("name", $this->request)) {
-					$name = $this->sanitizeItemName($this->request["name"]);
-					// Make sure the name isn't empty
-					if (strlen($name) <= 0) {
-						$result["status"] = false;
-						$result["message"] = "Error: name can't be empty (items.add)";
-						$result["data"] = false;
-						break;
-					}
-					$append .= " item_name = :name,";
-					$params["name"] = $name;
-				}
-				if (array_key_exists("price", $this->request)) {
-					$price = (int) trim($this->request["price"]);
-					// Make sure price isn't negative
-					if ($price < 0) {
-						$result["status"] = false;
-						$result["message"] = "Error: price can't be negative (items.update)";
-						$result["data"] = false;
-						break;
-					}
-					$append .= " item_price = :price,";
-					$params["price"] = $price;
-				}
-				if (array_key_exists("state", $this->request)) {
-					$state = trim((string) $this->request["state"]);
-					$append .= " state = :state,";
-					$params["state"] = $state;
-				}
-				if ($append == "") {
-					$result["result"] = false;
-					$result["message"] = "Error: invalid number of parameters (items.update)";
-					$result["data"] = false;
-					break;
-				}
-				$append = substr($append, 0, -1);
-				$sql .= $append . " WHERE item_id = :itemId";
-				// Make the Query
-				$query = db_update($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (items.update)";
-					$result["data"] = true;
-					// Log price changes to the database
-					$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
-					$params = array();
-					$params["itemId"] = $item_id;
-					$query = db_insert($sql, $params);
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (items.update)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Endpoint: items.delete
-			*
-			*	Methods: 
-			*	- delete_item: POST /delete/:item_id
-			*/
-			case "delete":
-				// Check method type
-				if ($this->method != "POST") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts POST requests (items.delete)";
-					$result["data"] = false;
-					break;
-				}
-				// Must be an admin
-				if (!$this->admin) {
-					$result["status"] = false;
-					$result["message"] = "Error: must be an admin to update items (items.delete)";
-					$result["data"] = false;
-					break;
-				}
-				// Make sure an item_id was provided
-				$item_id = 0;
-				if (array_key_exists("item_id", $this->request)) {
-					$item_id = $this->sanitizeItemId($this->request["item_id"]);
-					$params["itemId"] = $item_id;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: itemId not provided (items.delete)";
-					$result["data"] = false;
-					break;
-				}
-				// Form the SQL query
-				$sql = "DELETE FROM drink_items WHERE item_id = :itemId";
-				// Make the Query
-				$query = db_delete($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (items.delete)";
-					$result["data"] = true;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (items.delete)";
-					$result["data"] = false;
-				}
-				break;
-			/*
-			*	Base case - no specific API method called
-			*/
-			default:
-				$result["status"] = false;
-				$result["message"] = "Invalid API method call (items)";
-				$result["data"] = false;
-				break;
-		}
-		// Return the response data
-		return $result;
-	}
-
-	// Temps endpoint, get temperature data for the drink machines
-	protected function temps() {
-		// Create an array to store response data
-		$result = array();
-		// Create an array to store parameters for SQL queries
-		$params = array();
-		// Determine the specific method to call
-		switch($this->verb) {
-			/*
-			*	Endpoint: temps.machines
-			*
-			*	Methods:
-			*	- machine_one: GET /machines/:machine_id/:limit
-			*/
-			case "machines":
-				// Check method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (temps.machine)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for machine_id
-				$mid = false;
-				if (array_key_exists("machine_id", $this->request)) {
-					$mid = $this->sanitizeMachineId($this->request["machine_id"]);
-					$params["machineId"] = $mid;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: machine_id not provided (temps.machine)";
-					$result["data"] = false;
-					break;
-				}
-				// Check for limit (TODO: Allow for offset as well)
-				$limit = 300;
-				if (array_key_exists("limit", $this->request)) {
-					$limit = (int) trim($this->request["limit"]);
-				}
-				$params["limit"] = $limit;
-				$offset = 0;
-				if (array_key_exists("offset", $this->request)) {
-					$offset = (int) trim($this->request["offset"]);
-				}
-				$params["offset"] = $offset;
-				// Form the SQL query
-				$sql = "SELECT t.machine_id, t.time, t.temp, m.display_name 
-						FROM temperature_log as t, machines as m
-						WHERE t.machine_id = m.machine_id AND t.machine_id = :machineId
-						ORDER BY t.time DESC LIMIT :limit OFFSET :offset";
-				// Query the database
-				$query = db_select($sql, $params);	
-				if ($query) {
-					$data = array();
-					for ($i = count($query) - 1; $i >= 0; $i--) {
-						//$data["temp"][] = $temp["temp"];
-						//$data["time"][] = $temp["time"];
-						//$data["temp"][] = (float) $query[$i]["temp"];
-						//$data["time"][] = $query[$i]["time"];
-						$data[] = array(strtotime($query[$i]["time"]), (float) $query[$i]["temp"]);
-					}
-					$result["status"] = true;
-					$result["message"] = "Success (temps.machine)";
-					$result["data"] = $data;
-				}
-				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (temps.machine)";
-					$result["data"] = $query;
-				}
-				break;		
-			/*
-			*	Base case - no specific API method called
-			*/	
-			default:
-				$result["status"] = false;
-				$result["message"] = "Invalid API method call (temps)";
-				$result["data"] = $this->verb;
-				break;
-		}
-		// Return the response data
-		return $result;
+	// Sanitize an integer
+	private function _sanitizeInt($int) {
+		return (int) trim($int);
 	}
 
 	/*
-	// Thunderdome endpoint, perform thunderdome drops and operations
-	protected function thunderdome() {
-		// Create an array to store response data
-		$result = array();
-		// Create an array to store parameters for SQL queries
-		$params = array();
+	*	Test Endpoint
+	*
+	*	GET /test/ - Test the API ("healthcheck")
+	*	GET /test/webauth/ - Test the API with Webauth authentication
+	*	GET /test/api/:api_key - Test the API with API key authentication
+	*/
+
+	protected function test() {
+		// Only allow GET requests
+		if ($this->method != "GET") {
+			return $this->_result(false, "Only accepts GET requests", false);
+		}
 		// Determine the specific method to call
-		switch($this->verb) {
-			case 'status':
-				// Check the method type
-				if ($this->method != "GET") {
-					$result["status"] = false;
-					$result["message"] = "Error: only accepts GET requests (thunderdome.status)";
-					$result["data"] = false;
-					break;
+		switch ($this->verb) {
+			// GET /test/webauth
+			case "webauth":
+				if ($this->api_key) {
+					return $this->_result(false, "Try again without an API key!", false);
 				}
-				// Get the status of thunderdome
-				$sql = "SELECT active FROM thunderdome_active WHERE id = 1";
-				$query = db_select($sql, $params);
-				if ($query) {
-					$result["status"] = true;
-					$result["message"] = "Success (thunderdome.status)";
-					$result["data"] = $query[0]["active"];
+				else if ($this->uid) {
+					return $this->_result(true, "Greetings, " . $this->uid . "!", true);
 				}
 				else {
-					$result["status"] = false;
-					$result["message"] = "Error: failed to query database (thunderdome.status)";
-					$result["data"] = false;
+					return $this->_result(false, "Username not found!", false);
+				}
+				break;
+			// GET /test/api/:api_key
+			case "api":
+				if (!$this->api_key) {
+					return $this->_result(false, "Try again with an API key!", false);
+				}
+				else if ($this->uid) {
+					return $this->_result(true, "Greetings, " . $this->uid . "!", true);
+				}
+				else {
+					return $this->_result(false, "Username not found!", false);
+				}
+				break;
+			// GET /test
+			default: 
+				return $this->_result(true, "Greetings from the Drink API!", true);
+		}
+	}
+
+	/*
+	*	Users Endpoint
+	*
+	*	GET /users/credits/:uid - Get a user's drink credits value
+	* POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
+	*	GET /users/search/:uid - Lookup a partial uid in LDAP
+	* GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
+	*	GET /users/drops/:limit/:offset/:uid - Get a portion of the drop logs
+	*	GET /users/apikey/ - Get a user's API key (webauth only)
+	*	POST /users/apikey/ - Update a user's API key (webauth only)
+	*	DELETE /users/apikey/ - Delete a user's API key (webauth only)
+	*/
+
+	protected function users() {
+		$result = array();
+		// Determine the specific method to call
+		switch($this->verb) {
+			case "credits":
+				// Check for the 'uid' parameter
+				$uid = false;
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->_sanitizeString($this->request["uid"]);
+				}
+				else {
+					return $this->_result(false, "Missing parameter 'uid' (/users/credits", false);
+				}
+				// Call an API method
+				if ($this->method == "GET") {
+					$result = $this->_getCredits($uid);
+				}
+				else if ($this->method == "POST") {
+					$result = $this->_updateCredits($uid);
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/users/credits)", false);
+				}
+				break;
+			case "search":
+				// Check for the 'uid' parameter
+				$uid = false;
+				if (array_key_exists("uid", $this->request)) {
+					$uid = $this->_sanitizeString($this->request["uid"]);
+				}
+				else {
+					return $this->_result(false, "Missing parameter 'uid' (/users/search)", false);
+				}
+				// Call an API method
+				if ($this->method == "GET") {
+					$result = $this->_searchUsers($uid);
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/users/search)", false);
+				}
+				break;
+			case "info":
+				if ($this->method == "GET") {
+					$result = $this->_getUserInfo();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/users/info)", false);
+				}
+				break;
+			case "drops":
+				if ($this->method == "GET") {
+					$result = $this->_getDrops();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/users/drops)", false);
+				}
+				break;
+			case "apikey":
+				if ($this->method == "GET") {
+					$result = $this->_getApiKey();
+				}
+				else if ($this->method == "POST") {
+					$result = $this->_updateApiKey();
+				}
+				else if ($this->method == "DELETE") {
+					$result = $this->_deleteApiKey();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/users/apikey)", false);
 				}
 				break;
 			default:
-				$result["status"] = false;
-				$result["message"] = "Invalid API method call (thunderdome)";
-				$result["data"] = $this->verb;
-				break;
+				$result = $this->_result(false, "Invalid API method (/users)", false);
 		}
+		// Return the response data
 		return $result;
 	}
+
+	// GET /users/credits/:uid
+	private function _getCredits($uid) {
+		// Only admins can search for users other than themselves
+		if ($this->uid != $uid && !$this->admin) {
+			return $this->_result(false, "Must be an admin to get another user's credits (/users/credits)", false);
+		}
+		// Query LDAP for credit balance
+		$fields = array("drinkBalance");
+		$data = ldap_lookup($uid, $fields);
+		if (array_key_exists(0, $data)) {
+			return $this->_result(true, "Success (/users/credits)", $data[0]["drinkbalance"][0]);
+		}
+		else {
+			return $this->_result(false, "Failed to query LDAP (/users/credits)", false);
+		}
+	}
+
+	// POST /users/credits/:uid/:value
+	private function _updateCredits($uid) {
+		// Must be an admin to update credits
+		if (!$this->admin) {
+			return $this->_result(false, "Must be an admin to update a user's credits (/users/credits)", false);
+		}
+		// Check for the 'value' parameter
+		$value = false;
+		if (array_key_exists("value", $this->request)) {
+			$value = $this->_sanitizeInt($this->request["value"]);
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'value' (/users/credits)", false);
+		}
+		// Check for the 'type' parameter
+		$type = false;
+		$direction = "in";
+		if (array_key_exists("type", $this->request)) {
+			$type = $this->_sanitizeString($this->request["type"]);
+			if ($type != "add" && $type != "subtract") {
+				return $this->_result(false, "Invalid 'type' - please choose 'add' or 'subtract' (/users/credits)", false);
+			}
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'type' (/users/credits)", false);
+		}
+		// Determine the direction of credit transfer
+		$direction = "in";
+		if (($value < 0 && $type == "add") || ($value >=0 && $type == "subtract")) {
+			$direction = "out";
+		}
+		// Query LDAP for current credit balance
+		$fields = array('drinkBalance');
+		$data = ldap_lookup($uid, $fields);
+		if (array_key_exists(0, $data)) {
+			// Query LDAP to update the credit balance
+			$oldBalance = $data[0]['drinkbalance'][0];
+			$newBalance = 0;
+			if ($type == "add") {
+				$newBalance = $oldBalance + $value;
+			}
+			else {
+				$newBalance = $oldBalance - $value;
+			}
+			$replace = array('drinkBalance' => $newBalance);
+			$data = ldap_update($uid, $replace);
+			if ($data) {
+				// Insert the change into the logs
+				$sql = "INSERT INTO money_log (username, admin, amount, direction, reason) VALUES (:uid, :admin, :amount, :direction, :reason)";
+				$params = array();
+				$params["uid"] = $uid;
+				$params["admin"] = $this->uid;
+				$params["amount"] = $value;
+				$params["direction"] = $direction;
+				$params["reason"] = $type;
+				db_insert($sql, $params);
+				return $this->_result(true, "Success (/users/credits)", $newBalance);
+			}
+			else {
+				return $this->_result(false, "Failed to query LDAP (/users/credits)", false);
+			}
+		}
+		else {
+			return $this->_result(false, "Failed to query LDAP (/users/credits)", false);
+		}
+	}
+
+	// GET /users/search/:uid
+	private function _searchUsers($uid) {
+		// Query LDAP for the list of matching users
+		$fields = array('uid', 'cn');
+		$data = ldap_lookup($uid."*", $fields);
+		if ($data) {
+			$tmp = array();
+			$i = 0;
+			foreach ($data as $user) {
+				$tmp[$i] = array("uid" => $user["uid"][0], "cn" => $user["cn"][0]);
+				$i++;
+			}
+			array_shift($tmp);
+			return $this->_result(true, "Success (/users/search)", $tmp);
+		}
+		else {
+			return $this->_result(false, "Failed to query LDAP (/users/search", false);
+		}
+	}
+
+	// GET /users/info/:api_key
+	private function _getUserInfo() {
+		// Check for an API key
+		if (!$this->api_key) {
+			return $this->_result(false, "Missing API key (/users/info)", false);
+		}
+		// Check for the uid
+		if (!$this->uid) {
+			return $this->_result(false, "Invalid API key; user not found (/users/info)", false);
+		}
+		// Query LDAP for the user info
+		$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn');
+		$data = ldap_lookup($this->uid, $fields);
+		if (array_key_exists(0, $data)) {
+			$tmp = array();
+			$tmp["uid"] = $this->uid;
+			$tmp["credits"] = $data[0]["drinkbalance"][0];
+			$tmp["admin"] = $data[0]["drinkadmin"][0];
+			$tmp["ibutton"] = $data[0]["ibutton"][0];
+			$tmp["cn"] = $data[0]["cn"][0];
+			return $this->_result(true, "Success (/users/info)", $tmp);
+		}
+		else {
+			return $this->_result(false, "Failed to query LDAP (/users/info)", false);
+		}
+	}
+
+	// GET /users/drops/:limit/:offset/:uid
+	private function _getDrops() {
+		$params = array();
+		// Check for a uid
+		$uid = false;
+		if (array_key_exists("uid", $this->request)) {
+			$uid = $this->_sanitizeString($this->request["uid"]);
+		}
+		// Check for a limit and offset
+		$limit = false;
+		$offset = false;
+		if (array_key_exists("limit", $this->request)) {
+			$limit = $this->_sanitizeInt($this->request["limit"]);
+			if (array_key_exists("offset", $this->request)) {
+				$offset = $this->_sanitizeInt($this->request["offset"]);
+			}
+		}
+		// Form the SQL query
+		$sql = "SELECT l.drop_log_id, l.machine_id, m.display_name, l.slot, l.username, l.time, l.status, l.item_id, i.item_name, l.current_item_price 
+				FROM drop_log as l, machines as m, drink_items as i WHERE";
+		if ($uid) {
+			$sql .= " l.username = :username AND";
+			$params["username"] = $uid;
+		}
+		$sql .= " m.machine_id = l.machine_id AND i.item_id = l.item_id 
+				ORDER BY l.drop_log_id DESC";
+		if ($limit) {
+			$sql .= " LIMIT :limit";
+			$params["limit"] = $limit;
+		}
+		if ($offset) {
+			$sql .= " OFFSET :offset";
+			$params["offset"] = $offset;
+		}
+		// Query the database
+		$query = db_select($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/users/drops)", $query);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/users/drops)", false);
+		}
+	}
+
+	// GET /users/apikey
+	private function _getApiKey() {
+		$params = array();
+		// Must be auth'd with Webauth
+		if (!$this->webauth) {
+			return $this->_result(false, "Must use WebDrink to retrieve API key (/users/apikey)", false);
+		}
+		// uid must be set
+		if (!$this->uid) {
+			return $this->_result(false, "uid not found (/users/apikey)", false);
+		}
+		// Form the SQL query
+		$sql = "SELECT * FROM api_keys WHERE uid = :uid";
+		$params["uid"] = $this->uid;
+		// Query the database
+		$query = db_select($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/users/apikey)", $query[0]);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/users/apikey)", false);
+		}
+	}
+
+	// POST /users/apikey
+	private function _updateApiKey() {
+		$params = array();
+		// Must be auth'd with Webauth
+		if (!$this->webauth) {
+			return $this->_result(false, "Must use WebDrink to retrieve API key (/users/apikey)", false);
+		}
+		// uid must be set
+		if (!$this->uid) {
+			return $this->_result(false, "uid not found (/users/apikey)", false);
+		}
+		// Generate an API key
+		$salt = time();
+		$apiKey = hash("sha512", $this->uid . $salt);
+		$apiKey = substr($apiKey, 0, 16);
+		// Form the SQL query
+		$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
+		$params["uid"] = $this->uid;
+		$params["apiKey"] = $apiKey;
+		// Query the database
+		$query = db_insert($sql, $params);
+		if ($query) {
+			$tmp = array();
+			$tmp["api_key"] = $apiKey;
+			$tmp["date"] = date("Y-m-d H:i:s");
+			$tmp["uid"] = $this->uid;
+			return $this->_result(true, "Success (/users/apikey)", $tmp);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/users/apikey)", false);
+		}
+	}
+
+	// DELETE /users/apikey
+	private function _deleteApiKey() {
+		$params = array();
+		// Must be auth'd with Webauth
+		if (!$this->webauth) {
+			return $this->_result(false, "Must use WebDrink to retrieve API key (/users/apikey)", false);
+		}
+		// uid must be set
+		if (!$this->uid) {
+			return $this->_result(false, "uid not found (/users/apikey)", false);
+		}
+		// Form the SQL query
+		$sql = "DELETE FROM api_keys WHERE uid = :uid";
+		$params["uid"] = $this->uid;
+		// Query the database
+		$query = db_delete($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/users/apikey)", true);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/users/apikey)", false);
+		}
+	}
+
+	/*
+	*	Machines Endpoint
+	*
+	*	GET /machines/stock/:machine_id - Get the stock of one (or all) machines
+	* GET /machines/info/:machine_id - Get the info of one (or all) machines
+	*	POST /machines/slot/:slot_num/:machine_id/:item_id/:available/:status - Update a machine slot (admin only)
 	*/
+
+	protected function machines() {
+		$result = array();
+		// Determine the specific method to call
+		switch($this->verb) {
+			case "stock":
+				// GET /machines/stock/:machine_id
+				if ($this->method == "GET") {
+					$result = $this->_getMachineStock();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/machines/stock)", false);
+				}
+				break;
+			case "info":
+				// GET /machines/info/:machine_id
+				if ($this->method == "GET") {
+					$result = $this->_getMachineInfo();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/machines/info)", false);
+				}
+				break;
+			case "slot":
+				// POST /machines/slot/:slot_num/:machine_id/:item_id/:available/:status
+				if ($this->method == "POST") {
+					$result = $this->_updateSlot();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/machines/slot)", false);
+				}
+				break;
+			default:
+				$result = $this->_result(false, "Invalid API method (/machines)", false);
+		}
+		// Return the response data
+		return $result;
+	}
+
+	// GET /machines/stock/:machine_id
+	private function _getMachineStock() {
+		$params = array();
+		// Check for 'machine_id' parameter
+		$machine_id = false;
+		if (array_key_exists("machine_id", $this->request)) {
+			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+		}
+		// Form the SQL query
+		$sql = "SELECT s.slot_num, s.machine_id, m.display_name, i.item_id, i.item_name, i.item_price, s.available, s.status 
+						FROM slots as s, machines as m, drink_items as i 
+						WHERE i.item_id = s.item_id AND m.machine_id = s.machine_id";
+		if ($machine_id) {	
+			$sql .= " AND s.machine_id = :machineId";
+			$params["machineId"] = $machine_id;
+		}
+		// Query the database
+		$query = db_select($sql, $params);
+		if ($query) {
+			$tmp = array();
+			foreach($query as $q) {
+				$tmp[$q["machine_id"]][] = $q;
+			}
+			return $this->_result(true, "Success (/machines/stock)", $tmp);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/machines/stock)", false);
+		}
+	}
+
+	// GET /machines/info/:machine_id
+	private function _getMachineInfo() {
+		$params = array();
+		// Check for 'machine_id' parameter
+		$machine_id = false;
+		if (array_key_exists("machine_id", $this->request)) {
+			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+		}
+		// Form the SQL query
+		$sql = "SELECT m.machine_id, m.name, m.display_name, a.alias_id, a.alias 
+						FROM machines as m, machine_aliases as a 
+						WHERE a.machine_id = m.machine_id";
+		if ($machine_id) {
+			$sql .= " AND m.machine_id = :machineId";
+			$params["machineId"] = $machine_id;
+		}
+		// Query the database
+		$query = db_select($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/machines/info)", $query);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/machines/info)", false);
+		}
+	}
+
+	// POST /machines/slot/:slot_num/:machine_id/:item_id/:available/:status
+	private function _updateSlot() {
+		$params = array();
+		// Must be an admin to update a slot
+		if (!$this->admin) {
+			return $this->_result(false, "Must be an admin to update slots (/machines/slot)", false);
+		}
+		// Check for 'slot_num' parameter
+		$slot = 0;
+		if (array_key_exists("slot_num", $this->request)) {
+			$slot = $this->_sanitizeInt($this->request["slot_num"]);
+			$params["slotNum"] = $slot;
+		}
+		else {
+			return $this->_result(false, "Missing 'slot_num' parameter (/machines/slot)", false);
+		}
+		// Check for 'machine_id' parameter
+		$machine_id = 0;
+		if (array_key_exists("machine_id", $this->request)) {
+			$machine_id = $this->_sanitizeInt($this->request["machine_id"]);
+			$params["machineId"] = $machine_id;
+		}
+		else {
+			return $this->_result(false, "Missing 'machine_id' parameter (/machines/slot)", false);
+		}
+		// Form the SQL query
+		$sql = "UPDATE slots SET";
+		$append = "";
+		if (array_key_exists("item_id", $this->request)) {
+			$item_id = $this->_sanitizeInt($this->request["item_id"]);
+			$append .= " item_id = :itemId,";
+			$params["itemId"] = $item_id;
+		}
+		if (array_key_exists("available", $this->request)) {
+			$available = $this->_sanitizeString($this->request["available"]);
+			$append .= " available = :available,";
+			$params["available"] = $available;
+		}
+		if (array_key_exists("status", $this->request)) {
+			$status = strtolower($this->_sanitizeString($this->request["status"]));
+			if ($status != "enabled") {
+				$status = "disabled";
+			}
+			$append .= " status = :status,";
+			$params["status"] = $status;
+		}
+		if ($append == "") {
+			return $this->_result(false, "Nothing to update (/machines/slot)", false);
+		}
+		$append = substr($append, 0, -1);
+		$sql .= $append . " WHERE slot_num = :slotNum AND machine_id = :machineId";
+		// Query the database
+		$query = db_update($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/machines/slot)", true);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/machines/slot)", false);
+		}
+	}
+
+	/*
+	*	Items endpoint
+	*
+	* GET /items/list - Get a list of all items
+	*	POST /items/add/:name/:price - Add a new item to the database (admin only)
+	* POST /items/update/:item_id/:name/:price/:status - Update an item (admin only)
+	*	POST /items/delete/:item_id - Delete an item (admin only)
+	*/
+
+	protected function items() {
+		$result = array();
+		// Determine the specific method to call
+		switch($this->verb) {
+			case "list":
+				// GET /items/list
+				if ($this->method == "GET") {
+					$result = $this->_getItems();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/items/list)", false);
+				}
+				break;
+			case "add":
+				// POST /items/add/:name/:price
+				if ($this->method == "POST") {
+					$result = $this->_addItem();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/items/add)", false);
+				}
+				break;
+			case "update":
+				// POST /items/update/:item_id/:name/:price/:status
+				if ($this->method == "POST") {
+					$result = $this->_updateItem();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/items/update)", false);
+				}
+				break;
+			case "delete":
+				// POST /items/delete/:item_id 
+				if ($this->method == "POST") {
+					$result = $this->_deleteItem();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/items/delete)", false);
+				}
+				break;
+			default:
+				$result = $this->_result(false, "Invalid API method (/items)", false);
+		}
+		// Return the response data
+		return $result;
+	}
+
+	// GET /items/list
+	private function _getItems() {
+		$params = array();
+		// Form the SQL query (TODO: Either clean up database or make a toggle for active/inactive)
+		$sql = "SELECT item_id, item_name, item_price, state FROM drink_items WHERE state = 'active'";
+		// Query the database
+		$query = db_select($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/items/list)", $query);
+		} 
+		else {
+			return $this->_result(false, "Failed to query database (/items/list)", false);
+		}
+	}
+
+	// POST /items/add/:name/:price
+	private function _addItem() {
+		$params = array();
+		// Must be an admin to add items
+		if (!$this->admin) {
+			return $this->_result(false, "Must be an admin to add items (/items/add)", false);
+		}
+		// Check for 'name' parameter
+		$name = false;
+		if (array_key_exists("name", $this->request)) {
+			$name = $this->_sanitizeString($this->request["name"]);
+			$params["name"] = $name;
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'name' (/items/add)", false);
+		}
+		// Check for 'price' parameter
+		$price = false;
+		if (array_key_exists("price", $this->request)) {
+			$price = $this->_sanitizeInt($this->request["price"]);
+			if ($price < 0) {
+				$price = $price * -1;
+			}
+			$params["price"] = $price;
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'price' (/items/add)", false);
+		}
+		// Form the SQL query
+		$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
+		// Query the database
+		$query = db_insert($sql, $params);
+		if ($query) {
+			// Log price changes to the database
+			$item_id = db_last_insert_id();
+			$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
+			$params = array();
+			$params["itemId"] = $item_id;
+			$params["price"] = $price;
+			db_insert($sql, $params);
+			return $this->_result(true, "Success (/items/add)", $item_id);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/items/add)", false);
+		}
+	}
+
+	// POST /items/update/:item_id/:name/:price/:status
+	private function _updateItem() {
+		$params = array();
+		// Must be an admin to add items
+		if (!$this->admin) {
+			return $this->_result(false, "Must be an admin to add items (/items/update)", false);
+		}
+		// Check for 'item_id' parameter
+		$item_id = 0;
+		if (array_key_exists("item_id", $this->request)) {
+			$item_id = $this->_sanitizeInt($this->request["item_id"]);
+			$params["itemId"] = $item_id;
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'item_id' (/items/update)", false);
+		}
+		// Form the SQL query
+		$append = "";
+		$sql = "UPDATE drink_items SET";
+		if (array_key_exists("name", $this->request)) {
+			$name = $this->_sanitizeString($this->request["name"]);
+			// Make sure the name isn't empty
+			// if (strlen($name) <= 0) {
+			// 	return $this->_result 
+			// 	$result["status"] = false;
+			// 	$result["message"] = "Error: name can't be empty (items.add)";
+			// 	$result["data"] = false;
+			// 	break;
+			// }
+			$append .= " item_name = :name,";
+			$params["name"] = $name;
+		}
+		$price = false;
+		if (array_key_exists("price", $this->request)) {
+			$price = $this->_sanitizeInt($this->request["price"]);
+			if ($price < 0) {
+				$price = $price * -1;
+			}
+			$append .= " item_price = :price,";
+			$params["price"] = $price;
+		}
+		if (array_key_exists("state", $this->request)) {
+			$state = $this->_sanitizeString($this->request["state"]);
+			$append .= " state = :state,";
+			$params["state"] = $state;
+		}
+		if ($append == "") {
+			return $this->_result(false, "Nothing to update (/items/update)", false);
+		}
+		$append = substr($append, 0, -1);
+		$sql .= $append . " WHERE item_id = :itemId";
+		// Query the database
+		$query = db_update($sql, $params);
+		if ($query) {
+			// Log price changes to the database
+			if ($price != false) {
+				$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
+				$params = array();
+				$params["itemId"] = $item_id;
+				$params["price"] = $price;
+				db_insert($sql, $params);
+			}
+			return $this->_result(true, "Success (/items/update)", true);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/items/update)", false);
+		}
+	}
+
+	// POST /items/delete/:item_id 
+	private function _deleteItem() {
+		$params = array();
+		// Must be an admin to add items
+		if (!$this->admin) {
+			return $this->_result(false, "Must be an admin to add items (/items/update)", false);
+		}
+		// Check for 'item_id' parameter
+		$item_id = 0;
+		if (array_key_exists("item_id", $this->request)) {
+			$item_id = $this->_sanitizeInt($this->request["item_id"]);
+			$params["itemId"] = $item_id;
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'item_id' (/items/update)", false);
+		}
+		// Form the SQL query
+		$sql = "DELETE FROM drink_items WHERE item_id = :itemId";
+		// Query the database
+		$query = db_delete($sql, $params);
+		if ($query) {
+			return $this->_result(true, "Success (/items/delete)", true);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/items/delete)", false);
+		}
+	}
+
+	/*
+	*	Temperatures endpoint
+	*
+	*	GET /temps/machines/:machine_id/:limit
+	*/
+
+	protected function temps() {
+		$result = array();
+		// Determine the specific method to call
+		switch($this->verb) {
+			case "machines":
+				// GET /temps/machines/:machine_id/:limit
+				if ($this->method == "GET") {
+					$result = $this->_getMachineTemps();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/temps/machines)", false);
+				}
+				break;
+			default:
+				$result = $this->_result(false, "Invalid API method (/temps)", false);
+		}
+		// Return the response data
+		return $result;
+	}
+
+	// GET /temps/machines/:machine_id/:limit/:offset
+	private function _getMachineTemps() {
+		$params = array();
+		// Check for 'machine_id' parameter
+		$machine_id = false;
+		if (array_key_exists("machine_id", $this->request)) {
+			$machine_id = $this->_sanitizeInt($this->request["machine_id"]);
+			$params["machineId"] = $machine_id;
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'machine_id' (/temps/machines)", false);
+		}
+		// Check for limit
+		$limit = 300;
+		$offset = 0;
+		if (array_key_exists("limit", $this->request)) {
+			$limit = $this->_sanitizeInt($this->request["limit"]);
+			if (array_key_exists("offset", $this->request)) {
+				$offset = $this->_sanitizeInt($this->request["offset"]);
+			}
+		}
+		$params["limit"] = $limit;
+		$params["offset"] = $offset;
+		// Form the SQL query
+		$sql = "SELECT t.machine_id, t.time, t.temp, m.display_name 
+						FROM temperature_log as t, machines as m
+						WHERE t.machine_id = m.machine_id AND t.machine_id = :machineId
+						ORDER BY t.time DESC LIMIT :limit OFFSET :offset";
+		// Query the database
+		$query = db_select($sql, $params);
+		if ($query) {
+			$tmp = array();
+			for ($i = count($query) - 1; $i >= 0; $i--) {
+				$tmp[] = array(strtotime($query[$i]["time"]), (float) $query[$i]["temp"]);
+			}
+			return $this->_result(true, "Success (/temps/machines)", $tmp);
+		}
+		else {
+			return $this->_result(false, "Failed to query database (/temps/machines)", false);
+		}
+	}
+
 }
 
 ?>

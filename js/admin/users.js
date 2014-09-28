@@ -167,42 +167,6 @@ function UserCtrl($scope, $log, UserService, DropService) {
 
 	// Update the active user's drink credit balance
 	$scope.updateCredits = function() {
-		var newCredits = 0;
-		// Adjust the user's credits based on the transaction type
-		if ($scope.transactionType == "add") {
-			newCredits = Number($scope.activeUser.credits) + Number($scope.creditChange);
-		}
-		else if ($scope.transactionType == "subtract") {
-			newCredits = Number($scope.activeUser.credits) - Number($scope.creditChange);
-		}
-		else if ($scope.transactionType == "adjust") {
-			newCredits = $scope.creditChange;
-		}
-		else {
-			// This shouldn't happen
-		}
-		// Update the user's credits in LDAP
-		UserService.updateCredits($scope.activeUser.uid, newCredits, 
-			function (response) {
-				if (response.status) {
-					$scope.alert.type = "alert-success";
-					$scope.alert.message = "Credits updated successfully!"
-					$scope.activeUser.credits = newCredits;
-				}
-				else {
-					$scope.alert.type = "alert-danger";
-					$scope.alert.message = response.message;
-				}
-				// Show the success/failure alert
-				$scope.alert.show = true;
-			},
-			function (error) {
-				$log.log(error);
-			}
-		);
-	}
-
-	$scope.updateCredits = function() {
 		var type = $scope.transactionType;
 		var amount = $scope.creditChange;
 		// If using the "adjust" feature, convert it to add or subtract
