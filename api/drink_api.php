@@ -411,6 +411,7 @@ class DrinkAPI extends API
 
 	// POST /users/apikey
 	private function _updateApiKey() {
+		sleep(1);
 		$params = array();
 		// Must be auth'd with Webauth
 		if (!$this->webauth) {
@@ -421,9 +422,15 @@ class DrinkAPI extends API
 			return $this->_result(false, "uid not found (/users/apikey)", false);
 		}
 		// Generate an API key
-		$salt = time();
-		$apiKey = hash("sha512", $this->uid . $salt);
-		$apiKey = substr($apiKey, 0, 16);
+		$apiKey = "";
+		$existingKeys = 0;
+		do {
+			$apiKey = $this->_generateApiKey($this->uid);
+			$sql = "SELECT COUNT(*) as count FROM api_keys WHERE api_key = :apiKey";
+			$result = db_select($sql, array("apiKey" => $apiKey));
+			$existingKeys = (int) $result[0]["count"];
+		} while ($existingKeys == 1);
+		
 		// Form the SQL query
 		$sql = "REPLACE INTO api_keys (uid, api_key) VALUES (:uid, :apiKey)";
 		$params["uid"] = $this->uid;
@@ -440,6 +447,13 @@ class DrinkAPI extends API
 		else {
 			return $this->_result(false, "Failed to query database (/users/apikey)", false);
 		}
+	}
+
+	private function _generateApiKey($uid) {
+		$salt = time();
+		$apiKey = hash("sha512", $uid . $salt);
+		$apiKey = substr($apiKey, 0, 16);
+		return $apiKey;
 	}
 
 	// DELETE /users/apikey
