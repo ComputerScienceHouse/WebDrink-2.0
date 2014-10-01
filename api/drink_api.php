@@ -917,7 +917,7 @@ class DrinkAPI extends API
 		if ($query) {
 			$tmp = array();
 			for ($i = count($query) - 1; $i >= 0; $i--) {
-				$tmp[] = array(strtotime($query[$i]["time"])*1000, (float) $query[$i]["temp"]);
+				$tmp[] = array($query[$i]["time"], (float) $query[$i]["temp"]);
 			}
 			return $this->_result(true, "Success (/temps/machines)", $tmp);
 		}

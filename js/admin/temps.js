@@ -53,8 +53,7 @@ function TempCtrl($scope, $log, TempService) {
 		        xAxis: {
 		            title: {
 		            	text: 'Time'
-		            },
-		            type: 'datetime'
+		            }
 		        },
 		        yAxis: {
 		            title: {
