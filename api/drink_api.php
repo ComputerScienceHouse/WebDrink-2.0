@@ -23,26 +23,9 @@ class DrinkAPI extends API
 		parent::__construct($request);
 
 		// Grab the uid from Webauth, API Key lookup, etc
-		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
-			$this->uid = htmlentities($_SERVER["WEBAUTH_USER"]);
-			$this->webauth = true;
-		}
-		else if ($this->api_key) {
-			$this->uid = $this->_lookupUser($this->api_key);
-			$this->webauth = false;
-		}
-		else if (DEBUG) {
-			$this->uid = "bencentra";
-			$this->webauth = true;
-		}
-		else {
-			$this->uid = false;
-			$this->webauth = false;
-		}
-		// Check if the user is a drink admin
-		if ($this->uid != false) {
-			$this->admin = $this->_isAdmin($this->uid);
-		}
+		$this->uid = "bencentra";
+		$this->webauth = true;
+		$this->admin = true;
 	}
 
 	/* 
@@ -277,18 +260,9 @@ class DrinkAPI extends API
 			else {
 				$newBalance = $oldBalance - $value;
 			}
-			$replace = array('drinkBalance' => $newBalance);
-			$data = ldap_update($uid, $replace);
+			$data = true; //ldap_update($uid, $replace);
 			if ($data) {
 				// Insert the change into the logs
-				$sql = "INSERT INTO money_log (username, admin, amount, direction, reason) VALUES (:uid, :admin, :amount, :direction, :reason)";
-				$params = array();
-				$params["uid"] = $uid;
-				$params["admin"] = $this->uid;
-				$params["amount"] = $value;
-				$params["direction"] = $direction;
-				$params["reason"] = $type;
-				db_insert($sql, $params);
 				return $this->_result(true, "Success (/users/credits)", $newBalance);
 			}
 			else {

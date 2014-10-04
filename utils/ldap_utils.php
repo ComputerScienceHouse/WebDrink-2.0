@@ -1,7 +1,7 @@
 <?php
 
 // Include the database connection info
-require_once("../../../webdrink_info/ldapInfo.inc");
+require_once("../../../webdrink_info/ldapInfo_demo.inc");
 
 /*
 *	LDAP methods
