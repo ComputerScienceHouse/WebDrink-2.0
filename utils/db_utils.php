@@ -18,13 +18,14 @@ function db_select($sql, $data)
 			// Return the selected data as an assoc array
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
 		}
+		else {
+			return false;
+		}
 	}
 	// Catch any exceptions/errors
-	catch (Exception $e) {
-		
+	catch (PDOException $e) {
+		return false;
 	}
-	// Return false if it didn't succeed
-	return false;
 }
 
 function db_insert($sql, $data)
@@ -39,13 +40,14 @@ function db_insert($sql, $data)
 			// Return the number of rows affected
 			return $stmt->rowCount();
 		}
+		else {
+			return false;
+		}
 	}
 	// Catch any exceptions/errors
-	catch (Exception $e) {
-		
+	catch (PDOException $e) {
+		return false;
 	}
-	// Return false if it didn't succeed
-	return false;
 }
 
 function db_update($sql, $data)

@@ -377,7 +377,7 @@ class DrinkAPI extends API
 		$params["offset"] = $offset;
 		// Query the database
 		$query = db_select($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/users/drops)", $query);
 		}
 		else {
@@ -401,7 +401,7 @@ class DrinkAPI extends API
 		$params["uid"] = $this->uid;
 		// Query the database
 		$query = db_select($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/users/apikey)", $query[0]);
 		}
 		else {
@@ -437,7 +437,7 @@ class DrinkAPI extends API
 		$params["apiKey"] = $apiKey;
 		// Query the database
 		$query = db_insert($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			$tmp = array();
 			$tmp["api_key"] = $apiKey;
 			$tmp["date"] = date("Y-m-d H:i:s");
@@ -472,7 +472,7 @@ class DrinkAPI extends API
 		$params["uid"] = $this->uid;
 		// Query the database
 		$query = db_delete($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/users/apikey)", true);
 		}
 		else {
@@ -544,7 +544,7 @@ class DrinkAPI extends API
 		}
 		// Query the database
 		$query = db_select($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			$tmp = array();
 			foreach($query as $q) {
 				$tmp[$q["machine_id"]][] = $q;
@@ -574,7 +574,7 @@ class DrinkAPI extends API
 		}
 		// Query the database
 		$query = db_select($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/machines/info)", $query);
 		}
 		else {
@@ -635,7 +635,7 @@ class DrinkAPI extends API
 		$sql .= $append . " WHERE slot_num = :slotNum AND machine_id = :machineId";
 		// Query the database
 		$query = db_update($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/machines/slot)", true);
 		}
 		else {
@@ -706,7 +706,7 @@ class DrinkAPI extends API
 		$sql = "SELECT item_id, item_name, item_price, state FROM drink_items WHERE state = 'active'";
 		// Query the database
 		$query = db_select($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/items/list)", $query);
 		} 
 		else {
@@ -746,7 +746,7 @@ class DrinkAPI extends API
 		$sql = "INSERT INTO drink_items (item_name, item_price) VALUES (:name, :price)";
 		// Query the database
 		$query = db_insert($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			// Log price changes to the database
 			$item_id = db_last_insert_id();
 			$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
@@ -814,7 +814,7 @@ class DrinkAPI extends API
 		$sql .= $append . " WHERE item_id = :itemId";
 		// Query the database
 		$query = db_update($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			// Log price changes to the database
 			if ($price != false) {
 				$sql = "INSERT INTO drink_item_price_history (item_id, item_price) VALUES (:itemId, :price)";
@@ -850,7 +850,7 @@ class DrinkAPI extends API
 		$sql = "DELETE FROM drink_items WHERE item_id = :itemId";
 		// Query the database
 		$query = db_delete($sql, $params);
-		if ($query) {
+		if ($query !== false) {
 			return $this->_result(true, "Success (/items/delete)", true);
 		}
 		else {
@@ -914,7 +914,7 @@ class DrinkAPI extends API
 						ORDER BY t.time DESC LIMIT :limit OFFSET :offset";
 		// Query the database
 		$query = db_select($sql, $params);
-		if ($query) {
+		if ($query != false) {
 			$tmp = array();
 			for ($i = count($query) - 1; $i >= 0; $i--) {
 				$tmp[] = array($query[$i]["time"], (float) $query[$i]["temp"]);
