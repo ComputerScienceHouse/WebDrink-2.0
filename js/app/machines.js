@@ -156,7 +156,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 	$scope.selectDrink = function (slot) {
 		$scope.current_slot = slot;
 		$scope.delay = 0;
-		$log.log("Authed: " + $scope.authed);
 	}; 
 	// Drop a drink
 	$scope.dropDrink = function() {
@@ -168,13 +167,12 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
 		}
 		else {
+			$scope.delay = (typeof $scope.delay === "undefined" || $scope.delay == null) ? 3 : Math.floor($scope.delay);
 			$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-			var i = $timeout(function () {
-				if ($scope.delay == 0) {
-					$timeout.cancel(i);
+			$scope.dropTimeout = $timeout(function () {
+				if ($scope.delay <= 0) {
+					$timeout.cancel($scope.dropTimeout);
 					$scope.dropDrink();
-					//jQuery("#dropModal").modal('hide');
-					//$scope.dropping_message = "Drink dropped!";
 				}
 				else {
 					$scope.delay -= 1;
