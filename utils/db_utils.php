@@ -9,11 +9,18 @@ require_once("../../../webdrink_info/dbInfo.inc");
 function db_select($sql, $data)
 {
 	global $pdo;
+	$stmt = null;
 	// Make the query
 	try {
 		// Prepare the SQL statement
 		$stmt = $pdo->prepare($sql);
-		// Execute the statement
+	}
+	// Catch any exceptions/errors
+	catch (Exception $e) {
+		return false;
+	}
+	// Execute the statement
+	try {
 		if ($stmt->execute($data)) {
 			// Return the selected data as an assoc array
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -22,8 +29,7 @@ function db_select($sql, $data)
 			return false;
 		}
 	}
-	// Catch any exceptions/errors
-	catch (PDOException $e) {
+	catch (Exception $e) {
 		return false;
 	}
 }
@@ -31,11 +37,18 @@ function db_select($sql, $data)
 function db_insert($sql, $data)
 {
 	global $pdo;
+	$stmt = null;
 	// Make the query
 	try {
 		// Prepare the SQL statement
 		$stmt = $pdo->prepare($sql);
-		// Execute the statement
+	}
+	// Catch any exceptions/errors
+	catch (Exception $e) {
+		return false;
+	}
+	// Execute the statement
+	try {
 		if ($stmt->execute($data)) {
 			// Return the number of rows affected
 			return $stmt->rowCount();
@@ -44,8 +57,7 @@ function db_insert($sql, $data)
 			return false;
 		}
 	}
-	// Catch any exceptions/errors
-	catch (PDOException $e) {
+	catch (Exception $e) {
 		return false;
 	}
 }
