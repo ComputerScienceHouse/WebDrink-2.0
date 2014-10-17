@@ -39,7 +39,13 @@ app.directive("machine", function() {
 // Wrapper for Socket.IO functionality in Angular 
 // http://www.html5rocks.com/en/tutorials/frameworks/angular-websockets/
 app.factory('socket', function ($rootScope) {
-  var socket = io.connect("https://drink.csh.rit.edu:8080", {secure: true});
+  var socket = io.connect(
+    "https://webdrink.csh.rit.edu:443", 
+    {
+      secure: true,
+      transports: ['xhr-polling'] //, 'websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'jsonp-polling']
+    }
+  );
   return {
     on: function (eventName, callback) {
       socket.on(eventName, function () {  
