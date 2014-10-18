@@ -9,11 +9,11 @@ api_key | Your API key
 
 To make an API call, format your request like this:
 
-`https://drink.csh.rit.edu/api/<endpoint>/<method/`
+~~`https://webdrink.csh.rit.edu/api/<endpoint>/<method/`~~ (Not currently supported, sorry)
 
 OR
 
-`https://drink.csh.rit.edu/api/index.php?request=<endpoint>/<method>`
+`https://webdrink.csh.rit.edu/api/index.php?request=<endpoint>/<method>`
 
 ***
 
