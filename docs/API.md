@@ -1,4 +1,7 @@
-WebDrink is powered by a RESTful JSON API. Authentication is provided either via Webauth (for WebDrink and other web clients running on CSH systems) or an API key included in the request (for other drink clients, such as mobile apps). API keys can be viewed/generated from WebDrink. To authenticate with an API key, add the following parameter to your request:  
+WebDrink API
+------------
+
+WebDrink is powered by a RESTful JSON API. All operations you can perform with WebDrink can be done through the API. The one exception is dropping drinks, which is accomplished by communicating with the drink server directly (via websockets) in WebDrink. Authentication is provided either via Webauth (for WebDrink and other web clients running on CSH systems) or an API key included in the request (for other drink clients, such as mobile apps). API keys can be viewed/generated from WebDrink. To authenticate with an API key, add the following parameter to your request:  
 
 Attribute | Value
 ---|---
@@ -17,33 +20,33 @@ OR
 Here is a quick rundown of the available API methods: 
  
 #### Test
-* [GET /test](#wiki-get-test) - Test the API 
-* [GET /test/webauth](#wiki-get-testwebauth) - Test the API with Webauth authentication (Webauth only)
-* [GET /test/api/:api_key](#wiki-get-testapiapi_key) - Test the API with API key authentication (API key only)
+* [GET /test](#get-test) - Test the API 
+* [GET /test/webauth](#get-testwebauth) - Test the API with Webauth authentication (Webauth only)
+* [GET /test/api/:api_key](#get-testapiapi_key) - Test the API with API key authentication (API key only)
 
 #### Users
-* [GET /users/credits/:uid](#wiki-get-userscreditsuid) - Get a user's drink credit balance (drink admin only if :uid != your uid)
-* [POST /users/credits/:uid/:value/:type](#wiki-post-userscreditsuidvaluetype) - Update a user's drink credit balance (drink admin only)
-* [GET /users/search/:uid](#wiki-get-userssearchuid) - Search for usernames that match the search :uid
-* [GET /users/info/:api_key](#wiki-get-usersinfoapi_key) - Get a user's info (uid, username, common name, credit balance, and ibutton value) (API key only)
-* [GET /users/drops/:limit/:offset/:uid](#wiki-get-usersdropslimitoffsetuid) - Get the drop logs for a single or all users
-* [GET /users/apikey](#wiki-get-usersapikey) - Get your API key (Webauth Only)
-* [POST /users/apikey](#wiki-post-usersapikey) - Generate a new API key for yourself (Webauth Only)
-* [DELETE /users/apikey](#wiki-delete-usersapikey) - Delete your current API key (Webauth Only)
+* [GET /users/credits/:uid](#get-userscreditsuid) - Get a user's drink credit balance (drink admin only if :uid != your uid)
+* [POST /users/credits/:uid/:value/:type](#post-userscreditsuidvaluetype) - Update a user's drink credit balance (drink admin only)
+* [GET /users/search/:uid](#get-userssearchuid) - Search for usernames that match the search :uid
+* [GET /users/info/:api_key](#get-usersinfoapi_key) - Get a user's info (uid, username, common name, credit balance, and ibutton value) (API key only)
+* [GET /users/drops/:limit/:offset/:uid](#get-usersdropslimitoffsetuid) - Get the drop logs for a single or all users
+* [GET /users/apikey](#get-usersapikey) - Get your API key (Webauth Only)
+* [POST /users/apikey](#post-usersapikey) - Generate a new API key for yourself (Webauth Only)
+* [DELETE /users/apikey](#delete-usersapikey) - Delete your current API key (Webauth Only)
 
 #### Machines
-* [GET /machines/stock/:machine_id](#wiki-get-machinesstockmachine_id) - Get the stock of all or a single drink machine
-* [GET /machines/info/:machine_id](#wiki-get-machinesinfomachine_id) - Get the info for one (or all) drink machine
-* [POST /machines/slot/:slot_num/:machine_id/:item_id/:available/:status](#wiki-post-machinesslotslot_nummachine_iditem_idavailablestatus) - Update a slot in a drink machine (drink admin only)    
+* [GET /machines/stock/:machine_id](#get-machinesstockmachine_id) - Get the stock of all or a single drink machine
+* [GET /machines/info/:machine_id](#get-machinesinfomachine_id) - Get the info for one (or all) drink machine
+* [POST /machines/slot/:slot_num/:machine_id/:item_id/:available/:status](#post-machinesslotslot_nummachine_iditem_idavailablestatus) - Update a slot in a drink machine (drink admin only)    
 
 #### Items
-* [GET /items/list](#wiki-get-itemslist) - Get a list of all drink items
-* [POST /items/add/:name/:price](#wiki-post-itemsaddnameprice) - Add a new drink item (drink admin only)
-* [POST /items/update/:item_id/:name/:price/:status](#wiki-post-itemsupdateitem_idnamepricestatus) - Update an existing drink item (drink admin only)
-* [POST /items/delete/:item_id](#wiki-post-itemsdeleteitem_id) - Delete a drink item (drink admin only)
+* [GET /items/list](#get-itemslist) - Get a list of all drink items
+* [POST /items/add/:name/:price](#post-itemsaddnameprice) - Add a new drink item (drink admin only)
+* [POST /items/update/:item_id/:name/:price/:status](#post-itemsupdateitem_idnamepricestatus) - Update an existing drink item (drink admin only)
+* [POST /items/delete/:item_id](#post-itemsdeleteitem_id) - Delete a drink item (drink admin only)
 
 #### Temps
-* [GET /temps/machines/:machine_id/:limit/:offset](#wiki-get-tempsmachinesmachine_idlimitoffset) - Get temperature data for a single drink machine
+* [GET /temps/machines/:machine_id/:limit/:offset](#get-tempsmachinesmachine_idlimitoffset) - Get temperature data for a single drink machine
 
 ***
 
