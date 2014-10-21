@@ -28,7 +28,7 @@ Here is a quick rundown of the available API methods:
 * [GET /users/credits/:uid](#get-userscreditsuid) - Get a user's drink credit balance (drink admin only if :uid != your uid)
 * [POST /users/credits/:uid/:value/:type](#post-userscreditsuidvaluetype) - Update a user's drink credit balance (drink admin only)
 * [GET /users/search/:uid](#get-userssearchuid) - Search for usernames that match the search :uid
-* [GET /users/info/:api_key](#get-usersinfoapi_key) - Get a user's info (uid, username, common name, credit balance, and ibutton value) (API key only)
+* [GET /users/info/:uid/:ibutton](#get-usersinfoapi_key) - Get a user's info (uid, username, common name, credit balance, and ibutton value)
 * [GET /users/drops/:limit/:offset/:uid](#get-usersdropslimitoffsetuid) - Get the drop logs for a single or all users
 * [GET /users/apikey](#get-usersapikey) - Get your API key (Webauth Only)
 * [POST /users/apikey](#post-usersapikey) - Generate a new API key for yourself (Webauth Only)
@@ -179,15 +179,16 @@ uid | (Partial) username of the user
 }
 ```
 
-### GET /users/info/:api_key
+### GET /users/info/
 
-**Description:** Get a user's info, including uuid, username, credit balance, and iButton
+**Description:** Get your own user info, including uid, username, credit balance, and ibutton. Drink admins can look up other user's info by uid or ibutton.
 
 **Parameters:** 
 
 Attribute | Value
 ---|---
-api_key | The user's API key
+uid | Username of the user to look up (optional, admin only)
+ibutton | ibutton of the user to look up (optional, admin only)
 
 **Sample Response:**
 ```json
