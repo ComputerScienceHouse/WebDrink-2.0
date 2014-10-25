@@ -960,6 +960,36 @@ class DrinkAPI extends API
 		}
 	}
 
+
+	/*
+	*	Drops Endpoint
+	*
+	*	IT'S HAPPENING
+	*/
+	protected function drops() {
+		$result = array();
+		switch ($this->verb) {
+			case "drop":
+				// POST /drops/drop/:ibutton/:slot_num/:machine_id
+				if ($this->method == "POST") {
+					$result = $this->_dropDrink();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/drops/drop)", false);
+				}
+				break;
+			default:
+				$result = $this->_result(false, "Invalid API method (/drops)", false);
+				break;
+		}
+		return $result;
+	}
+
+	// POST /drops/drop/:ibutton/:slot_num/:machine_id
+	private function _dropDrink() {
+		return $this->_result(true, "LOL", true);
+	}
+
 }
 
 ?>
