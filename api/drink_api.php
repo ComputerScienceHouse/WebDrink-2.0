@@ -987,6 +987,40 @@ class DrinkAPI extends API
 
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id
 	private function _dropDrink() {
+		$machines = array(
+			1 => "ld",
+			2 => "d",
+			3 => "s"
+		);
+		// Check for ibutton
+		$ibutton = false;
+		if (array_key_exists("ibutton", $this->request)) {
+			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
+		}
+		// Check for slot_num
+		$slot_num = false;
+		if (array_key_exists("slot_num", $this->request)) {
+			$slot_num = $this->_sanitizeInt($this->request["slot_num"]);
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'slot_num' (/drops/drop)", false);
+		}
+		// Check for machine_id and convert to machine_alias
+		$machine_alias = false;
+		if (array_key_exists("machine_id", $this->request)) {
+			$machine_id = $this->_sanitizeInt($this->request["machine_id"]);
+			$machine_alias = $machines[$machine_id];
+			if (!$machine_alias) {
+				return $this->_result(false, "Invalid 'machine_id' (/drops/drop)", false);
+			}
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
+		}
+		// Return result
 		return $this->_result(true, "LOL", true);
 	}
 
