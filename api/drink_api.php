@@ -334,11 +334,11 @@ class DrinkAPI extends API
 		else {
 			// Check for a uid to lookup
 			if (array_key_exists("uid", $this->request)) {
-				$uid = $this->request["uid"];
+				$uid = $this->_sanitizeString($this->request["uid"]);
 			}
 			// Check for an ibutton to lookup
 			else if (array_key_exists("ibutton", $this->request)) {
-				$ibutton = $this->request["ibutton"];
+				$ibutton = $this->_sanitizeString($this->request["ibutton"]);
 			}
 			// If nothing provided, look up your own info
 			else if ($this->uid) {
