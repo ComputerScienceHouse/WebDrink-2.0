@@ -37,7 +37,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<title>WebDrink</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- Styles -->
-	<link href="css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
+	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
 	<link href="css/main.css" rel="stylesheet" media="screen" type="text/css"/>
 	<style type="text/css">
 		body {
@@ -46,12 +46,10 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 		}
 	</style>
 	<!-- Scripts -->
-	<!--<script src="js/angular.min.js"></script>
-	<script src="js/angular-route.min.js"></script>-->
-	<script src="https://code.angularjs.org/1.3.0/angular.min.js"></script>
-	<script src="https://code.angularjs.org/1.3.0/angular-route.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0/angular.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0/angular-route.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 	<script src="js/socket.io-client.js"></script>
 	<script type="text/javascript">
 		// Get the current user's info
