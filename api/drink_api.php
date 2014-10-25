@@ -35,6 +35,9 @@ class DrinkAPI extends API
 	private $uid = false;		// My uid (username)
 	private $webauth = false;	// Am I authenticated with Webauth?
 
+	//private $DRINK_SERVER = "https://webdrink.csh.rit.edu:443";
+	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080";
+
 	// Constructor
 	public function __construct($request) {
 		parent::__construct($request);
@@ -1040,11 +1043,10 @@ class DrinkAPI extends API
 			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
 		}
 		// Connect to the drink server
-		$client = new Client(new Version0X('http://localhost:1337'));
+		$client = new Client(new Version0X($this->DRINK_SERVER));
 		$client->initialize();
 		$client->emit('action', ['foo' => 'bar']);
 		$client->close();
-
 		// Return result
 		return $this->_result(true, "LOL", true);
 	}
