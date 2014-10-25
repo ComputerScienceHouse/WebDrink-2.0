@@ -1039,6 +1039,12 @@ class DrinkAPI extends API
 		else {
 			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
 		}
+		// Connect to the drink server
+		$client = new Client(new Version0X('http://localhost:1337'));
+		$client->initialize();
+		$client->emit('action', ['foo' => 'bar']);
+		$client->close();
+
 		// Return result
 		return $this->_result(true, "LOL", true);
 	}
