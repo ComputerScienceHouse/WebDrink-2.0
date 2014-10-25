@@ -9,6 +9,23 @@ require_once('./abstract_api.php');
 // Include configuration info
 require_once("../config.php");
 
+// Include elephant.io source files
+use ElephantIO\Client, ElephantIO\Engine\SocketIO\Version0X;
+require_once('../lib/elephant-io-src/AbstractPayload.php');
+require_once('../lib/elephant-io-src/Client.php');
+require_once('../lib/elephant-io-src/EngineInterface.php');
+require_once('../lib/elephant-io-src/Engine/AbstractSocketIO.php');
+require_once('../lib/elephant-io-src/Engine/SocketIO/Session.php');
+require_once('../lib/elephant-io-src/Engine/SocketIO/Version0X.php');
+//require_once('../lib/elephant-io-src/Engine/SocketIO/Version1X.php');
+require_once('../lib/elephant-io-src/Exception/MalformedUrlException.php');
+require_once('../lib/elephant-io-src/Exception/ServerConnectionFailureException.php');
+require_once('../lib/elephant-io-src/Exception/SocketException.php');
+require_once('../lib/elephant-io-src/Exception/UnsupportedActionException.php');
+require_once('../lib/elephant-io-src/Exception/UnsupportedTransportException.php');
+require_once('../lib/elephant-io-src/Payload/Decoder.php');
+require_once('../lib/elephant-io-src/Payload/Encoder.php');
+
 /*
 *	Concrete API implementation for WebDrink
 */
