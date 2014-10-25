@@ -988,9 +988,9 @@ class DrinkAPI extends API
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id
 	private function _dropDrink() {
 		$machines = array(
-			1 => "ld",
-			2 => "d",
-			3 => "s"
+			"1" => "ld",
+			"2" => "d",
+			"3" => "s"
 		);
 		// Check for ibutton
 		$ibutton = false;
@@ -1011,9 +1011,11 @@ class DrinkAPI extends API
 		// Check for machine_id and convert to machine_alias
 		$machine_alias = false;
 		if (array_key_exists("machine_id", $this->request)) {
-			$machine_id = $this->_sanitizeInt($this->request["machine_id"]);
-			$machine_alias = $machines[$machine_id];
-			if (!$machine_alias) {
+			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+			if (array_key_exists($machine_id, $machines)) {
+				$machine_alias = $machines[$machine_id];
+			}
+			else {
 				return $this->_result(false, "Invalid 'machine_id' (/drops/drop)", false);
 			}
 		}
