@@ -60,7 +60,7 @@ app.factory("SettingsService", function($http, $window, $log) {
 });
 
 // Controller for the API page
-function SettingsCtrl($scope, $window, $log, SettingsService) {
+app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', function ($scope, $window, $log, SettingsService) {
 	$scope.api_key = false;	// User's API key
 	$scope.date = "";		// Date the API key was generated
 	$scope.api_message = "Looks like you need an API key!";
@@ -225,4 +225,6 @@ function SettingsCtrl($scope, $window, $log, SettingsService) {
 	$scope.retrieveKey();	
 	// Get a user's Thunderdome settings
 	// $scope.getThunderdome();
-}
+}]);
+
+

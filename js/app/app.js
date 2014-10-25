@@ -69,7 +69,7 @@ app.factory('socket', function ($rootScope) {
 });
 
 // Root controller - for shared data/services
-function RootCtrl($scope, $log, $window, $location, socket) {
+app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', function ($scope, $log, $window, $location, socket) {
 	// Current user data
 	$scope.current_user = $window.current_user;
 	// Current page
@@ -136,4 +136,7 @@ function RootCtrl($scope, $log, $window, $location, socket) {
 		return true;
 	};
 	
-}
+}]);
+
+
+

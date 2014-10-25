@@ -39,7 +39,7 @@ app.factory("ItemService", function($http, $window) {
 });
 
 // Controller for the Manage Items page
-function ItemCtrl($scope, $log, ItemService, MachineService) {
+app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', function ($scope, $log, ItemService, MachineService) {
 	$scope.items = new Array();		// All drink items
 	$scope.currentItem = {};		// Current item being edited/deleted
 	$scope.newItem = {				// New item being added
@@ -194,4 +194,6 @@ function ItemCtrl($scope, $log, ItemService, MachineService) {
 			}
 		);
 	}
-}
+}]);
+
+

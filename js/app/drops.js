@@ -22,7 +22,7 @@ app.factory("DropService", function($http, $window, $log) {
 });
 
 // Controller for the drops page
-function DropCtrl($scope, $window, $log, DropService) {
+app.controller("DropCtrl", ['$scope', '$window', '$log', 'DropService', function ($scope, $window, $log, DropService) {
 	// Initialize scope variables
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
@@ -56,4 +56,6 @@ function DropCtrl($scope, $window, $log, DropService) {
 
 	// Get the first page of a user's drops
 	$scope.getDrops();
-}
+}]);
+
+

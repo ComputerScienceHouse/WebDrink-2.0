@@ -67,7 +67,7 @@ app.factory("MachineService", function($http, $window, $log) {
 });
 
 // Controller for the machines page
-function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
+app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'MachineService', 'socket', function ($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
@@ -419,4 +419,6 @@ function MachineCtrl($scope, $log, $window, $timeout, MachineService, socket) {
 
 	// Establish a websocket connection
 	$scope.wsConnect();
-}
+}]);
+
+

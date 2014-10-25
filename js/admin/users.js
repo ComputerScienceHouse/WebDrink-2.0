@@ -39,7 +39,7 @@ app.factory("UserService", function($http, $window, $log) {
 });
 
 // Controller for the Manage Users page
-function UserCtrl($scope, $log, UserService, DropService) {
+app.controller("UserCtrl", ['$scope', '$log', 'UserService', 'DropService', function ($scope, $log, UserService, DropService) {
 	$scope.searchTerm = "";				// Username being searched for
 	$scope.searchResults = {};			// All matching usernames from a search
 	$scope.activeUser = {				// Current user being managed
@@ -203,4 +203,6 @@ function UserCtrl($scope, $log, UserService, DropService) {
 			}
 		);
 	}
-}
+}]);
+
+
