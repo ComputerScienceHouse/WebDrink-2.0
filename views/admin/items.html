@@ -143,9 +143,12 @@
 				<div class="panel-heading">
 					<h3 class="panel-title">Edit Items</h3>
 				</div>
+				<div class="panel-body">
+					<input type="text" class="form-control" ng-model="item_filter" placeholder="Filter by name..."/>
+				</div>
 				<table class="table table-striped">
 					<tr><th>Item</th><th>Price</th><th>Actions</th></tr>
-					<tr ng-repeat="item in items | orderBy:'item_name'">
+					<tr ng-repeat="item in items | orderBy:'item_name' | filter:item_filter">
 						<td ng-class="(current_user.admin) ? 'item-admin' : 'item'">{{ item.item_name }}</td>
 						<td ng-class="(current_user.admin) ? 'price-admin' : 'price'">{{ item.item_price }}</td>
 						<td ng-class="(current_user.admin) ? 'actions-admin' : 'actions'">

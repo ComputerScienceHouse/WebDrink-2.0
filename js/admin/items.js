@@ -52,6 +52,8 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 	$scope.alert = new $scope.Alert();	// Alert for success/failure of adding an item
 	$scope.message = "";			// Message to display after edit/delete
 
+	$scope.item_filter = "";
+
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
 		function (response) {
