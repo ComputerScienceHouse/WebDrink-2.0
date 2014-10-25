@@ -53,6 +53,15 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 	$scope.message = "";			// Message to display after edit/delete
 
 	$scope.item_filter = "";
+	$scope.reverse_sort = false;
+
+	$scope.setReverseSort = function (sort) {
+		$log.log(sort);
+		if (sort == "yes")
+			$scope.reverse_sort = true;
+		else
+			$scope.reverse_sort = false;
+	}
 
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
