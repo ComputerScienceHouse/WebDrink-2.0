@@ -15,7 +15,7 @@ app.factory("LogsService", function($http, $window) {
 });
 
 // Controller for the Drop Logs page
-function LogsCtrl($scope, $log, LogsService, DropService) {
+app.controller("LogsCtrl", ['$scope', '$log', 'LogsService', 'DropService', function ($scope, $log, LogsService, DropService) {
 	// Initialize scope variables
 	$scope.logs = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
@@ -50,4 +50,6 @@ function LogsCtrl($scope, $log, LogsService, DropService) {
 
 	// Get the first page of a user's drops
 	$scope.getDrops();
-}
+}]);
+
+

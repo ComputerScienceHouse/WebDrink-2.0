@@ -20,7 +20,7 @@ app.factory("ThunderdomeService", function($http, $window, $log) {
 	};
 });
 
-function ThunderdomeCtrl($scope, $log, MachineService, ThunderdomeService) {
+app.controller("ThunderdomeCtrl", ['$scope', '$log', 'MachineService', 'ThunderdomeService', function ($scope, $log, MachineService, ThunderdomeService) {
 	$scope.stock = {};			// Stock of Thunderdome machine (Little Drink)
 	$scope.active = false;		// Is Thunderdome currently happening?
 	$scope.tax = 0; 			// How many credits extra a Thunderdome drop costs (to cover expenses)
@@ -80,4 +80,6 @@ function ThunderdomeCtrl($scope, $log, MachineService, ThunderdomeService) {
 		$scope.dropping_message = "Dropping drink...";
 		$scope.wsDrop(slot.slot_num, $scope.machines[slot.machine_id].alias, true);
 	}
-}
+}]);
+
+

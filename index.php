@@ -46,8 +46,10 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 		}
 	</style>
 	<!-- Scripts -->
-	<script src="js/angular.min.js"></script>
-	<script src="js/angular-route.min.js"></script>
+	<!--<script src="js/angular.min.js"></script>
+	<script src="js/angular-route.min.js"></script>-->
+	<script src="https://code.angularjs.org/1.3.0/angular.min.js"></script>
+	<script src="https://code.angularjs.org/1.3.0/angular-route.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/socket.io-client.js"></script>

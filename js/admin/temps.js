@@ -21,7 +21,7 @@ app.factory("TempService", function($http, $window) {
 });
 
 // Controller for the Machine Temperatures page
-function TempCtrl($scope, $log, TempService) {
+app.controller("TempCtrl", ['$scope', '$log', 'TempService', function ($scope, $log, TempService) {
 
 	// Get a machine's tempereature data
 	$scope.getMachineTemps = function(machineId) {
@@ -72,4 +72,6 @@ function TempCtrl($scope, $log, TempService) {
 	for (var machine in $scope.machines) {
 		$scope.getMachineTemps(machine);
 	}
-}
+}]);
+
+
