@@ -135,8 +135,9 @@ app.controller("UserCtrl", ['$scope', '$log', 'UserService', 'DropService', func
 	}
 
 	$scope.loadUserEnter = function(e) {
-		if (e.which==13)
-    		$scope.loadUser();
+		if (e.which === 13) {
+    	$scope.loadUser();
+    }
 	}
 
 	// Set the active user's data
