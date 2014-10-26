@@ -63,7 +63,7 @@ app.factory("SettingsService", function($http, $window, $log) {
 app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', function ($scope, $window, $log, SettingsService) {
 	$scope.api_key = false;	// User's API key
 	$scope.date = "";		// Date the API key was generated
-	$scope.api_message = "Looks like you need an API key!";
+	$scope.api_message = "Looking up API key...";
 	$scope.twitter = "";
 	$scope.quiet_hours = [];
 	$scope.enabled = true;
@@ -84,16 +84,28 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 	  hwaccel: false, // Whether to use hardware acceleration
 	  className: 'spinner', // The CSS class to assign to the spinner
 	  zIndex: 2e9, // The z-index (defaults to 2000000000)
-	  top: '50%', // Top position relative to parent
+	  top: '44%', // Top position relative to parent
 	  left: '50%' // Left position relative to parent
 	};
 	$scope.target = $window.document.getElementById("spinner");
-	$scope.spinner = false;
+	
+	$scope.startSpinner = function() {
+		$scope.target.setAttribute("style", "height: 150px");
+		$scope.spinner = new Spinner($scope.spinner_opts).spin($scope.target);
+	};
+
+	$scope.stopSpinner = function() {
+		$scope.target.setAttribute("style", "height: 0px");
+		$scope.spinner.stop();
+	};
 
 	// Get the user's API key
 	$scope.retrieveKey = function() {
+		$scope.startSpinner();
 		SettingsService.retrieveKey(
 			function (response) {
+				$scope.stopSpinner();
+				$log.log(response);
 				if (response.status) {
 					$scope.api_key = response.data.api_key;
 					$scope.date = response.data.date;
@@ -101,7 +113,6 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 				else {
 					$scope.api_key = false;
 					$scope.api_message = "Looks like you need an API key!";
-					$log.log(response.message);
 				}
 			},
 			function (error) {
@@ -114,13 +125,13 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 	$scope.generateKey = function() {
 		$scope.api_key = false;
 		$scope.api_message = "Generating your API key...";
-		$scope.spinner = new Spinner($scope.spinner_opts).spin($scope.target);
+		$scope.startSpinner();
 		SettingsService.generateKey(
 			function (response) {
 				if (response.status) {
 					$scope.api_key = response.data.api_key;
 					$scope.date = response.data.date;
-					$scope.spinner.stop();
+					$scope.stopSpinner();
 				}
 				else {
 					$scope.api_key = false;
