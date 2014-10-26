@@ -113,7 +113,8 @@
 	<!-- Machines -->
 	<div class="row">
 		<div class="col-sm-12 col-md-4" ng-repeat="machine in stock">
-			<div class="panel panel-default">
+			<machine data="machine" user="current_user"></machine>
+			<!--<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title">{{ machine[0].display_name }}</h3>
 				</div>
@@ -130,7 +131,7 @@
 						</td>
 					</tr>
 				</table>
-			</div>
+			</div>-->
 		</div>
 	</div>
 </div>

@@ -35,7 +35,8 @@ app.directive("machine", function() {
 		restrict: "E",
 		templateUrl: "templates/machine_table.html",
 		scope: {
-			machine: "=data"
+			machine: "=data",
+      user: "=user"
 		}
 	};
 });
