@@ -456,7 +456,8 @@ class DrinkAPI extends API
 		// Query the database
 		$query = db_select($sql, $params);
 		if ($query !== false) {
-			return $this->_result(true, "Success (/users/apikey)", $query[0]);
+			$data = (!$query[0] ? false : $query[0]);
+			return $this->_result(true, "Success (/users/apikey)", $data);
 		}
 		else {
 			return $this->_result(false, "Failed to query database (/users/apikey)", false);
