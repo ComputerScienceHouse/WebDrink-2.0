@@ -198,7 +198,8 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 
 	// Data for the websocket connection alert
 	$scope.websocket_alert = new $scope.Alert({
-		message: "Warning: Websocket not connected!",
+		title: "Warning:",
+		message: "Websocket not connected!",
 		show: true,
 		closeable: false
 	});
