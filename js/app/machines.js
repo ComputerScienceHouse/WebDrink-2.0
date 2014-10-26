@@ -78,6 +78,14 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 	$scope.dropping_message = "";
 	$scope.message = "";		// Message to display after edit
 
+	$scope.message_alert = new $scope.Alert({
+		type: "alert-info",
+		title: "Welcome to WebDrink!",
+		message: "",
+		show: true,
+		closeable: false
+	});
+
 	// Get the initial stock
 	MachineService.getStockAll(
 		function (response) { 

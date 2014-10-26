@@ -103,6 +103,7 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 		this.closeable = (config.hasOwnProperty("closeable")) ? config.closeable : true;
 		this.type = (config.hasOwnProperty("type")) ? config.type : "alert-warning";
 		this.message = (config.hasOwnProperty("message")) ? config.message : "default";
+    this.title = (config.hasOwnProperty("title")) ? config.title : "";
 	};
 	$scope.Alert.prototype = {
 		toggle: function() {
