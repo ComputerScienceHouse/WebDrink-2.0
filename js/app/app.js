@@ -73,7 +73,7 @@ app.factory('socket', function ($rootScope) {
 });
 
 // Root controller - for shared data/services
-app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', '$sce', 'socket', function ($scope, $log, $window, $location, $sce, socket) {
+app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', function ($scope, $log, $window, $location, socket) {
 	// Current user data
 	$scope.current_user = $window.current_user;
 	// Current page
@@ -107,7 +107,7 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', '$sce', 's
 		this.closeable = (config.hasOwnProperty("closeable")) ? config.closeable : true;
 		this.type = (config.hasOwnProperty("type")) ? config.type : "alert-warning";
 		this.message = (config.hasOwnProperty("message")) ? config.message : "default";
-    this.title = (config.hasOwnProperty("title")) ? $sce.trustAsHtml(config.title) : $sce.trustAsHtml("");
+    this.title = (config.hasOwnProperty("title")) ? config.title : "";
 	};
 	$scope.Alert.prototype = {
 		toggle: function() {
