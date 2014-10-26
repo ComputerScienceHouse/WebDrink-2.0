@@ -150,7 +150,7 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
     this.id = (config.hasOwnProperty("id")) ? config.id : "myModal";
     this.title = (config.hasOwnProperty("title")) ? config.title : "My Modal";
     this.cancel_btn = (config.hasOwnProperty("cancel_btn")) ? new $scope.ModalBtn(config.cancel_btn) : new $scope.ModalBtn();
-    this.submit_btn = (config.hasOwnProperty("submit_btn")) ? new $scope.ModalBtn(config.submit_btn) : new $scope.ModalBtn();
+    this.submit_btn = (config.hasOwnProperty("submit_btn")) ? new $scope.ModalBtn(config.submit_btn) : false;
   };
 
   $scope.ModalBtn = function(config) {

@@ -102,6 +102,16 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
     }
   });
 
+	// Modal for the drop countdown
+  $scope.drop_modal = new $scope.Modal({
+  	id: "dropModal",
+  	title: "Dropping drink...",
+  	cancel_btn: {
+  		type: "default",
+  		text: "Cancel"
+  	}
+  })
+
 	// Get the initial stock
 	MachineService.getStockAll(
 		function (response) { 

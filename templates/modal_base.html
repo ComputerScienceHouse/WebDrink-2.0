@@ -8,7 +8,7 @@
       <div class="modal-body" ng-transclude></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-{{ modal.cancel_btn.type }}" data-dismiss="modal" ng-click="close()">{{ modal.cancel_btn.text }}</button>
-        <button type="button" class="btn btn-{{ modal.submit_btn.type }}" data-dismiss="modal" ng-click="submit()">{{ modal.submit_btn.text }}</button>
+        <button ng-hide="!modal.submit_btn" type="button" class="btn btn-{{ modal.submit_btn.type }}" data-dismiss="modal" ng-click="submit()">{{ modal.submit_btn.text }}</button>
       </div>
     </div>
   </div>
