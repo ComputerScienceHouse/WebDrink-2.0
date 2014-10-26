@@ -1007,6 +1007,8 @@ class DrinkAPI extends API
 
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id
 	private function _dropDrink() {
+		return $this->_result(false, "Method not yet fully implemented (/drops/drop)", false);
+		// Map of machine_id's to machine aliases
 		$machines = array(
 			"1" => "ld",
 			"2" => "d",
