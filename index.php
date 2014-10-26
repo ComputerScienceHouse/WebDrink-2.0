@@ -111,6 +111,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 			</div>
 		</div>
 	</header>
+	<modal data="test_modal">LOLOLOL</modal>
 	<main class="container" ng-view></main>
 </body>
 </html>

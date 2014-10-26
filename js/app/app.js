@@ -22,7 +22,7 @@ app.directive("drops", function() {
 		scope: {
 			drops: "=data"
 		}
-	}
+	};
 });
 
 // Machine directive - table for displaying a drink machine's stock
@@ -37,6 +37,18 @@ app.directive("machine", function() {
       edit: "="
 		}
 	};
+});
+
+// Modal directive - Outline of a basic Bootstrap modal dialog
+app.directive("modal", function() {
+  return {
+    restrict: "E",
+    templateUrl: "templates/modal_base.html",
+    transclude: true,
+    scope: {
+       modal: "=data"
+    }
+  }
 });
 
 // Wrapper for Socket.IO functionality in Angular 
@@ -98,6 +110,11 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 			"alias":"s"
 		}
 	};
+
+  $scope.test_modal = {
+    id: "testModal",
+    title: "Test Title"
+  };
 
 	// Default data for any alert directives
 	$scope.Alert = function(config) {
