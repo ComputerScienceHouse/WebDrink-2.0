@@ -9,6 +9,23 @@ require_once('./abstract_api.php');
 // Include configuration info
 require_once("../config.php");
 
+// Include elephant.io source files
+use ElephantIO\Client, ElephantIO\Engine\SocketIO\Version0X;
+require_once('../lib/elephant-io-src/AbstractPayload.php');
+require_once('../lib/elephant-io-src/Client.php');
+require_once('../lib/elephant-io-src/EngineInterface.php');
+require_once('../lib/elephant-io-src/Engine/AbstractSocketIO.php');
+require_once('../lib/elephant-io-src/Engine/SocketIO/Session.php');
+require_once('../lib/elephant-io-src/Engine/SocketIO/Version0X.php');
+//require_once('../lib/elephant-io-src/Engine/SocketIO/Version1X.php');
+require_once('../lib/elephant-io-src/Exception/MalformedUrlException.php');
+require_once('../lib/elephant-io-src/Exception/ServerConnectionFailureException.php');
+require_once('../lib/elephant-io-src/Exception/SocketException.php');
+require_once('../lib/elephant-io-src/Exception/UnsupportedActionException.php');
+require_once('../lib/elephant-io-src/Exception/UnsupportedTransportException.php');
+require_once('../lib/elephant-io-src/Payload/Decoder.php');
+require_once('../lib/elephant-io-src/Payload/Encoder.php');
+
 /*
 *	Concrete API implementation for WebDrink
 */
@@ -17,6 +34,9 @@ class DrinkAPI extends API
 	private $admin = false; 	// Am I a drink admin?
 	private $uid = false;		// My uid (username)
 	private $webauth = false;	// Am I authenticated with Webauth?
+
+	// private $DRINK_SERVER = "https://webdrink.csh.rit.edu:443";
+	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080";
 
 	// Constructor
 	public function __construct($request) {
@@ -334,11 +354,11 @@ class DrinkAPI extends API
 		else {
 			// Check for a uid to lookup
 			if (array_key_exists("uid", $this->request)) {
-				$uid = $this->request["uid"];
+				$uid = $this->_sanitizeString($this->request["uid"]);
 			}
 			// Check for an ibutton to lookup
 			else if (array_key_exists("ibutton", $this->request)) {
-				$ibutton = $this->request["ibutton"];
+				$ibutton = $this->_sanitizeString($this->request["ibutton"]);
 			}
 			// If nothing provided, look up your own info
 			else if ($this->uid) {
@@ -958,6 +978,84 @@ class DrinkAPI extends API
 		else {
 			return $this->_result(false, "Failed to query database (/temps/machines)", false);
 		}
+	}
+
+
+	/*
+	*	Drops Endpoint
+	*
+	*	IT'S HAPPENING
+	*/
+	protected function drops() {
+		$result = array();
+		switch ($this->verb) {
+			case "drop":
+				// POST /drops/drop/:ibutton/:slot_num/:machine_id
+				if ($this->method == "POST") {
+					$result = $this->_dropDrink();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/drops/drop)", false);
+				}
+				break;
+			default:
+				$result = $this->_result(false, "Invalid API method (/drops)", false);
+				break;
+		}
+		return $result;
+	}
+
+	// POST /drops/drop/:ibutton/:slot_num/:machine_id
+	private function _dropDrink() {
+		return $this->_result(false, "Method not yet fully implemented (/drops/drop)", false);
+		// Map of machine_id's to machine aliases
+		$machines = array(
+			"1" => "ld",
+			"2" => "d",
+			"3" => "s"
+		);
+		// Check for ibutton
+		$ibutton = false;
+		if (array_key_exists("ibutton", $this->request)) {
+			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
+		}
+		// Check for slot_num
+		$slot_num = false;
+		if (array_key_exists("slot_num", $this->request)) {
+			$slot_num = $this->_sanitizeInt($this->request["slot_num"]);
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'slot_num' (/drops/drop)", false);
+		}
+		// Check for machine_id and convert to machine_alias
+		$machine_alias = false;
+		if (array_key_exists("machine_id", $this->request)) {
+			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+			if (array_key_exists($machine_id, $machines)) {
+				$machine_alias = $machines[$machine_id];
+			}
+			else {
+				return $this->_result(false, "Invalid 'machine_id' (/drops/drop)", false);
+			}
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
+		}
+		// Connect to the drink server
+		try {
+			$client = new Client(new Version0X($this->DRINK_SERVER));
+			$client->initialize();
+			$client->emit('action', ['foo' => 'bar']);
+			$client->close();
+		}
+		catch (Exception $e) {
+			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
+		}
+		// Return result
+		return $this->_result(true, "LOL", true);
 	}
 
 }
