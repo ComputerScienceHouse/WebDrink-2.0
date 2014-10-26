@@ -1,4 +1,4 @@
 <div class="alert" ng-class="alert.type" ng-show="alert.show">
 	<button type="button" class="close" ng-show="alert.closeable" ng-click="alert.show = false">&times;</button>
-	<strong>{{ alert.title }}</strong> {{ alert.message }}
+	<strong>{{ alert.title }}</strong>&nbsp;<span ng-bind-html="alert.message"></span>
 </div>
