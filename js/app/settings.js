@@ -105,8 +105,7 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 		SettingsService.retrieveKey(
 			function (response) {
 				$scope.stopSpinner();
-				$log.log(response);
-				if (response.status) {
+				if (response.status && response.data) {
 					$scope.api_key = response.data.api_key;
 					$scope.date = response.data.date;
 				}
