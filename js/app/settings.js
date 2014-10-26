@@ -107,7 +107,7 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 				$scope.stopSpinner();
 				if (response.status && response.data) {
 					$scope.api_key = response.data.api_key;
-					$scope.date = response.data.date;
+					$scope.date = Date.parse(response.data.date);
 				}
 				else {
 					$scope.api_key = false;
@@ -129,7 +129,7 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 			function (response) {
 				if (response.status) {
 					$scope.api_key = response.data.api_key;
-					$scope.date = response.data.date;
+					$scope.date = Date.parse(response.data.date);
 					$scope.stopSpinner();
 				}
 				else {

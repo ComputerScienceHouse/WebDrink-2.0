@@ -5,7 +5,7 @@
 			<div class="col-md-12 center" ng-show="(api_key != false)">
 				<h4>Your API Key Is:</h4>
 				<h3>{{ api_key }}</h3>
-				<p>This API key was generated on {{ date }}</p>
+				<p>This API key was generated on {{ date | date:"MMMM d, yyyy 'at' h:mma" }}</p>
 				<button type="button" class="btn btn-primary spacer-v" ng-click="generateKey();">Generate New API Key</button>
 				<button type="button" class="btn btn-danger spacer-v" ng-click="deleteKey();">Delete API Key</button>
 				<br/><br/>
