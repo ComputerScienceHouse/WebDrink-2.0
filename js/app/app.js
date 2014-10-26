@@ -46,7 +46,8 @@ app.directive("modal", function() {
     templateUrl: "templates/modal_base.html",
     transclude: true,
     scope: {
-       modal: "=data"
+       modal: "=data",
+       submit: "="
     }
   }
 });
@@ -113,8 +114,20 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 
   $scope.test_modal = {
     id: "testModal",
-    title: "Test Title"
+    title: "Test Title",
+    cancel_btn: {
+      type: "default",
+      text: "GGG"
+    },
+    submit_btn: {
+      type: "primary",
+      text: "LOL"
+    }
   };
+
+  $scope.testFunc = function() {
+    $log.log("LOL");
+  }
 
 	// Default data for any alert directives
 	$scope.Alert = function(config) {
