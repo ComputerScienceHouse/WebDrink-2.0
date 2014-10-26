@@ -47,7 +47,8 @@ app.directive("modal", function() {
     transclude: true,
     scope: {
        modal: "=data",
-       submit: "="
+       submit: "=",
+       close: "="
     }
   }
 });

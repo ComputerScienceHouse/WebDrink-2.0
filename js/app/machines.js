@@ -78,6 +78,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 	$scope.dropping_message = "";
 	$scope.message = "";		// Message to display after edit
 
+	// Alert for displaying a general message to the user
 	$scope.message_alert = new $scope.Alert({
 		type: "alert-info",
 		title: "Welcome to WebDrink!",
@@ -86,6 +87,20 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 		show: true,
 		closeable: false
 	});
+
+	// Modal for selecting a drink
+	$scope.select_modal = new $scope.Modal({
+    id: "selectModal",
+    title: "Drop?",
+    cancel_btn: {
+      type: "danger",
+      text: "Cancel"
+    },
+    submit_btn: {
+      type: "success",
+      text: "Drop"
+    }
+  });
 
 	// Get the initial stock
 	MachineService.getStockAll(
@@ -164,6 +179,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 	// Initialize modal data for dropping a drink
 	$scope.selectDrink = function (slot) {
 		$scope.current_slot = slot;
+		$scope.select_modal.title = "Drop "+slot.item_name+"?"
 		$scope.delay = 0;
 	}; 
 	// Drop a drink
@@ -191,6 +207,11 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 			}, 1000);
 		}
 	};
+	// Initialize the drop process
+	$scope.startDrop = function() {
+		jQuery("#dropModal").modal("show");
+		$scope.reduceDelay();
+	}
 
 	/*
 	* Websocket Things

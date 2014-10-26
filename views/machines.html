@@ -2,7 +2,19 @@
 	<alert data="message_alert"></alert>
 	<alert data="websocket_alert"></alert>
 	<!-- Select Slot Modal -->
-	<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="Select Slot" aria-hidden="true">
+	<modal data="select_modal" submit="startDrop" close="">
+		<form class="form-horizontal" role="form">
+	    <div class="form-group row">
+	    	<div class="col-md-4">
+	    		<label class="control-label">Delay (Seconds):</label>
+	    	</div>
+		    <div class="col-md-8">
+		       <input ng-model="delay" ng-value="delay" type="number" class="form-control" min="0" ng-keydown=""/>
+		    </div>
+	    </div>
+		</form>
+	</modal>
+	<!--<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="Select Slot" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -27,7 +39,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div>-->
 	<!-- Drop Drink Modal -->
 	<div class="modal fade" id="dropModal" tabindex="-1" role="dialog" aria-labelledby="Drop Drink" aria-hidden="true">
 		<div class="modal-dialog">
