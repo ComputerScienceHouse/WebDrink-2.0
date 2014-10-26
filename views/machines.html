@@ -113,7 +113,7 @@
 	<!-- Machines -->
 	<div class="row">
 		<div class="col-sm-12 col-md-4" ng-repeat="machine in stock">
-			<machine data="machine" user="current_user"></machine>
+			<machine data="machine" user="current_user" select="selectDrink" edit="editSlot"></machine>
 			<!--<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title">{{ machine[0].display_name }}</h3>

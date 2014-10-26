@@ -1,10 +1,6 @@
 // Register the app with angular
 var app = angular.module("WebDrink", ['ngRoute', 'ngSanitize']);
 
-app.config(function($sceProvider) {
-  //$sceProvider.enabled(false);
-});
-
 // Alert directive - quickly display a Bootstrap Alert
 // See $scope.Alert in RootCtrl for parameters details
 app.directive("alert", function() {
@@ -36,7 +32,9 @@ app.directive("machine", function() {
 		templateUrl: "templates/machine_table.html",
 		scope: {
 			machine: "=data",
-      user: "=user"
+      user: "=",
+      select: "=",
+      edit: "="
 		}
 	};
 });
@@ -68,7 +66,7 @@ app.factory('socket', function ($rootScope) {
             callback.apply(socket, args);
           }
         });
-      })
+      });
     }
   };
 });
