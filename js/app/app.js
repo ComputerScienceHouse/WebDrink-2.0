@@ -112,19 +112,6 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 		}
 	};
 
-  $scope.test_modal = {
-    id: "testModal",
-    title: "Test Title",
-    cancel_btn: {
-      type: "default",
-      text: "GGG"
-    },
-    submit_btn: {
-      type: "primary",
-      text: "LOL"
-    }
-  };
-
   $scope.testFunc = function() {
     $log.log("LOL");
   }
@@ -153,8 +140,23 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 			showUser: (config.hasOwnProperty("showUser")) ? config.showUser : false,
 			showMore: (config.hasOwnProperty("showMore")) ? config.showMore : true,
 			isCondensed: (config.hasOwnProperty("isCondensed")) ? config.isCondensed : false
-		}
+		};
 	};
+
+  // Default data for any modal directives
+  $scope.Modal = function(config) {
+    if (typeof config === 'undefined') config = {};
+    this.id = (config.hasOwnProperty("id")) ? config.id : "myModal";
+    this.title = (config.hasOwnProperty("title")) ? config.title : "My Modal";
+    this.cancel_btn = (config.hasOwnProperty("cancel_btn")) ? new $scope.ModalBtn(config.cancel_btn) : new $scope.ModalBtn();
+    this.submit_btn = (config.hasOwnProperty("submit_btn")) ? new $scope.ModalBtn(config.submit_btn) : new $scope.ModalBtn();
+  };
+
+  $scope.ModalBtn = function(config) {
+    if (typeof config === 'undefined') config = {};
+    this.type = (config.hasOwnProperty("type")) ? config.type : "default";
+    this.text = (config.hasOwnProperty("text")) ? config.text : "OK";
+  }
 
 	// Activate the admin dropdown menu
 	if ($scope.current_user.admin) {
@@ -169,6 +171,19 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 			return false;
 		return true;
 	};
+
+  $scope.test_modal = new $scope.Modal({
+    id: "testModal",
+    title: "Test Modal",
+    cancel_btn: {
+      type: "default",
+      text: "GGG"
+    },
+    submit_btn: {
+      type: "primary",
+      text: "LOL"
+    }
+  }); 
 	
 }]);
 
