@@ -78,6 +78,15 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
     }
   });
 
+  $scope.save_modal = new $scope.Modal({
+  	id: "saveItemModal",
+  	title: "Saving Item...",
+  	cancel_btn: {
+  		type: "default",
+  		text: "Close"
+  	}
+  });
+
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
 		function (response) {
@@ -174,6 +183,7 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 					$scope.currentItem.item_name = $scope.updateItem.item_name;
 					$scope.currentItem.item_price = Number($scope.updateItem.item_price);
 					$scope.currentItem.state = $scope.updateItem.state;
+					$scope.save_modal.title = "Saving Item "+$scope.currentItem.item_id+"...";
 					$scope.message = "Item updated successfully!";
 				}
 				else {
