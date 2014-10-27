@@ -78,12 +78,27 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
     }
   });
 
+	// Modal for saving an item
   $scope.save_modal = new $scope.Modal({
   	id: "saveItemModal",
   	title: "Saving Item...",
   	cancel_btn: {
   		type: "default",
   		text: "Close"
+  	}
+  });
+
+  // Modal to confirm item deletion
+  $scope.confirm_modal = new $scope.Modal({
+  	id: "confirmModal",
+  	title: "Delete Item?",
+  	cancel_btn: {
+  		type: "default",
+  		text: "Cancel"
+  	},
+  	submit_btn: {
+  		type: "danger",
+  		text: "Delete"
   	}
   });
 
@@ -208,6 +223,7 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 
 	// Prepare an item to be deleted 
 	$scope.confirmDelete = function(item) {
+		$scope.confirm_modal.title = "Delete Item "+item.item_id+"?";
 		$scope.currentItem = item;
 	}
 
