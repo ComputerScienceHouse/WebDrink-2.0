@@ -102,6 +102,16 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
   	}
   });
 
+  // Modal for deleting an item
+  $scope.delete_modal = new $scope.Modal({
+  	id: "deleteModal",
+  	title: "Deleting Item...",
+  	cancel_btn: {
+  		type: "default",
+  		text: "Close"
+  	}
+  });
+
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
 		function (response) {
@@ -233,6 +243,7 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 			function (response) {
 				if (response.status) {
 					// Remove the item from the items array
+					$scope.delete_modal.title = "Deleting Item "+$scope.currentItem.item_id+"...";
 					var indexToRemove = $scope.lookupItemIndex($scope.currentItem.item_id);
 					$scope.items.splice(indexToRemove, 1);
 					$scope.message = "Item deleted!";
