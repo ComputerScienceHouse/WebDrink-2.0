@@ -55,7 +55,6 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 	// Filtering options
 	$scope.item_filter = "";
 	$scope.reverse_sort = false;
-
 	$scope.setReverseSort = function (sort) {
 		$log.log(sort);
 		if (sort == "yes")
@@ -203,12 +202,12 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 		};
 		ItemService.updateItem(data,
 			function (response) {
+				$scope.save_modal.title = "Saving Item "+$scope.currentItem.item_id+"...";
 				if (response.status) {
 					// Update the currentItem to reflect changes
 					$scope.currentItem.item_name = $scope.updateItem.item_name;
 					$scope.currentItem.item_price = Number($scope.updateItem.item_price);
 					$scope.currentItem.state = $scope.updateItem.state;
-					$scope.save_modal.title = "Saving Item "+$scope.currentItem.item_id+"...";
 					$scope.message = "Item updated successfully!";
 				}
 				else {
@@ -241,9 +240,9 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 	$scope.deleteItem = function() {
 		ItemService.deleteItem($scope.currentItem.item_id,
 			function (response) {
+				$scope.delete_modal.title = "Deleting Item "+$scope.currentItem.item_id+"...";
 				if (response.status) {
 					// Remove the item from the items array
-					$scope.delete_modal.title = "Deleting Item "+$scope.currentItem.item_id+"...";
 					var indexToRemove = $scope.lookupItemIndex($scope.currentItem.item_id);
 					$scope.items.splice(indexToRemove, 1);
 					$scope.message = "Item deleted!";
