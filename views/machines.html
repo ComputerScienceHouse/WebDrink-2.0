@@ -142,7 +142,10 @@
 		</div>
 	</div>-->
 	<!-- Result Modal -->
-	<div class="modal fade" id="saveSlotModal" tabindex="-1" role="dialog" aria-labelledby="Save Slot" aria-hidden="true">
+	<modal data="save_modal" submit="" close="">
+		{{ message }}
+	</modal>
+	<!--<div class="modal fade" id="saveSlotModal" tabindex="-1" role="dialog" aria-labelledby="Save Slot" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -157,7 +160,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div>-->
 	<!-- Machines -->
 	<div class="row">
 		<div class="col-sm-12 col-md-4" ng-repeat="machine in stock">

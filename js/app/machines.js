@@ -108,20 +108,30 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
   	title: "Dropping drink...",
   	cancel_btn: {
   		type: "default",
-  		text: "Cancel"
+  		text: "Close"
   	}
   });
 
   // Modal for editing the slot
   $scope.edit_modal = new $scope.Modal({
   	id: "editSlotModal",
-  	title: "Editing Slot",
+  	title: "Editing Slot...",
   	cancel_btn: {
   		type: "danger"
   	},
   	submit_btn: {
   		type: "success",
   		text: "Save"
+  	}
+  });
+
+  // Modal for the edit confirmation
+  $scope.save_modal = new $scope.Modal({
+  	id: "saveSlotModal",
+  	title: "Saving Slot...",
+  	cancel_btn: {
+  		type: "default",
+  		text: "Close"
   	}
   });
 
@@ -166,7 +176,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 		}
 		// Edit a slot
 		$scope.editSlot = function (slot) {
-			$scope.edit_modal.title = "Editing Slot " + slot.slot_num;
+			$scope.edit_modal.title = "Editing "+slot.display_name+" Slot " + slot.slot_num+"...";
 			$scope.current_slot = slot;
 			$scope.new_slot.slot_num = $scope.current_slot.slot_num;
 			$scope.new_slot.machine_id = $scope.current_slot.machine_id;
@@ -176,6 +186,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 		};
 		// Save a slot
 		$scope.saveSlot = function () {
+			$scope.save_modal.title = "Saving "+$scope.current_slot.display_name+" Slot "+$scope.current_slot.slot_num+"...";
 			if ($scope.new_slot.item_id > 1) {
 				MachineService.updateSlot($scope.new_slot, 
 					function (response) {
