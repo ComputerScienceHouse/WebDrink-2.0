@@ -113,10 +113,6 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 		}
 	};
 
-  $scope.testFunc = function() {
-    $log.log("LOL");
-  }
-
 	// Default data for any alert directives
 	$scope.Alert = function(config) {
 		if (typeof config === 'undefined') config = {};
@@ -172,19 +168,6 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
 			return false;
 		return true;
 	};
-
-  $scope.test_modal = new $scope.Modal({
-    id: "testModal",
-    title: "Test Modal",
-    cancel_btn: {
-      type: "default",
-      text: "GGG"
-    },
-    submit_btn: {
-      type: "primary",
-      text: "LOL"
-    }
-  }); 
 	
 }]);
 
