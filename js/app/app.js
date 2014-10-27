@@ -43,7 +43,7 @@ app.directive("machine", function() {
 app.directive("modal", function() {
   return {
     restrict: "E",
-    templateUrl: "templates/modal_base.html",
+    templateUrl: "templates/modal.html",
     transclude: true,
     scope: {
        modal: "=data",
