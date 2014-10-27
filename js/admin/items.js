@@ -52,6 +52,7 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 	$scope.alert = new $scope.Alert();	// Alert for success/failure of adding an item
 	$scope.message = "";			// Message to display after edit/delete
 
+	// Filtering options
 	$scope.item_filter = "";
 	$scope.reverse_sort = false;
 
@@ -62,6 +63,20 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 		else
 			$scope.reverse_sort = false;
 	}
+
+	// Modal for editing an item
+	$scope.edit_modal = new $scope.Modal({
+    id: "editItemModal",
+    title: "Editing Item...",
+    cancel_btn: {
+      type: "danger",
+      text: "Cancel"
+    },
+    submit_btn: {
+      type: "success",
+      text: "Save"
+    }
+  });
 
 	// Initialize data, get a list of all drink items
 	MachineService.getItemAll(
@@ -124,6 +139,7 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 
 	// Set the item to be updated 
 	$scope.editItem = function(item) {
+		$scope.edit_modal.title = "Editing "+item.item_name;
 		$scope.currentItem = item;
 		$scope.updateItem.item_id = $scope.currentItem.item_id;
 		$scope.updateItem.item_name = $scope.currentItem.item_name;
