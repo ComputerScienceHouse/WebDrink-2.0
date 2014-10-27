@@ -14,52 +14,10 @@
 	    </div>
 		</form>
 	</modal>
-	<!--<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="Select Slot" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-					<h4 class="modal-title">Drop {{ current_slot.item_name }}?</h4>
-				</div>
-				<div class="modal-body">
-					<form class="form-horizontal" role="form">
-					    <div class="form-group row">
-					    	<div class="col-md-4">
-					    		<label class="control-label">Delay (Seconds):</label>
-					    	</div>
-						    <div class="col-md-8">
-						        <input ng-model="delay" ng-value="delay" type="number" class="form-control" min="0" ng-keydown=""/>
-						    </div>
-					    </div>
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-success" data-dismiss="modal" data-toggle="modal" data-target="#dropModal" ng-click="reduceDelay();">Drop</button>
-				</div>
-			</div>
-		</div>
-	</div>-->
 	<!-- Drop Drink Modal -->
 	<modal data="drop_modal" submit="" close="">
 		<p class="center">{{ dropping_message }}</p>
 	</modal>
-	<!--<div class="modal fade" id="dropModal" tabindex="-1" role="dialog" aria-labelledby="Drop Drink" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-					<h4 class="modal-title">Dropping Drink...</h4>
-				</div>
-				<div class="modal-body">
-					<p class="center">{{ dropping_message }}</p>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
-				</div>
-			</div>
-		</div>
-	</div>-->
 	<!-- Edit Slot Modal -->
 	<modal data="edit_modal" submit="saveSlot" close="">
 		<form class="form-horizontal" role="form">
@@ -94,95 +52,14 @@
 	    </div>
 		</form>
 	</modal>
-	<!--<div class="modal fade" id="editSlotModal" tabindex="-1" role="dialog" aria-labelledby="Edit Slot" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-					<h4 class="modal-title">Edit {{ current_slot.display_name }} Slot {{ current_slot.slot_num }}?</h4>
-				</div>
-				<div class="modal-body">
-					<form class="form-horizontal" role="form">
-					    <div class="form-group row">
-					    	<div class="col-md-3">
-					    		<label class="control-label">Item: </label>
-					    	</div>
-						    <div class="col-md-9">
-						        <select class="form-control" ng-model="new_slot.item_id">
-									<option ng-repeat="item in items | orderBy:'item_name'" ng-value="item.item_id" ng-selected="current_slot.item_id == item.item_id">{{ item.item_name }}</option>
-								</select>
-						    </div>
-					    </div>
-					    <div class="form-group row">
-					    	<div class="col-md-3">
-					    		<label class="control-label">Available: </label>
-					    	</div>
-						    <div class="col-md-9">
-						        <input class="form-control" type="number" min="0" ng-model="new_slot.available" value="{{ new_slot.available }}"/>
-						    </div>
-					    </div>
-					    <div class="form-group row">
-					    	<div class="col-md-3">
-					    		<label class="control-label">Status: </label>
-					    	</div>
-						    <div class="col-md-9">
-						        <select class="form-control" ng-model="new_slot.status">
-						        	<option value="enabled" ng-selected="current_slot.status == 'enabled'">Enabled</option>
-						        	<option value="disabled" ng-selected="current_slot.status == 'disabled'">Disabled</option>
-						        </select>
-						    </div>
-					    </div>
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-success" data-dismiss="modal" ng-click="saveSlot();">Save</button>
-				</div>
-			</div>
-		</div>
-	</div>-->
 	<!-- Result Modal -->
 	<modal data="save_modal" submit="" close="">
 		{{ message }}
 	</modal>
-	<!--<div class="modal fade" id="saveSlotModal" tabindex="-1" role="dialog" aria-labelledby="Save Slot" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-					<h4 class="modal-title">Saving {{ current_slot.display_name }} Slot {{ current_slot.slot_num }}...</h4>
-				</div>
-				<div class="modal-body">
-					{{ message }}
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
-				</div>
-			</div>
-		</div>
-	</div>-->
 	<!-- Machines -->
 	<div class="row">
 		<div class="col-sm-12 col-md-4" ng-repeat="machine in stock">
 			<machine data="machine" user="current_user" select="selectDrink" edit="editSlot"></machine>
-			<!--<div class="panel panel-default">
-				<div class="panel-heading">
-					<h3 class="panel-title">{{ machine[0].display_name }}</h3>
-				</div>
-				<table class="table table-striped">
-					<tr><th>Item</th><th>Price</th><th class="actions">Actions</th>
-					<tr ng-repeat="slot in machine" ng-class="(slot.status == 'disabled' || slot.available == 0) ? 'slot-disabled' : 'slot-enabled'">
-						<td ng-class="(current_user.admin) ? 'item-admin' : 'item'">{{ slot.item_name }}</td>
-						<td ng-class="(current_user.admin) ? 'price-admin' : 'price'">{{ slot.item_price }}</td>
-						<td ng-class="(current_user.admin) ? 'actions-admin' : 'actions'">
-							<button type="button" ng-disabled="(slot.status == 'disabled') || (slot.available == 0) || !canAfford(slot.item_price)" class="btn btn-primary" data-toggle="modal" data-target="#selectModal" ng-click="selectDrink(slot);">Drop</button>
-							<button type="button" ng-show="current_user.admin" class="btn btn-default" data-toggle="modal" data-target="#editSlotModal" ng-click="editSlot(slot);">
-								<span class="glyphicon glyphicon-pencil"></span>
-							</button>
-						</td>
-					</tr>
-				</table>
-			</div>-->
 		</div>
 	</div>
 </div>
