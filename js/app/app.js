@@ -156,7 +156,7 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', 
   $scope.ModalBtn = function(config) {
     if (typeof config === 'undefined') config = {};
     this.type = (config.hasOwnProperty("type")) ? config.type : "default";
-    this.text = (config.hasOwnProperty("text")) ? config.text : "OK";
+    this.text = (config.hasOwnProperty("text")) ? config.text : "Cancel";
   }
 
 	// Activate the admin dropdown menu

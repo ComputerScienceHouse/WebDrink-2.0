@@ -110,7 +110,20 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
   		type: "default",
   		text: "Cancel"
   	}
-  })
+  });
+
+  // Modal for editing the slot
+  $scope.edit_modal = new $scope.Modal({
+  	id: "editSlotModal",
+  	title: "Editing Slot",
+  	cancel_btn: {
+  		type: "danger"
+  	},
+  	submit_btn: {
+  		type: "success",
+  		text: "Save"
+  	}
+  });
 
 	// Get the initial stock
 	MachineService.getStockAll(
@@ -153,6 +166,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 		}
 		// Edit a slot
 		$scope.editSlot = function (slot) {
+			$scope.edit_modal.title = "Editing Slot " + slot.slot_num;
 			$scope.current_slot = slot;
 			$scope.new_slot.slot_num = $scope.current_slot.slot_num;
 			$scope.new_slot.machine_id = $scope.current_slot.machine_id;
