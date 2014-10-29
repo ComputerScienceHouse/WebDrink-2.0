@@ -36,6 +36,13 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 <head>
 	<title>WebDrink</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!--
+	<link rel="shortcut icon" href="assets/favicon.ico">
+	<link href="assets/icons/logo_76.png" rel="apple-touch-icon" sizes="76x76"/>
+	<link href="assets/icons/logo_120.png" rel="apple-touch-icon" sizes="120x120"/>
+	<link href="assets/icons/logo_152.png" rel="apple-touch-icon" sizes="152x152"/>
+	<link href="assets/icons/logo_80.png" rel="apple-touch-icon" sizes="180x180"/>
+	-->
 	<!-- Styles -->
 	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
 	<link href="css/main.css" rel="stylesheet" media="screen" type="text/css"/>
