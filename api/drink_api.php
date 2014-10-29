@@ -1008,7 +1008,7 @@ class DrinkAPI extends API
 
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id
 	private function _dropDrink() {
-		return $this->_result(false, "Method not yet fully implemented (/drops/drop)", false);
+		// return $this->_result(false, "Method not yet fully implemented (/drops/drop)", false);
 		// Map of machine_id's to machine aliases
 		$machines = array(
 			"1" => "ld",
@@ -1049,7 +1049,9 @@ class DrinkAPI extends API
 		try {
 			$client = new Client(new Version0X($this->DRINK_SERVER));
 			$client->initialize();
-			$client->emit('action', ['foo' => 'bar']);
+			$client->emit('ibutton', ['ibutton' => $ibutton]);
+			$client->emit('machine', ['machine_id' => $machine_alias]);
+			$client->emit('drop', ['slot_num' => $slot_num, 'delay' => 0]);
 			$client->close();
 		}
 		catch (Exception $e) {
