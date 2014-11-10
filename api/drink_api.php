@@ -996,7 +996,6 @@ class DrinkAPI extends API
 
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id
 	private function _dropDrink() {
-		// return $this->_result(false, "Method not yet fully implemented (/drops/drop)", false);
 		// Map of machine_id's to machine aliases
 		$machines = array(
 			"1" => "ld",
@@ -1037,44 +1036,34 @@ class DrinkAPI extends API
 			// Create a new client
 			$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
 			$this->elephant->init();
-			// iButton
-			$ibutton_callback = function($data) {
-				// Machine
-				$machine_callback = function($data) {
-					// Drop
-					$drop_callback = function($data) {
-						$success = explode(":", $data);
-						$success = $success[0];
-						if ($success === "OK") {
-							die(json_encode($this->_result(true, "Drink dropped!", true)));
+			// Validate iButton
+			$this->elephant->emit('ibutton', array('ibutton' => $this->drop_data["ibutton"]));
+			$this->elephant->on('ibutton_recv', function($data) {
+				if ($this->isWebsocketSuccess($data)) {
+					// Connect to the drink machine
+					$this->elephant->emit('machine', array('machine_id' => $this->drop_data["machine_alias"]));
+					$this->elephant->on('machine_recv', function($data) {
+						if ($this->isWebsocketSuccess($data)) {
+							// Drop the drink
+							$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => 0));
+							$this->elephant->on('drop_recv', function($data) {
+								if ($this->isWebsocketSuccess($data)) {
+									die(json_encode($this->_result(true, "Drink dropped!", true)));
+								}
+								else {
+									die(json_encode($this->_result(false, "Error dropping drink: ".$data." (/drops/drop)", false)));
+								}
+							});
 						}
 						else {
-							die(json_encode($this->_result(false, "Error dropping drink: ".$data." (/drops/drop)", false)));
+							die(json_encode($this->_result(false, "Error contacting machine: ".$data." (/drops/drop)", false)));
 						}
-					};
-					$success = explode(":", $data);
-					$success = $success[0];
-					if ($success === "OK") {
-						$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => 0));
-						$this->elephant->on('drop_recv', $drop_callback);
-					}
-					else {
-						die(json_encode($this->_result(false, "Error contacting machine: ".$data." (/drops/drop)", false)));
-					}
-				};
-				$success = explode(":", $data);
-				$success = $success[0];
-				if ($success === "OK") {
-					$this->elephant->emit('machine', array('machine_id' => $this->drop_data["machine_alias"]));
-					$this->elephant->on('machine_recv', $machine_callback);
+					});
 				}
 				else {
 					die(json_encode($this->_result(false, "Error authenticating iButton: ".$data." (/drops/drop)", false)));
 				}
-			};
-			// Kick it off
-			$this->elephant->emit('ibutton', array('ibutton' => $this->drop_data["ibutton"]));
-			$this->elephant->on('ibutton_recv', $ibutton_callback);
+			}); //$ibutton_callback
 			$this->elephant->keepAlive();
 		}
 		catch (Exception $e) {
@@ -1082,6 +1071,16 @@ class DrinkAPI extends API
 		}
 		// Return result
 		return $this->_result(true, $response, true);
+	}
+
+	// Check the response of a websocket call for success/failure
+	private function isWebsocketSuccess($data) {
+		$success = explode(":", $data);
+		$success = $success[0];
+		if ($success === "OK") {
+			return true;
+		}
+		return false;
 	}
 
 }
