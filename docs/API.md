@@ -1,7 +1,7 @@
 WebDrink API
 ------------
 
-WebDrink is powered by a RESTful JSON API. All operations you can perform with WebDrink can be done through the API. The one exception is dropping drinks, which is accomplished by communicating with the drink server directly (via websockets) in WebDrink. Authentication is provided either via Webauth (for WebDrink and other web clients running on CSH systems) or an API key included in the request (for other drink clients, such as mobile apps). API keys can be viewed/generated from WebDrink. To authenticate with an API key, add the following parameter to your request:  
+WebDrink is powered by a RESTful(-ish) JSON API. All operations you can perform with WebDrink can be done through the API, including drink dropping! ~~The one exception is dropping drinks, which is accomplished by communicating with the drink server directly (via websockets) in WebDrink.~~ Authentication is provided either via Webauth (for WebDrink and other web clients running on CSH systems) or an API key included in the request (for other drink clients, such as mobile apps). API keys can be viewed/generated from WebDrink. To authenticate with an API key, add the following parameter to your request:  
 
 Attribute | Value
 ---|---
@@ -47,6 +47,9 @@ Here is a quick rundown of the available API methods:
 
 #### Temps
 * [GET /temps/machines/:machine_id/:limit/:offset](#get-tempsmachinesmachine_idlimitoffset) - Get temperature data for a single drink machine
+
+#### Drops
+* [POST /drops/drop/:ibutton/:machine_id/:slot_num/:delay](#post-dropsdropibuttonmachine_idslot_numdelay) - Drop a drink by machine id and slot number, using the specified delay.
 
 ***
 
@@ -493,5 +496,29 @@ offset | How many results to skip (optional, default to 0)
         ],
         ...
     ]
+}
+```
+## Drops
+
+### POST /drops/drop/:ibutton/:machine_id/:slot_num/:delay
+
+**Description:** Drop a drink by machine ID and slot number, for a user identified by iButton, using a given delay
+
+**Parameters**
+
+Attribute | Value
+---|---
+ibutton | iButton number of the user dropping a drink
+machine_id | ID of the machine (i.e. 1 for Little Drink)
+slot_num | Slot number to drop a drink from
+delay | The number of seconds to delay the drop (optional, defaults to 0)
+
+**Sample Response:**
+
+```json
+{
+    "status": true,
+    "message": "Drink dropped!",
+    "data": true
 }
 ```
