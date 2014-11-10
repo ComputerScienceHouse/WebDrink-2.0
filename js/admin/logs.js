@@ -7,15 +7,8 @@ app.config(['$routeProvider', function($routeProvider) {
 		});
 }]);
 
-// Logs Service - for getting drop logs
-app.factory("LogsService", function($http, $window) {
-	return {
-		// Use DropService instead
-	};
-});
-
 // Controller for the Drop Logs page
-app.controller("LogsCtrl", ['$scope', '$log', 'LogsService', 'DropService', function ($scope, $log, LogsService, DropService) {
+app.controller("LogsCtrl", ['$scope', '$log', 'LogsService', function ($scope, $log, LogsService) {
 	// Initialize scope variables
 	$scope.logs = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
@@ -31,7 +24,7 @@ app.controller("LogsCtrl", ['$scope', '$log', 'LogsService', 'DropService', func
 			"limit": $scope.dropsToLoad,
 			"offset": $scope.dropsToLoad * $scope.pagesLoaded
 		};
-		DropService.getDrops(data,
+		LogsService.getDrops(data,
 			function (response) {
 				if (response.status) {
 					$scope.logs = $scope.logs.concat(response.data);

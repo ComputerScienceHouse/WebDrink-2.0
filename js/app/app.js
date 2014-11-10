@@ -50,43 +50,43 @@ app.directive("modal", function() {
        submit: "=",
        close: "="
     }
-  }
+  };
 });
 
 // Wrapper for Socket.IO functionality in Angular 
 // http://www.html5rocks.com/en/tutorials/frameworks/angular-websockets/
-app.factory('socket', function ($rootScope) {
-  var socket = io.connect(
-    "https://webdrink.csh.rit.edu:443", 
-    {
-      secure: true,
-      transports: ['xhr-polling'] //, 'websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'jsonp-polling']
-    }
-  );
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () {  
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      });
-    }
-  };
-});
+// app.factory('socket', function ($rootScope) {
+//   var socket = io.connect(
+//     "https://webdrink.csh.rit.edu:443", 
+//     {
+//       secure: true,
+//       transports: ['xhr-polling'] //, 'websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'jsonp-polling']
+//     }
+//   );
+//   return {
+//     on: function (eventName, callback) {
+//       socket.on(eventName, function () {  
+//         var args = arguments;
+//         $rootScope.$apply(function () {
+//           callback.apply(socket, args);
+//         });
+//       });
+//     },
+//     emit: function (eventName, data, callback) {
+//       socket.emit(eventName, data, function () {
+//         var args = arguments;
+//         $rootScope.$apply(function () {
+//           if (callback) {
+//             callback.apply(socket, args);
+//           }
+//         });
+//       });
+//     }
+//   };
+// });
 
 // Root controller - for shared data/services
-app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', 'socket', function ($scope, $log, $window, $location, socket) {
+app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', function ($scope, $log, $window, $location) {
 	// Current user data
 	$scope.current_user = $window.current_user;
 	// Current page

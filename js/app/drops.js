@@ -7,8 +7,8 @@ app.config(['$routeProvider', function($routeProvider) {
 		});
 }]);
 
-// Drop Service - retrieve a user's drop history, etc.
-app.factory("DropService", function($http, $window, $log) {
+// Logs Service - retrieve a user's drop history, etc.
+app.factory("LogsService", function($http, $window, $log) {
 	return {
 		// Get a user's drop history
 		getDrops: function(data, successCallback, errorCallback) {
@@ -22,7 +22,7 @@ app.factory("DropService", function($http, $window, $log) {
 });
 
 // Controller for the drops page
-app.controller("DropCtrl", ['$scope', '$window', '$log', 'DropService', function ($scope, $window, $log, DropService) {
+app.controller("DropCtrl", ['$scope', '$window', '$log', 'LogsService', function ($scope, $window, $log, LogsService) {
 	// Initialize scope variables
 	$scope.drops = new Array();	// List of all user drops
 	$scope.pagesLoaded = 0;		// How many pages of drops have been loaded
@@ -37,7 +37,7 @@ app.controller("DropCtrl", ['$scope', '$window', '$log', 'DropService', function
 			"limit": $scope.dropsToLoad,
 			"offset": $scope.dropsToLoad * $scope.pagesLoaded
 		};
-		DropService.getDrops(data,
+		LogsService.getDrops(data,
 			function (response) {
 				if (response.status) {
 					$scope.drops = $scope.drops.concat(response.data);

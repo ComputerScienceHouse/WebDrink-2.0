@@ -62,12 +62,22 @@ app.factory("MachineService", function($http, $window, $log) {
 				params: {"uid": uid, "test": "LOL"},
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).success(successCallback).error(errorCallback);
-		}
+		},
+		// Drop a drink
+    dropDrink: function(data, successCallback, errorCallback) {
+    	$log.log(data);
+      $http({
+        method: "POST",
+        url: baseUrl+"drops/drop",
+        data: jQuery.param(data),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+      }).success(successCallback).error(errorCallback);
+    }
 	};
 });
 
 // Controller for the machines page
-app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'MachineService', 'socket', function ($scope, $log, $window, $timeout, MachineService, socket) {
+app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'MachineService', function ($scope, $log, $window, $timeout, MachineService) {
 
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
@@ -218,12 +228,42 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 		$scope.delay = 0;
 	}; 
 	// Drop a drink
-	$scope.dropDrink = function() {
-		$scope.wsDrop($scope.current_slot.slot_num, $scope.machines[$scope.current_slot.machine_id].alias);
+	$scope.dropDrink = function () {
+		// $scope.wsDrop($scope.current_slot.slot_num, $scope.machines[$scope.current_slot.machine_id].alias);
+		MachineService.dropDrink({
+			ibutton: $scope.current_user.ibutton,
+			machine_id: $scope.current_slot.machine_id,
+			slot_num: $scope.current_slot.slot_num,
+			delay: 0
+		}, function (response) {
+			if (response.status) {
+				$scope.dropping_message = "Drink dropped!";
+ 				// Update my drink credits
+				$scope.current_user.credits -= $scope.current_slot.item_price;
+				MachineService.getCredits($scope.current_user.uid,
+					function (response) {
+						if (response.status) {
+							$scope.current_user.credits = response.data;
+						}
+						else {
+							$log.log(response.message);
+						}
+					},
+					function (error) {
+						$log.log(error);
+					}
+				);
+			}
+			else {
+				$scope.dropping_message = response.message;
+			}
+		}, function (error) {
+			$log.log(error);
+		})
 	}
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
-		if (!$scope.authed) {
+		if (false) { //!$scope.authed
 			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
 		}
 		else {
@@ -256,235 +296,235 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 	$scope.websocket_alert = new $scope.Alert({
 		title: "Warning:",
 		message: "Websocket not connected!",
-		show: true,
+		show: false,
 		closeable: false
 	});
 	// Websocket connection variables
-	$scope.authed = false; 			// Authentication status
-	$scope.requesting = false; 		// Are we currently handling a request?
-	$scope.request_queue = []; 		// Array of pending requests
-	$scope.current_request = null; 	// Current request being processed
+	// $scope.authed = false; 			// Authentication status
+	// $scope.requesting = false; 		// Are we currently handling a request?
+	// $scope.request_queue = []; 		// Array of pending requests
+	// $scope.current_request = null; 	// Current request being processed
 
-	// Request object
-	$scope.Request = function (command, callback, command_data) {
-		if (typeof command_data == 'undefined') {
-			command_data = {};
-		}
-		this.command = command;				// Socket command to execute (ibutton, drop, etc)
-		this.callback = callback;			// Callback to execute on command success
-		this.command_data = command_data;   // Data being passed to the command
-	};
-	$scope.Request.prototype = {
-		// Execute the Request's callback function
-		runCallback: function(callback_data) {
-			this.callback(callback_data);
-		},
-		// Execute the Request's command
-		runCommand: function() {
-			this.command(this.command_data);
-		}
-	};
+	// // Request object
+	// $scope.Request = function (command, callback, command_data) {
+	// 	if (typeof command_data == 'undefined') {
+	// 		command_data = {};
+	// 	}
+	// 	this.command = command;				// Socket command to execute (ibutton, drop, etc)
+	// 	this.callback = callback;			// Callback to execute on command success
+	// 	this.command_data = command_data;   // Data being passed to the command
+	// };
+	// $scope.Request.prototype = {
+	// 	// Execute the Request's callback function
+	// 	runCallback: function(callback_data) {
+	// 		this.callback(callback_data);
+	// 	},
+	// 	// Execute the Request's command
+	// 	runCommand: function() {
+	// 		this.command(this.command_data);
+	// 	}
+	// };
 
-	// Initialize Websocket Events
-	socket.on('connect', function() {
-		$scope.websocket_alert.show = false;
-	});
-	socket.on('disconnect', function() {
-		$scope.websocket_alert.show = true;
-	});
-	socket.on('close', function() {
-		$scope.websocket_alert.show = true;
-	});
-	socket.on('reconnect', function() {
-		$scope.websocket_alert.show = true;
-	});
-	socket.on('reconnecting', function() {
-		$scope.websocket_alert.show = false;
-	});
-	socket.on('stat_recv', function(data) {
-		$scope.wsProcessIncomingData(data);
-	});
-	socket.on('ibutton_recv', function(data) {
-		$scope.wsProcessIncomingData(data);
-	});
-	socket.on('machine_recv', function(data) {
-		$scope.wsProcessIncomingData(data);
-	});
-	socket.on('drop_recv', function(data) {
-		$scope.wsProcessIncomingData(data);
-	});
-	socket.on('balance_recv', function(data) {
-		$scope.wsProcessIncomingData(data);
-	});
+	// // Initialize Websocket Events
+	// socket.on('connect', function() {
+	// 	$scope.websocket_alert.show = false;
+	// });
+	// socket.on('disconnect', function() {
+	// 	$scope.websocket_alert.show = true;
+	// });
+	// socket.on('close', function() {
+	// 	$scope.websocket_alert.show = true;
+	// });
+	// socket.on('reconnect', function() {
+	// 	$scope.websocket_alert.show = true;
+	// });
+	// socket.on('reconnecting', function() {
+	// 	$scope.websocket_alert.show = false;
+	// });
+	// socket.on('stat_recv', function(data) {
+	// 	$scope.wsProcessIncomingData(data);
+	// });
+	// socket.on('ibutton_recv', function(data) {
+	// 	$scope.wsProcessIncomingData(data);
+	// });
+	// socket.on('machine_recv', function(data) {
+	// 	$scope.wsProcessIncomingData(data);
+	// });
+	// socket.on('drop_recv', function(data) {
+	// 	$scope.wsProcessIncomingData(data);
+	// });
+	// socket.on('balance_recv', function(data) {
+	// 	$scope.wsProcessIncomingData(data);
+	// });
 
-	// Process the next Request in the queue
-	$scope.wsProcessQueue = function() {
-		if ($scope.request_queue.length > 0) {
-			$scope.requesting = true;
-			$scope.current_request = $scope.request_queue.pop();
-			$scope.current_request.runCommand();
-		}
-	};
+	// // Process the next Request in the queue
+	// $scope.wsProcessQueue = function() {
+	// 	if ($scope.request_queue.length > 0) {
+	// 		$scope.requesting = true;
+	// 		$scope.current_request = $scope.request_queue.pop();
+	// 		$scope.current_request.runCommand();
+	// 	}
+	// };
 
-	// Execute the only Request or put a Request in the queue
-	$scope.wsPrepRequest = function(request) {
-		if (!$scope.requesting) {
-			$scope.requesting = true;
-			$scope.current_request = request;
-			$scope.current_request.runCommand();
-		}
-		else {
-			$scope.request_queue.push(request);
-		}
-	};
+	// // Execute the only Request or put a Request in the queue
+	// $scope.wsPrepRequest = function(request) {
+	// 	if (!$scope.requesting) {
+	// 		$scope.requesting = true;
+	// 		$scope.current_request = request;
+	// 		$scope.current_request.runCommand();
+	// 	}
+	// 	else {
+	// 		$scope.request_queue.push(request);
+	// 	}
+	// };
 
-	// Process data received from the socket
-	$scope.wsProcessIncomingData = function(data) {
-		if ($scope.current_request != null) {
-			$log.log(data);
-			$scope.current_request.runCallback(data);
-		}
-		else {
-			// Uh...
-		}
-		// Handle the next request
-		$scope.current_request = null;
-		$scope.requesting = false;
-		$scope.wsProcessQueue();
-	};
+	// // Process data received from the socket
+	// $scope.wsProcessIncomingData = function(data) {
+	// 	if ($scope.current_request != null) {
+	// 		$log.log(data);
+	// 		$scope.current_request.runCallback(data);
+	// 	}
+	// 	else {
+	// 		// Uh...
+	// 	}
+	// 	// Handle the next request
+	// 	$scope.current_request = null;
+	// 	$scope.requesting = false;
+	// 	$scope.wsProcessQueue();
+	// };
 
-	// Connect to the drinkjs server
-	$scope.wsConnect = function() {
-		// Request command
-		var command = function() {
-			// Send the ibutton command to the server to validate your ibutton
-			socket.emit('ibutton', {ibutton: $scope.current_user.ibutton});
-		};
-		// Request callback
-		var callback = function(data) {
-			// If the status was OK, we authed successfully
-			if (data.substr(0, 2) == 'OK') {
-				$scope.authed = true;
-				$scope.websocket_alert.show = false;
-			}
-			// If not, we have a bogus iButton
-			else {
-				$scope.authed = false;
-				$scope.websocket_alert.message = "Warning: Invalid iButton";
-				$scope.websocket_alert.show = true;
-			}
-		};
-		// Create the Request object and queue it up
-		var request = new $scope.Request(command, callback);
-		$scope.wsPrepRequest(request);
-	};
+	// // Connect to the drinkjs server
+	// $scope.wsConnect = function() {
+	// 	// Request command
+	// 	var command = function() {
+	// 		// Send the ibutton command to the server to validate your ibutton
+	// 		socket.emit('ibutton', {ibutton: $scope.current_user.ibutton});
+	// 	};
+	// 	// Request callback
+	// 	var callback = function(data) {
+	// 		// If the status was OK, we authed successfully
+	// 		if (data.substr(0, 2) == 'OK') {
+	// 			$scope.authed = true;
+	// 			$scope.websocket_alert.show = false;
+	// 		}
+	// 		// If not, we have a bogus iButton
+	// 		else {
+	// 			$scope.authed = false;
+	// 			$scope.websocket_alert.message = "Warning: Invalid iButton";
+	// 			$scope.websocket_alert.show = true;
+	// 		}
+	// 	};
+	// 	// Create the Request object and queue it up
+	// 	var request = new $scope.Request(command, callback);
+	// 	$scope.wsPrepRequest(request);
+	// };
 
-	// Tell the server to drop a drink
-	$scope.wsDrop = function(slot_num, machine_alias) {
-		// First Request: connect to the drink machine
-		// Request command
-		var machine_command = function() {
-			socket.emit('machine', {machine_id: machine_alias});
-		};
-		// Request callback
-		var machine_callback = function() {
-			// Second Request: drop the drink
-			// Request command
-			var drop_command = function() {
-			  $scope.dropping_message = "Dropping drink now...";
-				socket.emit('drop', {slot_num: slot_num, delay: 0});
-			};
-			// Request callback
-			var drop_callback = function(data) {
-				if (data.substr(0, 2) == 'OK') {
-					$scope.dropping_message = "Drink dropped!";
-					// Update my drink credits
-					$scope.current_user.credits -= $scope.current_slot.item_price;
-					MachineService.getCredits($scope.current_user.uid,
-						function (response) {
-							if (response.status) {
-								$scope.current_user.credits = response.data;
-							}
-							else {
-								$log.log(response.message);
-							}
-						},
-						function (error) {
-							$log.log(error);
-						}
-					);
-				}
-				else {
-					$scope.dropping_message = data;
-				}
-			};
-			// Create the Request object and queue it up
-			var drop_request = new $scope.Request(drop_command, drop_callback);
-			$scope.wsPrepRequest(drop_request);
-		};
-		// Create the Request object and queue it up
-		var machine_request = new $scope.Request(machine_command, machine_callback);
-		$scope.wsPrepRequest(machine_request);
-	};
+	// // Tell the server to drop a drink
+	// $scope.wsDrop = function(slot_num, machine_alias) {
+	// 	// First Request: connect to the drink machine
+	// 	// Request command
+	// 	var machine_command = function() {
+	// 		socket.emit('machine', {machine_id: machine_alias});
+	// 	};
+	// 	// Request callback
+	// 	var machine_callback = function() {
+	// 		// Second Request: drop the drink
+	// 		// Request command
+	// 		var drop_command = function() {
+	// 		  $scope.dropping_message = "Dropping drink now...";
+	// 			socket.emit('drop', {slot_num: slot_num, delay: 0});
+	// 		};
+	// 		// Request callback
+	// 		var drop_callback = function(data) {
+	// 			if (data.substr(0, 2) == 'OK') {
+	// 				$scope.dropping_message = "Drink dropped!";
+	// 				// Update my drink credits
+	// 				$scope.current_user.credits -= $scope.current_slot.item_price;
+	// 				MachineService.getCredits($scope.current_user.uid,
+	// 					function (response) {
+	// 						if (response.status) {
+	// 							$scope.current_user.credits = response.data;
+	// 						}
+	// 						else {
+	// 							$log.log(response.message);
+	// 						}
+	// 					},
+	// 					function (error) {
+	// 						$log.log(error);
+	// 					}
+	// 				);
+	// 			}
+	// 			else {
+	// 				$scope.dropping_message = data;
+	// 			}
+	// 		};
+	// 		// Create the Request object and queue it up
+	// 		var drop_request = new $scope.Request(drop_command, drop_callback);
+	// 		$scope.wsPrepRequest(drop_request);
+	// 	};
+	// 	// Create the Request object and queue it up
+	// 	var machine_request = new $scope.Request(machine_command, machine_callback);
+	// 	$scope.wsPrepRequest(machine_request);
+	// };
 
-	// Get the stock of the last connected-to (?) machine
-	$scope.wsStat = function() {
-		// Request command
-		var command = function() {
-			// Send the ibutton command to the server to validate your ibutton
-			socket.emit('stat', {});
-		};
-		// Request callback
-		var callback = function(data) {
-			$scope.wsProcessQueue();
-		};
-		// Create the Request object and queue it up
-		var request = new $scope.Request(command, callback);
-		$scope.wsPrepRequest(request);
-	}
+	// // Get the stock of the last connected-to (?) machine
+	// $scope.wsStat = function() {
+	// 	// Request command
+	// 	var command = function() {
+	// 		// Send the ibutton command to the server to validate your ibutton
+	// 		socket.emit('stat', {});
+	// 	};
+	// 	// Request callback
+	// 	var callback = function(data) {
+	// 		$scope.wsProcessQueue();
+	// 	};
+	// 	// Create the Request object and queue it up
+	// 	var request = new $scope.Request(command, callback);
+	// 	$scope.wsPrepRequest(request);
+	// }
 
-	// Connect to a machine
-	$scope.wsMachine = function(machine_alias) {
-		// Request command
-		var command = function() {
-			// Send the ibutton command to the server to validate your ibutton
-			socket.emit('machine', {machine_id: machine_alias});
-		};
-		// Request callback
-		var callback = function(data) {
-			$scope.wsProcessQueue();
-		};
-		// Create the Request object and queue it up
-		var request = new $scope.Request(command, callback);
-		$scope.wsPrepRequest(request);
-	}
+	// // Connect to a machine
+	// $scope.wsMachine = function(machine_alias) {
+	// 	// Request command
+	// 	var command = function() {
+	// 		// Send the ibutton command to the server to validate your ibutton
+	// 		socket.emit('machine', {machine_id: machine_alias});
+	// 	};
+	// 	// Request callback
+	// 	var callback = function(data) {
+	// 		$scope.wsProcessQueue();
+	// 	};
+	// 	// Create the Request object and queue it up
+	// 	var request = new $scope.Request(command, callback);
+	// 	$scope.wsPrepRequest(request);
+	// }
 
-	// Get the current user's credit balance
-	$scope.wsBalance = function() {
-		// Request command
-		var command = function() {
-			// Send the ibutton command to the server to validate your ibutton
-			socket.emit('getbalance', {});
-		};
-		// Request callback
-		var callback = function(data) {
-			if (data.substr(0, 2) == 'OK') {
-				data = data.split(': ');
-				$scope.current_user.credits = data[1];
-			}
-			else {
-				$scope.authed = false;
-				$log.log("invalid ibutton, yo");
-			}
-			$scope.wsProcessQueue();
-		};
-		// Create the Request object and queue it up
-		var request = new $scope.Request(command, callback);
-		$scope.wsPrepRequest(request);
-	}
+	// // Get the current user's credit balance
+	// $scope.wsBalance = function() {
+	// 	// Request command
+	// 	var command = function() {
+	// 		// Send the ibutton command to the server to validate your ibutton
+	// 		socket.emit('getbalance', {});
+	// 	};
+	// 	// Request callback
+	// 	var callback = function(data) {
+	// 		if (data.substr(0, 2) == 'OK') {
+	// 			data = data.split(': ');
+	// 			$scope.current_user.credits = data[1];
+	// 		}
+	// 		else {
+	// 			$scope.authed = false;
+	// 			$log.log("invalid ibutton, yo");
+	// 		}
+	// 		$scope.wsProcessQueue();
+	// 	};
+	// 	// Create the Request object and queue it up
+	// 	var request = new $scope.Request(command, callback);
+	// 	$scope.wsPrepRequest(request);
+	// }
 
-	// Establish a websocket connection
-	$scope.wsConnect();
+	// // Establish a websocket connection
+	// $scope.wsConnect();
 }]);
 
 
