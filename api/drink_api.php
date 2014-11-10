@@ -10,21 +10,25 @@ require_once('./abstract_api.php');
 require_once("../config.php");
 
 // Include elephant.io source files
-use ElephantIO\Client, ElephantIO\Engine\SocketIO\Version0X;
-require_once('../lib/elephant-io-src/AbstractPayload.php');
-require_once('../lib/elephant-io-src/Client.php');
-require_once('../lib/elephant-io-src/EngineInterface.php');
-require_once('../lib/elephant-io-src/Engine/AbstractSocketIO.php');
-require_once('../lib/elephant-io-src/Engine/SocketIO/Session.php');
-require_once('../lib/elephant-io-src/Engine/SocketIO/Version0X.php');
-//require_once('../lib/elephant-io-src/Engine/SocketIO/Version1X.php');
-require_once('../lib/elephant-io-src/Exception/MalformedUrlException.php');
-require_once('../lib/elephant-io-src/Exception/ServerConnectionFailureException.php');
-require_once('../lib/elephant-io-src/Exception/SocketException.php');
-require_once('../lib/elephant-io-src/Exception/UnsupportedActionException.php');
-require_once('../lib/elephant-io-src/Exception/UnsupportedTransportException.php');
-require_once('../lib/elephant-io-src/Payload/Decoder.php');
-require_once('../lib/elephant-io-src/Payload/Encoder.php');
+// use ElephantIO\Client, ElephantIO\Engine\SocketIO\Version0X;
+// require_once('../lib/elephant.io/src/AbstractPayload.php');
+// require_once('../lib/elephant.io/src/Client.php');
+// require_once('../lib/elephant.io/src/EngineInterface.php');
+// require_once('../lib/elephant.io/src/Engine/AbstractSocketIO.php');
+// require_once('../lib/elephant.io/src/Engine/SocketIO/Session.php');
+// require_once('../lib/elephant.io/src/Engine/SocketIO/Version0X.php');
+// //require_once('../lib/elephant.io/src/Engine/SocketIO/Version1X.php');
+// require_once('../lib/elephant.io/src/Exception/MalformedUrlException.php');
+// require_once('../lib/elephant.io/src/Exception/ServerConnectionFailureException.php');
+// require_once('../lib/elephant.io/src/Exception/SocketException.php');
+// require_once('../lib/elephant.io/src/Exception/UnsupportedActionException.php');
+// require_once('../lib/elephant.io/src/Exception/UnsupportedTransportException.php');
+// require_once('../lib/elephant.io/src/Payload/Decoder.php');
+// require_once('../lib/elephant.io/src/Payload/Encoder.php');
+
+use ElephantIO\Client as ElephantIOClient;
+require('../lib/elephant.io-2.0.4/Client.php');
+require('../lib/elephant.io-2.0.4/Payload.php');
 
 /*
 *	Concrete API implementation for WebDrink
@@ -1046,19 +1050,50 @@ class DrinkAPI extends API
 			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
 		}
 		// Connect to the drink server
+		$response = "";
+		$this->elephant = false;
 		try {
-			$client = new Client(new Version0X($this->DRINK_SERVER));
-			$client->initialize();
-			$client->emit('ibutton', ['ibutton' => $ibutton]);
-			$client->emit('machine', ['machine_id' => $machine_alias]);
-			$client->emit('drop', ['slot_num' => $slot_num, 'delay' => 0]);
-			$client->close();
+			// Create a new client
+			$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
+			$this->elephant->init();
+			// iButton
+			$ibutton_callback = function($data) {
+				// Machine
+				$machine_callback = function($data) {
+					// Drop
+					$drop_callback = function($data) {
+						die($data);
+					};
+					$success = explode(":", $data);
+					$success = $success[0];
+					if ($success == "OK") {
+						$this->elephant->emit('drop', array('slot_num' => 1, 'delay' => 0));
+						$this->elephant->on('drop_recv', $drop_callback);
+					}
+					else {
+						die("nope 2");
+					}
+				};
+				$success = explode(":", $data);
+				$success = $success[0];
+				if ($success == "OK") {
+					$this->elephant->emit('machine', array('machine_id' => "ld")); //$machine_alias
+					$this->elephant->on('machine_recv', $machine_callback);
+				}
+				else {
+					die("nope 1");
+				}
+			};
+			// Kick it off
+			$this->elephant->emit('ibutton', array('ibutton' => $ibutton));
+			$this->elephant->on('ibutton_recv', $ibutton_callback);
+			$this->elephant->keepAlive();
 		}
 		catch (Exception $e) {
 			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
 		}
 		// Return result
-		return $this->_result(true, "LOL", true);
+		return $this->_result(true, $response, true);
 	}
 
 }
