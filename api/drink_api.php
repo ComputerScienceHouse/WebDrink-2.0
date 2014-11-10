@@ -24,7 +24,8 @@ class DrinkAPI extends API
 	private $webauth = false;	// Am I authenticated with Webauth?
 
 	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080"; // Address of the drink server
-	private $drop_data = array(); // Data required for making a drink drop
+	private $drop_data = array(); // Data required to drop a drink
+	private $drop_result = array(); // Data to return from dropping a drink
 
 	// Constructor
 	public function __construct($request) {
@@ -1029,9 +1030,7 @@ class DrinkAPI extends API
 		else {
 			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
 		}
-		// Connect to the drink server
-		$response = "";
-		$this->elephant = false;
+		// Connect to the drink server and drop a drink
 		try {
 			// Create a new client
 			$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
@@ -1048,29 +1047,33 @@ class DrinkAPI extends API
 							$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => 0));
 							$this->elephant->on('drop_recv', function($data) {
 								if ($this->isWebsocketSuccess($data)) {
-									die(json_encode($this->_result(true, "Drink dropped!", true)));
+									$this->drop_result = array(true, "Drink dropped!", true);
+									$this->elephant->close();
 								}
 								else {
-									die(json_encode($this->_result(false, "Error dropping drink: ".$data." (/drops/drop)", false)));
+									$this->drop_result = array(false, "Error dropping drink: ".$data." (/drops/drop)", false);
+									$this->elephant->close();
 								}
 							});
 						}
 						else {
-							die(json_encode($this->_result(false, "Error contacting machine: ".$data." (/drops/drop)", false)));
+							$this->drop_result = array(false, "Error contacting machine: ".$data." (/drops/drop)", false);
+							$this->elephant->close();
 						}
 					});
 				}
 				else {
-					die(json_encode($this->_result(false, "Error authenticating iButton: ".$data." (/drops/drop)", false)));
+					$this->drop_result = array(false, "Error authenticating iButton: ".$data." (/drops/drop)", false);
+					$this->elephant->close();
 				}
-			}); //$ibutton_callback
+			});
 			$this->elephant->keepAlive();
 		}
 		catch (Exception $e) {
 			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
 		}
 		// Return result
-		return $this->_result(true, $response, true);
+		return $this->_result($this->drop_result[0], $this->drop_result[1], $this->drop_result[2]);
 	}
 
 	// Check the response of a websocket call for success/failure
