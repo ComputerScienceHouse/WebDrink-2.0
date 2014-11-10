@@ -504,7 +504,7 @@ offset | How many results to skip (optional, default to 0)
 
 **Description:** Drop a drink by machine ID and slot number, for a user identified by iButton, using a given delay
 
-**Parameters**
+**Parameters:**
 
 Attribute | Value
 ---|---
