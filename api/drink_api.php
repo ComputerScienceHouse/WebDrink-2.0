@@ -995,7 +995,7 @@ class DrinkAPI extends API
 		return $result;
 	}
 
-	// POST /drops/drop/:ibutton/:slot_num/:machine_id
+	// POST /drops/drop/:ibutton/:slot_num/:machine_id/:delay
 	private function _dropDrink() {
 		// Map of machine_id's to machine aliases
 		$machines = array(
@@ -1030,6 +1030,13 @@ class DrinkAPI extends API
 		else {
 			return $this->_result(false, "Missing parameter 'machine_id' (/drops/drop)", false);
 		}
+		// Check for drop delay
+		if (array_key_exists("delay", $this->request)) {
+			$this->drop_data["delay"] = $this->_sanitizeInt($this->request["delay"]);
+		}
+		else {
+			$this->drop_data["delay"] = 0;
+		}
 		// Connect to the drink server and drop a drink
 		try {
 			// Create a new client
@@ -1044,7 +1051,7 @@ class DrinkAPI extends API
 					$this->elephant->on('machine_recv', function($data) {
 						if ($this->isWebsocketSuccess($data)) {
 							// Drop the drink
-							$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => 0));
+							$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => $this->drop_data["delay"]));
 							$this->elephant->on('drop_recv', function($data) {
 								if ($this->isWebsocketSuccess($data)) {
 									$this->drop_result = array(true, "Drink dropped!", true);
