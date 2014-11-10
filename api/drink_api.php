@@ -974,11 +974,21 @@ class DrinkAPI extends API
 	/*
 	*	Drops Endpoint
 	*
-	*	IT'S HAPPENING
+	*	GET /drops/status/:machine_id/:slot_num
+	* POST /drops/drop/:ibutton/:slot_num/:machine_id
 	*/
 	protected function drops() {
 		$result = array();
 		switch ($this->verb) {
+			case "status":
+				// GET /drops/status/:machine_id/:slot_num
+				if ($this->method == "GET") {
+					$result = $this->_checkStatus();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/drops/status)", false);
+				}
+				break;
 			case "drop":
 				// POST /drops/drop/:ibutton/:slot_num/:machine_id
 				if ($this->method == "POST") {
@@ -1045,15 +1055,15 @@ class DrinkAPI extends API
 			// Validate iButton
 			$this->elephant->emit('ibutton', array('ibutton' => $this->drop_data["ibutton"]));
 			$this->elephant->on('ibutton_recv', function($data) {
-				if ($this->isWebsocketSuccess($data)) {
+				if ($this->_isWebsocketSuccess($data)) {
 					// Connect to the drink machine
 					$this->elephant->emit('machine', array('machine_id' => $this->drop_data["machine_alias"]));
 					$this->elephant->on('machine_recv', function($data) {
-						if ($this->isWebsocketSuccess($data)) {
+						if ($this->_isWebsocketSuccess($data)) {
 							// Drop the drink
 							$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => $this->drop_data["delay"]));
 							$this->elephant->on('drop_recv', function($data) {
-								if ($this->isWebsocketSuccess($data)) {
+								if ($this->_isWebsocketSuccess($data)) {
 									$this->drop_result = array(true, "Drink dropped!", true);
 									$this->elephant->close();
 								}
@@ -1083,8 +1093,13 @@ class DrinkAPI extends API
 		return $this->_result($this->drop_result[0], $this->drop_result[1], $this->drop_result[2]);
 	}
 
+	// Check the status of websocket connection (at all, to a machine, or to a specific slot)
+	private function _checkStatus() {
+		return $this->_result(true, "Success! (/drops/status)", true);
+	}
+
 	// Check the response of a websocket call for success/failure
-	private function isWebsocketSuccess($data) {
+	private function _isWebsocketSuccess($data) {
 		$success = explode(":", $data);
 		$success = $success[0];
 		if ($success === "OK") {
