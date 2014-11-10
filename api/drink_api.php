@@ -9,23 +9,7 @@ require_once('./abstract_api.php');
 // Include configuration info
 require_once("../config.php");
 
-// Include elephant.io source files
-// use ElephantIO\Client, ElephantIO\Engine\SocketIO\Version0X;
-// require_once('../lib/elephant.io/src/AbstractPayload.php');
-// require_once('../lib/elephant.io/src/Client.php');
-// require_once('../lib/elephant.io/src/EngineInterface.php');
-// require_once('../lib/elephant.io/src/Engine/AbstractSocketIO.php');
-// require_once('../lib/elephant.io/src/Engine/SocketIO/Session.php');
-// require_once('../lib/elephant.io/src/Engine/SocketIO/Version0X.php');
-// //require_once('../lib/elephant.io/src/Engine/SocketIO/Version1X.php');
-// require_once('../lib/elephant.io/src/Exception/MalformedUrlException.php');
-// require_once('../lib/elephant.io/src/Exception/ServerConnectionFailureException.php');
-// require_once('../lib/elephant.io/src/Exception/SocketException.php');
-// require_once('../lib/elephant.io/src/Exception/UnsupportedActionException.php');
-// require_once('../lib/elephant.io/src/Exception/UnsupportedTransportException.php');
-// require_once('../lib/elephant.io/src/Payload/Decoder.php');
-// require_once('../lib/elephant.io/src/Payload/Encoder.php');
-
+// Include Elephant.IO for websocket calls
 use ElephantIO\Client as ElephantIOClient;
 require('../lib/elephant.io-2.0.4/Client.php');
 require('../lib/elephant.io-2.0.4/Payload.php');
@@ -39,8 +23,8 @@ class DrinkAPI extends API
 	private $uid = false;		// My uid (username)
 	private $webauth = false;	// Am I authenticated with Webauth?
 
-	// private $DRINK_SERVER = "https://webdrink.csh.rit.edu:443";
-	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080";
+	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080"; // Address of the drink server
+	private $drop_data = array(); // Data required for making a drink drop
 
 	// Constructor
 	public function __construct($request) {
@@ -1020,27 +1004,24 @@ class DrinkAPI extends API
 			"3" => "s"
 		);
 		// Check for ibutton
-		$ibutton = false;
 		if (array_key_exists("ibutton", $this->request)) {
-			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+			$this->drop_data["ibutton"] = $this->_sanitizeString($this->request["ibutton"]);
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
 		}
 		// Check for slot_num
-		$slot_num = false;
 		if (array_key_exists("slot_num", $this->request)) {
-			$slot_num = $this->_sanitizeInt($this->request["slot_num"]);
+			$this->drop_data["slot_num"] = $this->_sanitizeInt($this->request["slot_num"]);
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'slot_num' (/drops/drop)", false);
 		}
 		// Check for machine_id and convert to machine_alias
-		$machine_alias = false;
 		if (array_key_exists("machine_id", $this->request)) {
 			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
 			if (array_key_exists($machine_id, $machines)) {
-				$machine_alias = $machines[$machine_id];
+				$this->drop_data["machine_alias"] = $machines[$machine_id];
 			}
 			else {
 				return $this->_result(false, "Invalid 'machine_id' (/drops/drop)", false);
@@ -1062,30 +1043,37 @@ class DrinkAPI extends API
 				$machine_callback = function($data) {
 					// Drop
 					$drop_callback = function($data) {
-						die($data);
+						$success = explode(":", $data);
+						$success = $success[0];
+						if ($success === "OK") {
+							die(json_encode($this->_result(true, "Drink dropped!", true)));
+						}
+						else {
+							die(json_encode($this->_result(false, "Error dropping drink: ".$data." (/drops/drop)", false)));
+						}
 					};
 					$success = explode(":", $data);
 					$success = $success[0];
-					if ($success == "OK") {
-						$this->elephant->emit('drop', array('slot_num' => 1, 'delay' => 0));
+					if ($success === "OK") {
+						$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => 0));
 						$this->elephant->on('drop_recv', $drop_callback);
 					}
 					else {
-						die("nope 2");
+						die(json_encode($this->_result(false, "Error contacting machine: ".$data." (/drops/drop)", false)));
 					}
 				};
 				$success = explode(":", $data);
 				$success = $success[0];
-				if ($success == "OK") {
-					$this->elephant->emit('machine', array('machine_id' => "ld")); //$machine_alias
+				if ($success === "OK") {
+					$this->elephant->emit('machine', array('machine_id' => $this->drop_data["machine_alias"]));
 					$this->elephant->on('machine_recv', $machine_callback);
 				}
 				else {
-					die("nope 1");
+					die(json_encode($this->_result(false, "Error authenticating iButton: ".$data." (/drops/drop)", false)));
 				}
 			};
 			// Kick it off
-			$this->elephant->emit('ibutton', array('ibutton' => $ibutton));
+			$this->elephant->emit('ibutton', array('ibutton' => $this->drop_data["ibutton"]));
 			$this->elephant->on('ibutton_recv', $ibutton_callback);
 			$this->elephant->keepAlive();
 		}
