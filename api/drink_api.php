@@ -988,7 +988,7 @@ class DrinkAPI extends API
 		$result = array();
 		switch ($this->verb) {
 			case "status":
-				// GET /drops/status/:ibutton
+				// POST /drops/status/:ibutton
 				if ($this->method == "POST") {
 					$result = $this->_checkStatus();
 				}
@@ -1094,7 +1094,7 @@ class DrinkAPI extends API
 		return $this->_result($this->drop_result[0], $this->drop_result[1], $this->drop_result[2]);
 	}
 
-	// GET /drops/status/:ibutton
+	// POST /drops/status/:ibutton
 	private function _checkStatus() {
 		// Check for ibutton
 		$ibutton = false;

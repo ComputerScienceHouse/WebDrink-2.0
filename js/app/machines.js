@@ -65,19 +65,27 @@ app.factory("MachineService", function($http, $window, $log) {
 		},
 		// Drop a drink
     dropDrink: function(data, successCallback, errorCallback) {
-    	$log.log(data);
       $http({
         method: "POST",
         url: baseUrl+"drops/drop",
         data: jQuery.param(data),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'}
       }).success(successCallback).error(errorCallback);
+    },
+    // Check the status of the drink server
+    checkStatus: function(ibutton, successCallback, errorCallback) {
+    	$http({
+    		method: "POST",
+    		url: baseUrl+"drops/status",
+    		data: jQuery.param({"ibutton": ibutton}),
+    		headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    	}).success(successCallback).error(errorCallback);
     }
 	};
 });
 
 // Controller for the machines page
-app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'MachineService', function ($scope, $log, $window, $timeout, MachineService) {
+app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interval', 'MachineService', function ($scope, $log, $window, $timeout, $interval, MachineService) {
 
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
@@ -95,6 +103,14 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 		message: "Check out the code on <a href='https://github.com/bencentra/WebDrink-2.0/'>GitHub</a> " +
 							"and report any <a href='https://github.com/bencentra/WebDrink-2.0/issues'>issues</a>.",
 		show: true,
+		closeable: false
+	});
+
+	// Data for the websocket connection alert
+	$scope.websocket_alert = new $scope.Alert({
+		title: "Warning:",
+		message: "Websocket not connected!",
+		show: false,
 		closeable: false
 	});
 
@@ -263,7 +279,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 	}
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
-		if (false) { //!$scope.authed
+		if (!$scope.authed) { 
 			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
 		}
 		else {
@@ -272,6 +288,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 			$scope.dropTimeout = $timeout(function () {
 				if ($scope.delay <= 0) {
 					$timeout.cancel($scope.dropTimeout);
+					$scope.dropping_message = "Dropping drink..."
 					$scope.dropDrink();
 				}
 				else {
@@ -282,23 +299,46 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', 'Machine
 			}, 1000);
 		}
 	};
+
 	// Initialize the drop process
 	$scope.startDrop = function() {
 		jQuery("#dropModal").modal("show");
 		$scope.reduceDelay();
 	}
 
+	// Check the status of the drink server
+	$scope.checkStatus = function () {
+		MachineService.checkStatus($scope.current_user.ibutton,
+			function (response) {
+				if (response.status) {
+					$scope.authed = true;
+					$scope.websocket_alert.show = false;
+				}
+				else {
+					$scope.authed = false;
+					$scope.websocket_alert.show = true;
+					$scope.websocket_alert.message = response.message;
+				}
+			},
+			function (error) {
+				$scope.authed = false;
+				$scope.websocket_alert.show = true;
+				$log.log(error);
+			}
+		);
+	};
+
+	// Check the drink server's status now
+	$scope.checkStatus();
+	// Keep checking the status
+	$scope.statusTimeout = $interval(function () {
+		$scope.checkStatus();
+	}, 15000);
+
 	/*
 	* Websocket Things
 	*/
 
-	// Data for the websocket connection alert
-	$scope.websocket_alert = new $scope.Alert({
-		title: "Warning:",
-		message: "Websocket not connected!",
-		show: false,
-		closeable: false
-	});
 	// Websocket connection variables
 	// $scope.authed = false; 			// Authentication status
 	// $scope.requesting = false; 		// Are we currently handling a request?
