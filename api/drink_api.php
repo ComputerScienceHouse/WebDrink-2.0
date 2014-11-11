@@ -26,6 +26,13 @@ class DrinkAPI extends API
 	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080"; // Address of the drink server
 	private $drop_data = array(); // Data required to drop a drink
 	private $drop_result = array(); // Data to return from dropping a drink
+	
+	// Map of machine_id's to machine aliases
+	private $machines = array(
+		"1" => "ld",
+		"2" => "d",
+		"3" => "s"
+	);
 
 	// Constructor
 	public function __construct($request) {
@@ -974,15 +981,15 @@ class DrinkAPI extends API
 	/*
 	*	Drops Endpoint
 	*
-	*	GET /drops/status/:machine_id/:slot_num
+	*	POST /drops/status/:ibutton
 	* POST /drops/drop/:ibutton/:slot_num/:machine_id
 	*/
 	protected function drops() {
 		$result = array();
 		switch ($this->verb) {
 			case "status":
-				// GET /drops/status/:machine_id/:slot_num
-				if ($this->method == "GET") {
+				// GET /drops/status/:ibutton
+				if ($this->method == "POST") {
 					$result = $this->_checkStatus();
 				}
 				else {
@@ -1007,12 +1014,6 @@ class DrinkAPI extends API
 
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id/:delay
 	private function _dropDrink() {
-		// Map of machine_id's to machine aliases
-		$machines = array(
-			"1" => "ld",
-			"2" => "d",
-			"3" => "s"
-		);
 		// Check for ibutton
 		if (array_key_exists("ibutton", $this->request)) {
 			$this->drop_data["ibutton"] = $this->_sanitizeString($this->request["ibutton"]);
@@ -1030,8 +1031,8 @@ class DrinkAPI extends API
 		// Check for machine_id and convert to machine_alias
 		if (array_key_exists("machine_id", $this->request)) {
 			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
-			if (array_key_exists($machine_id, $machines)) {
-				$this->drop_data["machine_alias"] = $machines[$machine_id];
+			if (array_key_exists($machine_id, $this->machines)) {
+				$this->drop_data["machine_alias"] = $this->machines[$machine_id];
 			}
 			else {
 				return $this->_result(false, "Invalid 'machine_id' (/drops/drop)", false);
@@ -1093,9 +1094,37 @@ class DrinkAPI extends API
 		return $this->_result($this->drop_result[0], $this->drop_result[1], $this->drop_result[2]);
 	}
 
-	// Check the status of websocket connection (at all, to a machine, or to a specific slot)
+	// GET /drops/status/:ibutton
 	private function _checkStatus() {
-		return $this->_result(true, "Success! (/drops/status)", true);
+		// Check for ibutton
+		$ibutton = false;
+		if (array_key_exists("ibutton", $this->request)) {
+			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+		}
+		else {
+			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
+		}
+		// Make sure the ibutton connection succeeds; if so, we're (probably) good
+		try {
+			$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
+			$this->elephant->init();
+			$this->elephant->emit('ibutton', array('ibutton' => $ibutton));
+			$this->elephant->on('ibutton_recv', function($data) {
+				if ($this->_isWebsocketSuccess($data)) {
+					$this->status_result = $this->_result(true, "Success! (/drops/status)", true);
+					$this->elephant->close();
+				}
+				else {
+					$this->status_result = $this->_result(false, "Invalid iButton (/drops/status)", false);
+					$this->elephant->close();
+				}
+			});
+			$this->elephant->keepAlive();
+		}
+		catch (Exception $e) {
+			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
+		}
+		return $this->status_result;
 	}
 
 	// Check the response of a websocket call for success/failure
