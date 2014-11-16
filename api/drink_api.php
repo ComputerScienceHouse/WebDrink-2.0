@@ -14,6 +14,15 @@ use ElephantIO\Client as ElephantIOClient;
 require('../lib/elephant.io-2.0.4/Client.php');
 require('../lib/elephant.io-2.0.4/Payload.php');
 
+// Declare some globals, dumb hack for PHP 5.3 to get ElephantIO working
+try {
+	$elephant = new ElephantIOClient("https://drink.csh.rit.edu:8080", "socket.io", 1, false, true, true);
+	$elephant_result = array();
+}
+catch (Exception $e) {
+	die($e->getMessage());
+}
+
 /*
 *	Concrete API implementation for WebDrink
 */
@@ -23,7 +32,6 @@ class DrinkAPI extends API
 	private $uid = false;		// My uid (username)
 	private $webauth = false;	// Am I authenticated with Webauth?
 
-	private $DRINK_SERVER = "https://drink.csh.rit.edu:8080"; // Address of the drink server
 	private $drop_data = array(); // Data required to drop a drink
 	private $drop_result = array(); // Data to return from dropping a drink
 	
@@ -1105,26 +1113,32 @@ class DrinkAPI extends API
 			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
 		}
 		// Make sure the ibutton connection succeeds; if so, we're (probably) good
+		global $elephant;
+		global $elephant_result;
 		try {
-			$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
-			$this->elephant->init();
-			$this->elephant->emit('ibutton', array('ibutton' => $ibutton));
-			$this->elephant->on('ibutton_recv', function($data) {
-				if ($this->_isWebsocketSuccess($data)) {
-					$this->status_result = $this->_result(true, "Success! (/drops/status)", true);
-					$this->elephant->close();
+			//$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
+			$elephant->init();
+			$elephant->emit('ibutton', array('ibutton' => $ibutton));
+			$elephant->on('ibutton_recv', function($data) {
+				global $elephant;
+				global $elephant_result;
+				$success = explode(":", $data);
+				$success = $success[0];
+				if ($success === "OK") {
+					$elephant_result = array(true, "Success! (/drops/status)", true);
+					$elephant->close();
 				}
 				else {
-					$this->status_result = $this->_result(false, "Invalid iButton (/drops/status)", false);
-					$this->elephant->close();
+					$elephant_result = array(false, "Invalid iButton (/drops/status)", false);
+					$elephant->close();
 				}
 			});
-			$this->elephant->keepAlive();
+			$elephant->keepAlive();
 		}
 		catch (Exception $e) {
 			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
 		}
-		return $this->status_result;
+		return $this->_result($elephant_result[0], $elephant_result[1], $elephant_result[2]);
 	}
 
 	// Check the response of a websocket call for success/failure
