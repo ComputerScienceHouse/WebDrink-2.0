@@ -1,6 +1,6 @@
 # WebDrink 2.0
 
-A rewrite of the web interface [Drink](http://csh.rit.edu/projects.php), the networked vending machines on Computer Science House. Used for managing inventory, applying credits, dropping drinks, and more. Includes and updated, mobile-friendly interface and an API for easily creating new Drink clients. 
+A rewrite of the web interface for [Drink](http://csh.rit.edu/projects.php), the networked vending machines on Computer Science House. It can be used for managing inventory, applying credits, dropping drinks, and more. It includes an updated, mobile-friendly interface and an API for easily creating new Drink clients. 
 
 Based on the original [WebDrink](https://github.com/ComputerScienceHouse/WebDrink). Uses [Drink-JS](https://github.com/ComputerScienceHouse/Drink-JS) to communicate with the Drink hardware.
 
