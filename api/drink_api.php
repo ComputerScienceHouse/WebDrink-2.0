@@ -18,6 +18,7 @@ require('../lib/elephant.io-2.0.4/Payload.php');
 try {
 	$elephant = new ElephantIOClient("https://drink.csh.rit.edu:8080", "socket.io", 1, false, true, true);
 	$elephant_result = array();
+	$drop_data = array();
 }
 catch (Exception $e) {
 	die($e->getMessage());
@@ -1022,16 +1023,19 @@ class DrinkAPI extends API
 
 	// POST /drops/drop/:ibutton/:slot_num/:machine_id/:delay
 	private function _dropDrink() {
+		global $elephant;
+		global $elephant_result;
+		global $drop_data;
 		// Check for ibutton
 		if (array_key_exists("ibutton", $this->request)) {
-			$this->drop_data["ibutton"] = $this->_sanitizeString($this->request["ibutton"]);
+			$drop_data["ibutton"] = $this->_sanitizeString($this->request["ibutton"]);
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
 		}
 		// Check for slot_num
 		if (array_key_exists("slot_num", $this->request)) {
-			$this->drop_data["slot_num"] = $this->_sanitizeInt($this->request["slot_num"]);
+			$drop_data["slot_num"] = $this->_sanitizeInt($this->request["slot_num"]);
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'slot_num' (/drops/drop)", false);
@@ -1040,7 +1044,7 @@ class DrinkAPI extends API
 		if (array_key_exists("machine_id", $this->request)) {
 			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
 			if (array_key_exists($machine_id, $this->machines)) {
-				$this->drop_data["machine_alias"] = $this->machines[$machine_id];
+				$drop_data["machine_alias"] = $this->machines[$machine_id];
 			}
 			else {
 				return $this->_result(false, "Invalid 'machine_id' (/drops/drop)", false);
@@ -1051,55 +1055,72 @@ class DrinkAPI extends API
 		}
 		// Check for drop delay
 		if (array_key_exists("delay", $this->request)) {
-			$this->drop_data["delay"] = $this->_sanitizeInt($this->request["delay"]);
+			$drop_data["delay"] = $this->_sanitizeInt($this->request["delay"]);
 		}
 		else {
-			$this->drop_data["delay"] = 0;
+			$drop_data["delay"] = 0;
 		}
 		// Connect to the drink server and drop a drink
 		try {
 			// Create a new client
-			$this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
-			$this->elephant->init();
+			// $this->elephant = new ElephantIOClient($this->DRINK_SERVER, "socket.io", 1, false, true, true);
+			global $elephant;
+			global $elephant_result;
+			global $drop_data;
+			$elephant->init();
 			// Validate iButton
-			$this->elephant->emit('ibutton', array('ibutton' => $this->drop_data["ibutton"]));
-			$this->elephant->on('ibutton_recv', function($data) {
-				if ($this->_isWebsocketSuccess($data)) {
+			$elephant->emit('ibutton', array('ibutton' => $drop_data["ibutton"]));
+			$elephant->on('ibutton_recv', function($data) {
+				global $elephant;
+				global $elephant_result;
+				global $drop_data;
+				$success = explode(":", $data);
+				$success = $success[0];
+				if ($success === "OK") {
 					// Connect to the drink machine
-					$this->elephant->emit('machine', array('machine_id' => $this->drop_data["machine_alias"]));
-					$this->elephant->on('machine_recv', function($data) {
-						if ($this->_isWebsocketSuccess($data)) {
+					$elephant->emit('machine', array('machine_id' => $drop_data["machine_alias"]));
+					$elephant->on('machine_recv', function($data) {
+						global $elephant;
+						global $elephant_result;
+						global $drop_data;
+						$success = explode(":", $data);
+						$success = $success[0];
+						if ($success === "OK") {
 							// Drop the drink
-							$this->elephant->emit('drop', array('slot_num' => $this->drop_data["slot_num"], 'delay' => $this->drop_data["delay"]));
-							$this->elephant->on('drop_recv', function($data) {
-								if ($this->_isWebsocketSuccess($data)) {
-									$this->drop_result = array(true, "Drink dropped!", true);
-									$this->elephant->close();
+							$elephant->emit('drop', array('slot_num' => $drop_data["slot_num"], 'delay' => $drop_data["delay"]));
+							$elephant->on('drop_recv', function($data) {
+								global $elephant;
+								global $elephant_result;
+								$success = explode(":", $data);
+								$success = $success[0];
+								if ($success === "OK") {
+									$elephant_result = array(true, "Drink dropped!", true);
+									$elephant->close();
 								}
 								else {
-									$this->drop_result = array(false, "Error dropping drink: ".$data." (/drops/drop)", false);
-									$this->elephant->close();
+									$elephant_result = array(false, "Error dropping drink: ".$data." (/drops/drop)", false);
+									$elephant->close();
 								}
 							});
 						}
 						else {
-							$this->drop_result = array(false, "Error contacting machine: ".$data." (/drops/drop)", false);
-							$this->elephant->close();
+							$elephant_result = array(false, "Error contacting machine: ".$data." (/drops/drop)", false);
+							$elephant->close();
 						}
 					});
 				}
 				else {
-					$this->drop_result = array(false, "Error authenticating iButton: ".$data." (/drops/drop)", false);
-					$this->elephant->close();
+					$elephant_result = array(false, "Error authenticating iButton: ".$data." (/drops/drop)", false);
+					$elephant->close();
 				}
 			});
-			$this->elephant->keepAlive();
+			$elephant->keepAlive();
 		}
 		catch (Exception $e) {
 			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
 		}
 		// Return result
-		return $this->_result($this->drop_result[0], $this->drop_result[1], $this->drop_result[2]);
+		return $this->_result($elephant_result[0], $elephant_result[1], $elephant_result[2]);
 	}
 
 	// POST /drops/status/:ibutton
@@ -1139,16 +1160,6 @@ class DrinkAPI extends API
 			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
 		}
 		return $this->_result($elephant_result[0], $elephant_result[1], $elephant_result[2]);
-	}
-
-	// Check the response of a websocket call for success/failure
-	private function _isWebsocketSuccess($data) {
-		$success = explode(":", $data);
-		$success = $success[0];
-		if ($success === "OK") {
-			return true;
-		}
-		return false;
 	}
 
 }
