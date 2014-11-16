@@ -39,7 +39,7 @@ app.factory("UserService", function($http, $window, $log) {
 });
 
 // Controller for the Manage Users page
-app.controller("UserCtrl", ['$scope', '$log', 'UserService', 'DropService', function ($scope, $log, UserService, DropService) {
+app.controller("UserCtrl", ['$scope', '$log', 'UserService', 'LogsService', function ($scope, $log, UserService, LogsService) {
 	$scope.searchTerm = "";				// Username being searched for
 	$scope.searchResults = {};			// All matching usernames from a search
 	$scope.activeUser = {				// Current user being managed
@@ -118,7 +118,7 @@ app.controller("UserCtrl", ['$scope', '$log', 'UserService', 'DropService', func
 			"uid": $scope.activeUser.uid,
 			"limit": $scope.dropsToLoad
 		};
-		DropService.getDrops(data,
+		LogsService.getDrops(data,
 			function (response) {
 				if (response.status) {
 					$scope.activeUser.drops = response.data;
