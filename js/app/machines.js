@@ -127,6 +127,8 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
       text: "Drop"
     }
   });
+ 	// Attach the drop delay to the select_modal (GROSS)
+ 	$scope.select_modal.delay = 0;
 
 	// Modal for the drop countdown
   $scope.drop_modal = new $scope.Modal({
@@ -237,20 +239,36 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 			}
 		}
 	}
+
 	// Initialize modal data for dropping a drink
 	$scope.selectDrink = function (slot) {
 		$scope.current_slot = slot;
 		$scope.select_modal.title = "Drop "+slot.item_name+"?"
-		$scope.delay = 0;
+		$scope.select_modal.delay = 0;
+		// $scope.delay = 0;
 	}; 
+
+	// Initialize the drop process
+	$scope.startDrop = function () {
+		jQuery("#dropModal").modal("show");
+		// Get the delay from the select_modal (GROSS)
+		$scope.delay = $scope.validateDelayValue($scope.select_modal.delay);
+		$scope.dropDrink();
+	};
+
 	// Drop a drink
 	$scope.dropDrink = function () {
-		// $scope.wsDrop($scope.current_slot.slot_num, $scope.machines[$scope.current_slot.machine_id].alias);
+		// Don't drop if the websocket isn't connected
+		if (!$scope.authed) {
+			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
+			return;
+		}
+		// Send the drop command to the server
 		MachineService.dropDrink({
 			ibutton: $scope.current_user.ibutton,
 			machine_id: $scope.current_slot.machine_id,
 			slot_num: $scope.current_slot.slot_num,
-			delay: 0
+			delay: $scope.delay
 		}, function (response) {
 			if (response.status) {
 				$scope.dropping_message = "Drink dropped!";
@@ -275,35 +293,29 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 			}
 		}, function (error) {
 			$log.log(error);
-		})
+		});
+		// Countdown on the client
+		$scope.reduceDelay();
 	}
+
 	// Count down the delay until a drink is dropped
 	$scope.reduceDelay = function () {
-		if (!$scope.authed) { 
-			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
-		}
-		else {
-			$scope.delay = (typeof $scope.delay === "undefined" || $scope.delay == null) ? 3 : Math.floor($scope.delay);
-			$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-			$scope.dropTimeout = $timeout(function () {
-				if ($scope.delay <= 0) {
-					$timeout.cancel($scope.dropTimeout);
-					$scope.dropping_message = "Dropping drink..."
-					$scope.dropDrink();
-				}
-				else {
-					$scope.delay -= 1;
-					$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
-					$scope.reduceDelay();
-				}
-			}, 1000);
-		}
+		$scope.dropping_message = "Dropping in " + $scope.delay + " seconds...";
+		$scope.dropTimeout = $timeout(function () {
+			if ($scope.delay <= 0) {
+				$timeout.cancel($scope.dropTimeout);
+				$scope.dropping_message = "Dropping drink...";
+			}
+			else {
+				$scope.delay -= 1;
+				$scope.reduceDelay();
+			}
+		}, 1000);
 	};
 
-	// Initialize the drop process
-	$scope.startDrop = function() {
-		jQuery("#dropModal").modal("show");
-		$scope.reduceDelay();
+	// Validate the value of the drop delay (no strings, no decimals, no problem)
+	$scope.validateDelayValue = function (delay) {
+		return (typeof delay === "undefined" || delay == null) ? 3 : Math.floor(delay);
 	}
 
 	// Check the status of the drink server
