@@ -49,6 +49,7 @@ Here is a quick rundown of the available API methods:
 * [GET /temps/machines/:machine_id/:limit/:offset](#get-tempsmachinesmachine_idlimitoffset) - Get temperature data for a single drink machine
 
 #### Drops
+* [POST /drops/status/:ibutton](#post-dropsstatusibutton) - Check the Websocket connection to the drink server
 * [POST /drops/drop/:ibutton/:machine_id/:slot_num/:delay](#post-dropsdropibuttonmachine_idslot_numdelay) - Drop a drink by machine id and slot number, using the specified delay.
 
 ***
@@ -499,6 +500,26 @@ offset | How many results to skip (optional, default to 0)
 }
 ```
 ## Drops
+
+### POST /drops/status/:ibutton
+
+**Description:** Check the status of the Websocket connection to the drink server.
+
+**Parameters:**
+
+Attribute | Value
+---|---
+ibutton | iButton number of the user dropping a drink
+
+**Sample Response:**
+
+```json
+{
+    "status": true,
+    "message": "Success! (/drops/status)",
+    "data": true
+}
+```
 
 ### POST /drops/drop/:ibutton/:machine_id/:slot_num/:delay
 
