@@ -56,7 +56,6 @@ app.controller("ItemCtrl", ['$scope', '$log', 'ItemService', 'MachineService', f
 	$scope.item_filter = "";
 	$scope.reverse_sort = false;
 	$scope.setReverseSort = function (sort) {
-		$log.log(sort);
 		if (sort == "yes")
 			$scope.reverse_sort = true;
 		else
