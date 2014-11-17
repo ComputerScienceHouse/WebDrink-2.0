@@ -28,7 +28,7 @@ Here is a quick rundown of the available API methods:
 * [GET /users/credits/:uid](#get-userscreditsuid) - Get a user's drink credit balance (drink admin only if :uid != your uid)
 * [POST /users/credits/:uid/:value/:type](#post-userscreditsuidvaluetype) - Update a user's drink credit balance (drink admin only)
 * [GET /users/search/:uid](#get-userssearchuid) - Search for usernames that match the search :uid
-* [GET /users/info/:uid/:ibutton](#get-usersinfoapi_key) - Get a user's info (uid, username, common name, credit balance, and ibutton value)
+* [GET /users/info/:uid/:ibutton](#get-usersinfouidibutton) - Get a user's info (uid, username, common name, credit balance, and ibutton value)
 * [GET /users/drops/:limit/:offset/:uid](#get-usersdropslimitoffsetuid) - Get the drop logs for a single or all users
 * [GET /users/apikey](#get-usersapikey) - Get your API key (Webauth Only)
 * [POST /users/apikey](#post-usersapikey) - Generate a new API key for yourself (Webauth Only)
@@ -49,7 +49,7 @@ Here is a quick rundown of the available API methods:
 * [GET /temps/machines/:machine_id/:limit/:offset](#get-tempsmachinesmachine_idlimitoffset) - Get temperature data for a single drink machine
 
 #### Drops
-* [POST /drops/status/:ibutton](#post-dropsstatusibutton) - Check the Websocket connection to the drink server
+* [GET /drops/status](#post-dropsstatus) - Check the Websocket connection to the drink server
 * [POST /drops/drop/:ibutton/:machine_id/:slot_num/:delay](#post-dropsdropibuttonmachine_idslot_numdelay) - Drop a drink by machine id and slot number, using the specified delay.
 
 ***
@@ -183,7 +183,7 @@ uid | (Partial) username of the user
 }
 ```
 
-### GET /users/info/
+### GET /users/info/:uid/:ibutton
 
 **Description:** Get your own user info, including uid, username, credit balance, and ibutton. Drink admins can look up other user's info by uid or ibutton.
 
@@ -501,15 +501,11 @@ offset | How many results to skip (optional, default to 0)
 ```
 ## Drops
 
-### POST /drops/status/:ibutton
+### GET /drops/status
 
 **Description:** Check the status of the Websocket connection to the drink server.
 
-**Parameters:**
-
-Attribute | Value
----|---
-ibutton | iButton number of the user dropping a drink
+**Parameters:** None.
 
 **Sample Response:**
 

@@ -73,12 +73,10 @@ app.factory("MachineService", function($http, $window, $log) {
       }).success(successCallback).error(errorCallback);
     },
     // Check the status of the drink server
-    checkStatus: function(ibutton, successCallback, errorCallback) {
+    checkStatus: function(successCallback, errorCallback) {
     	$http({
-    		method: "POST",
-    		url: baseUrl+"drops/status",
-    		data: jQuery.param({"ibutton": ibutton}),
-    		headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    		method: "GET",
+    		url: baseUrl+"drops/status"
     	}).success(successCallback).error(errorCallback);
     }
 	};
@@ -320,7 +318,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 
 	// Check the status of the drink server
 	$scope.checkStatus = function () {
-		MachineService.checkStatus($scope.current_user.ibutton,
+		MachineService.checkStatus(
 			function (response) {
 				if (response.status) {
 					$scope.authed = true;
