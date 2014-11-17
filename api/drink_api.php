@@ -990,15 +990,15 @@ class DrinkAPI extends API
 	/*
 	*	Drops Endpoint
 	*
-	*	POST /drops/status/:ibutton
+	*	GET /drops/status/
 	* POST /drops/drop/:ibutton/:slot_num/:machine_id
 	*/
 	protected function drops() {
 		$result = array();
 		switch ($this->verb) {
 			case "status":
-				// POST /drops/status/:ibutton
-				if ($this->method == "POST") {
+				// GET /drops/status/
+				if ($this->method == "GET") {
 					$result = $this->_checkStatus();
 				}
 				else {
@@ -1123,15 +1123,16 @@ class DrinkAPI extends API
 		return $this->_result($elephant_result[0], $elephant_result[1], $elephant_result[2]);
 	}
 
-	// POST /drops/status/:ibutton
+	// GET /drops/status/
 	private function _checkStatus() {
-		// Check for ibutton
 		$ibutton = false;
-		if (array_key_exists("ibutton", $this->request)) {
-			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+		// Get the user's iButton
+		$info = $this->_getUserInfo();
+		if ($info["status"] == true && array_key_exists("ibutton", $info["data"])) {
+			$ibutton = $info["data"]["ibutton"];
 		}
 		else {
-			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
+			return $this->_result(false, "Error getting iButton, can't check server status (/drops/status)", false);
 		}
 		// Make sure the ibutton connection succeeds; if so, we're (probably) good
 		global $elephant;
