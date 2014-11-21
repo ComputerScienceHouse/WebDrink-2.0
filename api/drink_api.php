@@ -57,7 +57,7 @@ class DrinkAPI extends API
 			$this->webauth = false;
 		}
 		else if (DEBUG) {
-			$this->uid = "bencentra";
+			$this->uid = DEBUG_USER_UID;
 			$this->webauth = true;
 		}
 		else {

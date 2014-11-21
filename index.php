@@ -11,8 +11,8 @@ require_once("./config.php");
 // Grab some necessary info from webauth
 $user_data = array();
 if (DEBUG) {
-	$user_data['cn'] = htmlentities("Ben Centra");
-	$user_data['uid'] = htmlentities("bencentra");
+	$user_data['cn'] = htmlentities(DEBUG_USER_CN);
+	$user_data['uid'] = htmlentities(DEBUG_USER_UID);
 }
 else {
 	$user_data['uid'] = htmlentities($_SERVER['WEBAUTH_USER']);
@@ -101,7 +101,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 					<li ng-class="(location.path() == '/machines') ? 'active' : ''" class="navitem"><a href="#/machines">Machines</a></li>	
 					<!--<li ng-class="(location.path() == '/thunderdome') ? 'active' : ''" class="navitem"><a href="#/thunderdome">Thunderdome</a></li>-->
 					<li ng-class="(location.path() == '/settings') ? 'active' : ''" class="navitem"><a href="#/settings">Settings</a></li>
-					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown" ng-show="current_user.admin">
+					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown" ng-show="current_user.admin === '1'">
 						<a href="" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 						<ul class="dropdown-menu">
 							<li><a class="navitem" href="#admin/users">Users</a></li>
