@@ -14,7 +14,8 @@ var CONFIG = {
     baseUrl: "https://webdrink.csh.rit.edu/api/"
   },
   app: {
-    sessionTimeout: 15000
+    sessionTimeout: 30000,
+    errorTimeout: 3000
   }
 };
 ```
