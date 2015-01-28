@@ -349,33 +349,25 @@ class DrinkAPI extends API
 	private function _getUserInfo() {
 		$uid = false;
 		$ibutton = false;
-		if (!$this->admin) {
-			// Check for the current user's uid
-			$uid = $this->uid;
-			if (!$uid) {
-				return $this->_result(false, "Error looking up info; user not found (/users/info)", false);
-			}
+		// Check for a uid to lookup
+		if (array_key_exists("uid", $this->request)) {
+			$uid = $this->_sanitizeString($this->request["uid"]);
 		}
+		// Check for an ibutton to lookup
+		else if (array_key_exists("ibutton", $this->request)) {
+			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+		}
+		// If nothing provided, look up your own info
+		else if ($this->uid) {
+			$uid = $this->uid;
+		}
+		// If somehow nothing is defined...
 		else {
-			// Check for a uid to lookup
-			if (array_key_exists("uid", $this->request)) {
-				$uid = $this->_sanitizeString($this->request["uid"]);
-			}
-			// Check for an ibutton to lookup
-			else if (array_key_exists("ibutton", $this->request)) {
-				$ibutton = $this->_sanitizeString($this->request["ibutton"]);
-			}
-			// If nothing provided, look up your own info
-			else if ($this->uid) {
-				$uid = $this->uid;
-			}
-			// If somehow nothing is defined...
-			else {
-				return $this->_result(false, "Error: please provide a uid or ibutton to look up (/users/info)", false);
-			}
+			return $this->_result(false, "Error: please provide a uid or ibutton to look up (/users/info)", false);
 		}
 		// Query LDAP for the user info
-		$fields = array('drinkBalance', 'drinkAdmin', 'ibutton', 'cn', 'uid');
+		$fields = array('drinkBalance', 'drinkAdmin', 'cn', 'uid');
+		if ($this->admin) $fields[] = 'ibutton';
 		$data = false;
 		if ($uid) {
 			$data = ldap_lookup_uid($uid, $fields);
@@ -393,7 +385,7 @@ class DrinkAPI extends API
 				$tmp["uid"] = $data[0]["uid"][0];
 				$tmp["credits"] = $data[0]["drinkbalance"][0];
 				$tmp["admin"] = $data[0]["drinkadmin"][0];
-				$tmp["ibutton"] = $data[0]["ibutton"][0];
+				if ($this->admin) $tmp["ibutton"] = $data[0]["ibutton"][0];
 				$tmp["cn"] = $data[0]["cn"][0];
 				return $this->_result(true, "Success (/users/info)", $tmp);
 			}
