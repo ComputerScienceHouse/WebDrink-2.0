@@ -1119,11 +1119,16 @@ class DrinkAPI extends API
 	private function _checkStatus() {
 		$ibutton = false;
 		// Get the user's iButton
-		$info = $this->_getUserInfo();
-		if ($info["status"] == true && array_key_exists("ibutton", $info["data"])) {
-			$ibutton = $info["data"]["ibutton"];
+		if (array_key_exists("ibutton", $this->request)) {
+			$ibutton = $this->request["ibutton"];
 		}
 		else {
+			$info = $this->_getUserInfo();
+			if ($info["status"] == true && array_key_exists("ibutton", $info["data"])) {
+				$ibutton = $info["data"]["ibutton"];
+			}
+		}
+		if (!$ibutton) {
 			return $this->_result(false, "Error getting iButton, can't check server status (/drops/status)", false);
 		}
 		// Make sure the ibutton connection succeeds; if so, we're (probably) good
