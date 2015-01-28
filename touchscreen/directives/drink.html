@@ -1,5 +1,5 @@
 <div class="col-md-4 col-sm-4">
-  <div class="drink lead">
+  <div class="drink lead" data-ng-class="{ 'drink-disabled': disabled }" data-ng-click="drop(drink)">
     <p><div class="holder"></div></p>
     <p class="name">{{ drink.item_name }}</p>
     <p class="price">{{ drink.item_price }} Credits</p>

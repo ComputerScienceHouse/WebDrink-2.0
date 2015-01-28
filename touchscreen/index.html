@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="keywords" content="">
   <meta name="author" content="">
-  <title>Page Title</title>
+  <title>WebDrink</title>
   <!-- Styles -->
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/touchscreen.css">
@@ -21,6 +21,18 @@
 <body>
   <!-- Content -->
   <div class="container" data-ng-controller="TouchscreenController">
+    <!-- Drop Modal -->
+    <div id="drop" class="modal fade center" data-backdrop="static">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <h2>{{ drop_message }}</h2>
+            <br>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Landing Page (logout state) -->
     <div id="message" class="center" data-ng-hide="ibutton">
       <br>
       <div class="jumbotron">
@@ -32,6 +44,7 @@
       </div>
       <button type="button" class="btn btn-default" data-ng-click="login()">I touched the (i)butt(on)</button>
     </div>
+    <!-- Drops Page (login state) -->
     <div id="machine" data-ng-show="ibutton">
       <nav class="navbar navbar-default">
         <div class="container-fluid">
@@ -44,12 +57,14 @@
           </ul>
         </div>
       </nav>
-      <div class="alert alert-warning center" role="alert" data-ng-show="connected">
+      <!-- Connection Alert -->
+      <div id="connection" class="alert alert-warning center" role="alert" data-ng-show="!connected">
         <strong id="alertTitle">Warning:</strong>
         <span id="alertMsg">Can't connect to drink server.</span>
       </div>
+      <!-- Grid of Drinks -->
       <div class="row" id="drinks">
-        <drink data-ng-repeat="item in stock" data="item"></drink>
+        <drink data-ng-repeat="item in stock" data="item" drop="drop" disabled="disabled(item)"></drink>
       </div>
     </div>
   </div>

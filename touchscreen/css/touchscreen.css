@@ -7,6 +7,9 @@
 #machine {
   font-size: 1.25em;
 }
+#drop .modal-dialog {
+  margin-top: 100px;
+}
 .drink {
   background: #f8f8f8;
   padding: 5px;
@@ -20,6 +23,10 @@
 .drink:hover {
   border: 1px solid #337ab7;
   transition: border .25s;
+}
+.drink-disabled{
+  color: #e7e7e7;
+  border: 1px solid #e7e7e7 !important;
 }
 .name {
   font-weight: normal;
