@@ -24,18 +24,7 @@ app.directive('drink', function() {
 */
 app.factory("TouchscreenService", ["$http", function($http) {
 
-  var apiUrl = "https://webdrink.csh.rit.edu/api/";
-
-  var success = function(cb) {
-    return function(resp) {
-      if (resp.status === true) {
-        cb(resp.data);
-      }
-      else {
-        console.error(resp.message);
-      }
-    };
-  };
+  var apiUrl = CONFIG.api.baseUrl;
 
   var ajaxSuccess = function(cbPass, cbFail) {
     return function(resp) {
@@ -112,11 +101,11 @@ app.controller("TouchscreenController", ["$scope", "$timeout", "TouchscreenServi
   $scope.logout = reset;
 
   var authenticate = function(ibutton) {
-    $scope.ibutton = ibutton;
+    $scope.ibutton = ibutton || (CONFIG.devMode ? CONFIG.devIbutton : false);
     checkConnection();
     getUserInfo();
     getMachineStock();
-    resetTimeout = $timeout(reset, 10000);
+    resetTimeout = $timeout(reset, CONFIG.app.sessionTimeout);
   };
   $scope.login = authenticate;
 
