@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html data-ng-app="touchscreen">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="author" content="">
+  <title>Page Title</title>
+  <!-- Styles -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/touchscreen.css">
+  <style>
+    body {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content -->
+  <div class="container" data-ng-controller="TouchscreenController">
+    <div id="message" class="center" data-ng-hide="ibutton">
+      <br>
+      <div class="jumbotron">
+        <h1>
+          {{ message }}
+          <small data-ng-show="detail"><br>{{ detail }}</small>
+        </h1>
+        <br>
+      </div>
+      <button type="button" class="btn btn-default" data-ng-click="login()">I touched the (i)butt(on)</button>
+    </div>
+    <div id="machine" data-ng-show="ibutton">
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <strong><a class="navbar-brand" href="#">{{ stock[0].display_name }}</a></strong>
+          </div>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="navitem"><a href="#">{{ user.uid }} ({{ user.credits }} Credits)</a></li>
+            <li class="navitem"><a href="#" data-ng-click="logout()">Log Out</a></li>
+          </ul>
+        </div>
+      </nav>
+      <div class="alert alert-warning center" role="alert" data-ng-show="connected">
+        <strong id="alertTitle">Warning:</strong>
+        <span id="alertMsg">Can't connect to drink server.</span>
+      </div>
+      <div class="row" id="drinks">
+        <drink data-ng-repeat="item in stock" data="item"></drink>
+      </div>
+    </div>
+  </div>
+  <!-- Scripts -->
+  <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <script src="//code.angularjs.org/snapshot/angular.min.js"></script>
+  <script src="js/touchscreen.js"></script> 
+</body>
+</html>
