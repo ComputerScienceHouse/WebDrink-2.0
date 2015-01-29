@@ -1,7 +1,14 @@
 /*
 *   App
 */
+
+// Angular app
 var app = angular.module("touchscreen", []);
+
+// app.loadiButton() - Method to be called by Spynner magic that will authenticate the user by ibutotn
+app.loadiButton = function(ibutton) {
+  $(document).trigger("webdrink.ibutton.receive", { ibutton: ibutton });
+};
 
 /*
 *   Directives
@@ -119,14 +126,18 @@ app.controller("TouchscreenController", ["$scope", "$timeout", "TouchscreenServi
 
   // authenticate() - Authenticate the user by ibutton value and initialize the drop selection
   var authenticate = function(ibutton) {
-    $scope.ibutton = ibutton || (CONFIG.devMode ? CONFIG.devIbutton : false);
+    $scope.ibutton = ibutton; // || (CONFIG.devMode ? CONFIG.devIbutton : false);
     getServerStatus();
     getUserInfo();
     getMachineStock();
     resetTimeout = $timeout(reset, CONFIG.app.sessionTimeout);
   };
-  // Add authenticate to the $scope
-  $scope.login = authenticate;
+  // Add authenticate to the $scope (NOTE: for testing only)
+  // $scope.login = authenticate;
+  // Listen for authenticaiton event
+  $(document).on("webdrink.ibutton.receive", function(e, data) {
+    authenticate(data.ibutton);
+  });
 
   // getServerStatus() - Check the status of the drink server
   var getServerStatus = function() {
