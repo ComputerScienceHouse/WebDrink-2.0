@@ -1128,6 +1128,11 @@ class DrinkAPI extends API
 				$ibutton = $info["data"]["ibutton"];
 			}
 		}
+		// Hack to make touchscreen interface work; fall back on default iButton value
+		if (!$ibutton) {
+			global $ldapDefaultIbutton;
+			$ibutton = $ldapDefaultIbutton;
+		}
 		if (!$ibutton) {
 			return $this->_result(false, "Error getting iButton, can't check server status (/drops/status)", false);
 		}
