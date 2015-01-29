@@ -178,7 +178,7 @@ app.controller("TouchscreenController", ["$scope", "$timeout", "TouchscreenServi
       $timeout(function() {
         $("#drop").modal("hide");
         reset();
-      }, CONFIG.app.errorTimeout);
+      }, CONFIG.app.dropTimeout);
     }
     // Don't end the session
     $timeout.cancel(resetTimeout);
