@@ -1019,8 +1019,18 @@ class DrinkAPI extends API
 		global $elephant_result;
 		global $drop_data;
 		// Check for ibutton
+		$ibutton = false;
 		if (array_key_exists("ibutton", $this->request)) {
-			$drop_data["ibutton"] = $this->_sanitizeString($this->request["ibutton"]);
+			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+		}
+		else {
+			$info = $this->_getUserInfo();
+			if ($info["status"] == true && array_key_exists("ibutton", $info["data"])) {
+				$ibutton = $info["data"]["ibutton"];
+			}
+		}
+		if ($ibutton) {
+			$drop_data["ibutton"] = $ibutton;
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'ibutton' (/drops/drop)", false);
