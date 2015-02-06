@@ -367,7 +367,7 @@ class DrinkAPI extends API
 		}
 		// Query LDAP for the user info
 		$fields = array('drinkBalance', 'drinkAdmin', 'cn', 'uid');
-		if ($this->admin) $fields[] = 'ibutton';
+		if ($this->admin || $uid === $this->uid) $fields[] = 'ibutton';
 		$data = false;
 		if ($uid) {
 			$data = ldap_lookup_uid($uid, $fields);
@@ -385,7 +385,7 @@ class DrinkAPI extends API
 				$tmp["uid"] = $data[0]["uid"][0];
 				$tmp["credits"] = $data[0]["drinkbalance"][0];
 				$tmp["admin"] = $data[0]["drinkadmin"][0];
-				if ($this->admin) $tmp["ibutton"] = $data[0]["ibutton"][0];
+				if (in_array("ibutton", $fields)) $tmp["ibutton"] = $data[0]["ibutton"][0];
 				$tmp["cn"] = $data[0]["cn"][0];
 				return $this->_result(true, "Success (/users/info)", $tmp);
 			}
