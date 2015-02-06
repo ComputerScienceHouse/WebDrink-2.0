@@ -57,6 +57,7 @@ app.directive("modal", function() {
 app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', function ($scope, $log, $window, $location) {
 	// Current user data
 	$scope.current_user = $window.current_user;
+	$scope.current_user.credits = parseInt($scope.current_user.credits);
 	// Current page
 	$scope.location = $location;
 	// Machine data

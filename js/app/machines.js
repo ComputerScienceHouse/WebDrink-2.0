@@ -64,21 +64,21 @@ app.factory("MachineService", function($http, $window, $log) {
 			}).success(successCallback).error(errorCallback);
 		},
 		// Drop a drink
-    dropDrink: function(data, successCallback, errorCallback) {
-      $http({
-        method: "POST",
-        url: baseUrl+"drops/drop",
-        data: jQuery.param(data),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-      }).success(successCallback).error(errorCallback);
-    },
-    // Check the status of the drink server
-    checkStatus: function(successCallback, errorCallback) {
-    	$http({
-    		method: "GET",
-    		url: baseUrl+"drops/status"
-    	}).success(successCallback).error(errorCallback);
-    }
+	    dropDrink: function(data, successCallback, errorCallback) {
+		    $http({
+		        method: "POST",
+		        url: baseUrl+"drops/drop",
+		        data: jQuery.param(data),
+		        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+		    }).success(successCallback).error(errorCallback);
+	    },
+	    // Check the status of the drink server
+	    checkStatus: function(successCallback, errorCallback) {
+	    	$http({
+	    		method: "GET",
+	    		url: baseUrl+"drops/status"
+	    	}).success(successCallback).error(errorCallback);
+	    }
 	};
 });
 
@@ -165,6 +165,15 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 	MachineService.getStockAll(
 		function (response) { 
 			if (response.status) {
+				// $scope.stock = response.data;
+				for (var machine in response.data) {
+					var m = response.data[machine];
+					for (var i = 0; i < m.length; i++) {
+						var s = m[i];
+						s.item_price = parseInt(s.item_price);
+						s.available = parseInt(s.available);
+					}
+				}
 				$scope.stock = response.data;
 			}
 			else {
@@ -275,7 +284,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 				MachineService.getCredits($scope.current_user.uid,
 					function (response) {
 						if (response.status) {
-							$scope.current_user.credits = response.data;
+							$scope.current_user.credits = parseInt(response.data);
 						}
 						else {
 							$log.log(response.message);
