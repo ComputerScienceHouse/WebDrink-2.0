@@ -185,7 +185,7 @@ uid | (Partial) username of the user
 
 ### GET /users/info/:uid/:ibutton
 
-**Description:** Get your own user info, including uid, username, credit balance, and ibutton. Drink admins can look up other user's info by uid or ibutton.
+**Description:** Get a user's info, including uid, username, credit balance, and ibutton. Only requests by drink admins will return ibutton. Will return your own info if no uid or ibutton is provided.
 
 **Parameters:** 
 
