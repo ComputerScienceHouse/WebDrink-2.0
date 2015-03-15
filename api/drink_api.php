@@ -89,7 +89,7 @@ class DrinkAPI extends API
 		$sql = "SELECT * FROM api_keys WHERE api_key = :apiKey";
 		$params["apiKey"] = $api_key;
 		$query = db_select($sql, $params); 
-		if ($query) {
+		if ($query !== false) {
 			return $query[0]["uid"];
 		} 
 		return false;
@@ -103,6 +103,46 @@ class DrinkAPI extends API
 	// Sanitize an integer
 	private function _sanitizeInt($int) {
 		return (int) trim($int);
+	}
+
+	// Rate-limit a user
+	private function _checkRateLimit($call, $interval) {
+		$sql = "SELECT * FROM api_calls WHERE username = :username AND api_method = :api_method AND timestamp < DATE_SUB(NOW(), INTERVAL :interval SECOND) ORDER BY timestamp DESC LIMIT 1";
+		$params["username"] = $this->uid;
+		$params["interval"] = $interval;
+		$params["api_method"] = $call;
+		$query = db_select($sql, $params);
+		if ($query !== false) {
+			if (count($query) === 0) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			// Iunno
+			return false;
+		}
+	}
+
+	// Log an API call (for rate-limiting purposes)
+	private function _logRateLimit($call) {
+		// $sql = "INSERT INTO api_calls (username, api_method) VALUES (:username, :api_method)";
+		if (DEBUG) { // Don't do this in development mode
+			return;
+		}
+		$sql = "REPLACE INTO api_calls (username, api_method) VALUES (:username, :api_method)";
+		$params["username"] = $this->uid;
+		$params["api_method"] = $call;
+		$query = db_insert($sql, $params);
+		if ($query !== false) {
+			return true;
+		}
+		else {
+			// Iunno
+			return false;
+		}
 	}
 
 	/*
@@ -1018,6 +1058,13 @@ class DrinkAPI extends API
 		global $elephant;
 		global $elephant_result;
 		global $drop_data;
+		// Check for rate limiting
+		if ($this->_checkRateLimit("/drops/drop", 30)) {
+			return $this->_result(false, "Slow your roll; you can only make this request every 30 seconds (/drops/drop)", false);
+		}
+		else {
+			$this->_logRateLimit('/drops/drop');
+		}
 		// Check for ibutton
 		$ibutton = false;
 		if (array_key_exists("ibutton", $this->request)) {
