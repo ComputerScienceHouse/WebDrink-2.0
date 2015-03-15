@@ -107,6 +107,9 @@ class DrinkAPI extends API
 
 	// Rate-limit a user
 	private function _checkRateLimit($call, $interval) {
+		if (DEBUG) { // Don't do this in development mode
+			return;
+		}
 		$sql = "SELECT * FROM api_calls WHERE username = :username AND api_method = :api_method AND timestamp < DATE_SUB(NOW(), INTERVAL :interval SECOND) ORDER BY timestamp DESC LIMIT 1";
 		$params["username"] = $this->uid;
 		$params["interval"] = $interval;
@@ -128,7 +131,6 @@ class DrinkAPI extends API
 
 	// Log an API call (for rate-limiting purposes)
 	private function _logRateLimit($call) {
-		// $sql = "INSERT INTO api_calls (username, api_method) VALUES (:username, :api_method)";
 		if (DEBUG) { // Don't do this in development mode
 			return;
 		}
@@ -1023,7 +1025,7 @@ class DrinkAPI extends API
 	*	Drops Endpoint
 	*
 	*	GET /drops/status/
-	* POST /drops/drop/:ibutton/:slot_num/:machine_id
+	*   POST /drops/drop/:ibutton/:slot_num/:machine_id
 	*/
 	protected function drops() {
 		$result = array();
@@ -1061,9 +1063,6 @@ class DrinkAPI extends API
 		// Check for rate limiting
 		if ($this->_checkRateLimit("/drops/drop", 30)) {
 			return $this->_result(false, "Slow your roll; you can only make this request every 30 seconds (/drops/drop)", false);
-		}
-		else {
-			$this->_logRateLimit('/drops/drop');
 		}
 		// Check for ibutton
 		$ibutton = false;
@@ -1109,6 +1108,8 @@ class DrinkAPI extends API
 		else {
 			$drop_data["delay"] = 0;
 		}
+		// Log the API call for rate-limiting
+		$this->_logRateLimit('/drops/drop');
 		// Connect to the drink server and drop a drink
 		try {
 			// Create a new client
