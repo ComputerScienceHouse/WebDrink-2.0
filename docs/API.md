@@ -9,10 +9,6 @@ api_key | Your API key
 
 To make an API call, format your request like this:
 
-~~`https://webdrink.csh.rit.edu/api/<endpoint>/<method/`~~ (Not currently supported, sorry)
-
-OR
-
 `https://webdrink.csh.rit.edu/api/index.php?request=<endpoint>/<method>`
 
 ***
@@ -51,6 +47,9 @@ Here is a quick rundown of the available API methods:
 #### Drops
 * [GET /drops/status](#post-dropsstatus) - Check the Websocket connection to the drink server
 * [POST /drops/drop/:ibutton/:machine_id/:slot_num/:delay](#post-dropsdropibuttonmachine_idslot_numdelay) - Drop a drink by machine id and slot number, using the specified delay.
+
+#### MobileApp
+* [GET /mobileapp/getapikey](#get-mobileappgetapikey) - Get (or generate) a user's API key from a WebDrink mobile app
 
 ***
 
@@ -539,3 +538,15 @@ delay | The number of seconds to delay the drop (optional, defaults to 0)
     "data": true
 }
 ```
+
+## MobileApp
+
+### GET /mobileapp/getapikey
+
+**Description:** Get (or generate) a user's API key from a WebDrink mobile app
+
+**Parameters:** None.
+
+**Sample Response:**
+
+On success, redirects back to the mobile app (cshdrink://auth/api_key_here). On error, returns JSON. 

@@ -1,9 +1,9 @@
 <?php
 
-require_once(__DIR__."/drink_api.php");
+require_once(__DIR__."/../api/drink_api.php");
 
 try {
-	$api = new DrinkAPI($_REQUEST['request']);
+	$api = new DrinkAPI("mobileapp/getapikey");
 	echo $api->processAPI();
 } 
 catch (Exception $e) {
