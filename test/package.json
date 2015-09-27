@@ -1,0 +1,8 @@
+{
+  "name": "test-drink-server",
+  "version": "0.0.1",
+  "description": "mock drink server for testing webdrink under ideal circumstances",
+  "dependencies": {
+    "socket.io": "~0.9"
+  }
+}
