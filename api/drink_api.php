@@ -16,7 +16,12 @@ require(__DIR__.'/../lib/elephant.io-2.0.4/Payload.php');
 
 // Declare some globals, dumb hack for PHP 5.3 to get ElephantIO working
 try {
-	$elephant = new ElephantIOClient("https://drink.csh.rit.edu:8080", "socket.io", 1, false, true, true);
+	if (DEBUG && USE_LOCAL_DRINK_SERVER) {
+		$elephant = new ElephantIOClient(LOCAL_DRINK_SERVER_URL, "socket.io", 1, false, true, true);
+	}
+	else {
+		$elephant = new ElephantIOClient(DRINK_SERVER_URL, "socket.io", 1, false, true, true);
+	}
 	$elephant_result = array();
 	$drop_data = array();
 }
