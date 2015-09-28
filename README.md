@@ -33,7 +33,7 @@ Webdrink should be deployed with a configuration file, `config.php`, at the proj
 *	General configuration
 */
 
-define("API_BASE_URL", "api/index.php?request="); 
+define("API_BASE_URL", "api/index.php?request="); The base URL of the Drink API
 define("DRINK_SERVER_URL", "https://drink.csh.rit.edu:8080") // Base URL for the Drink (websocket) server
 define("LOCAL_DRINK_SERVER_URL", "http://localhost:3000"); // URL (and port) of test drink server (see /test directory)
 
@@ -43,25 +43,22 @@ define("LOCAL_DRINK_SERVER_URL", "http://localhost:3000"); // URL (and port) of 
   
 define("DEBUG", true); // true for test mode, false for production
 
-define("DEBUG_USER_UID", "bencentra");
-define("DEBUG_USER_CN", "Ben Centra"); 
+define("DEBUG_USER_UID", "bencentra"); // If DEBUG is `true`, the UID of the test user (probably your own)
+define("DEBUG_USER_CN", "Ben Centra"); // If DEBUG is `true`, the display name of the user (probably your own)
 
-define("USE_LOCAL_DRINK_SERVER", true) 
+define("USE_LOCAL_DRINK_SERVER", true) // If set to `true` and DEBUG is `true`, will use a mock Drink server for developing
   
 ?>
 ```
 
-* API_BASE_URL: The base URL of the Drink API
-* DRINK_SERVER_URL: The URL of the actual Drink server
-* LOCAL_DRINK_SERVER_URL: The URL of the test Drink server (see `/test`)
-* DEBUG: `true` for development mode, `false` for production
-* DEBUG_USER_UID: If DEBUG is `true`, the UID of the test user (probably your own)
-* DEBUG_USER_CN: If DEBUG is `true`, the display name of the user (probably your own, but it doesn't actually matter)
-* USE_LOCAL_DRINK_SERVER: If set to `true` and DEBUG is `true`, will use a fake Drink server for developing
-
 ### Database and LDAP Permission files
 
-WebDrink expects two files - `dbInfo.inc` and `ldapInfo.inc` - to be present and contain database and LDAP configuration information (respectively). Currently, they must be placed two directories above the WebDrink root. Otherwise inconvenient, this does work out for CSH systems (put these files in your home dir and WebDrink in your `.html_pages`) and MAMP users (these files in the MAMP root and WebDrink in `htdocs). 
+WebDrink expects two files - `dbInfo.inc` and `ldapInfo.inc` - to be present and contain database and LDAP configuration information (respectively). Currently, they must be placed two directories above the WebDrink root. This is only mildly inconvenient for: 
+
+* CSH systems: put these files in your home dir and WebDrink in your `.html_pages`
+* MAMP users: these files in the MAMP root and WebDrink in `htdocs` 
+
+#### Database
 
 `dbInfo.inc` contains database connection info and creates a global `$pdo` variable, used by WebDrink's database utility funtions (see `utils/db_utils.php`). You can create your own database from the schema file (`drink_v2_schema.sql`), or connect to the actual Drink database (ask an RTP for credentials).
 
@@ -70,7 +67,7 @@ WebDrink expects two files - `dbInfo.inc` and `ldapInfo.inc` - to be present and
 
 // Database connection info
 $dbName = "";
-$dbHost = "";
+$dbHost = "mysql.csh.rit.edu";
 $dbUser = ""; 
 $dbPass = "";
 
@@ -96,6 +93,8 @@ catch (PDOException $e) {
 
 ```
 
+#### LDAP
+
 `ldapInfo.inc` contains LDAP connection info and creates a global `$conn` variable, used by WebDrink's LDAP utility functions (see `utils/ldap_utils.php`). For more information about CSH's LDAP setup, see this wiki article: https://wiki.csh.rit.edu/wiki/Ldap
 
 ```php
@@ -104,9 +103,9 @@ catch (PDOException $e) {
 // LDAP connection info
 $ldapUser = "";
 $ldapPass = "";
-$ldapHost = "";
-$appDn = "";
-$userDn = "";
+$ldapHost = "ldap.csh.rit.edu";
+$appDn = "ou=Apps,dc=csh,dc=rit,dc=edu";
+$userDn = "ou=Users,dc=csh,dc=rit,dc=edu";
 
 // Append the appropriate dn to the username
 $ldapUser .= "," . $appDn;
@@ -138,6 +137,8 @@ In order to run WebDrink locally you'll need a web server, PHP (>=5.4), and MySQ
 * Windows: [XAMP](http://www.wampserver.com/en/)
 * Linux: Varies by distro (for example, [Ubuntu](https://help.ubuntu.com/community/ApacheMySQLPHP))
 
+#### Notes
+
 There is currently no development LDAP setup, so you'll have to use CSH's server. This means any operations (i.e. credit additions/deductions) are for real. 
 
 Some operations require admin privileges. Contact an RTP to be given "drink admin" status to access these operations.
@@ -147,6 +148,8 @@ To set up a local database, you can import the schema from `drink_v2_schema.sql`
 ### Test Drink Server
 
 In the `/test` directory is a mock Drink server. It will blindly respond (with success) all requests and doesn't care about SSL, allowing you to test Drink server behavior outside of CSH-net (or if the Drink server is down).
+
+Make sure you have Node and NPM installed: https://nodejs.org/en/
 
 ```bash
 cd test
