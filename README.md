@@ -134,7 +134,7 @@ When developing, set DEBUG to `true` in `config.php` to fake Webauth authenticat
 In order to run WebDrink locally you'll need a web server, PHP (>=5.4), and MySQL. 
 
 * OS X: [MAMP](https://www.mamp.info/en/)
-* Windows: [XAMP](http://www.wampserver.com/en/)
+* Windows: [WAMP](http://www.wampserver.com/en/)
 * Linux: Varies by distro (for example, [Ubuntu](https://help.ubuntu.com/community/ApacheMySQLPHP))
 
 #### Notes
