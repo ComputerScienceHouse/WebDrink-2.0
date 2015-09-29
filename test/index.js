@@ -17,8 +17,8 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('drop', function (data) {
   	console.log('on: drop', data);
-  	var delay = data.delay || 0;
-  	delay += 1; // Pretend some computation is happening
+  	var delay = +data.delay || 0;
+  	delay += 2; // Pretend some computation is happening
   	setTimeout(function() {
   		socket.emit('drop_recv', 'OK');
   	}, delay * 1000);

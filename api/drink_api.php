@@ -78,6 +78,10 @@ class DrinkAPI extends API
 	*	Helpful utility methods
 	*/
 
+	private function _log($msg, $file = "./log.txt") {
+		file_put_contents($file, date("Y-m-d H:i:s") . " | " . $msg . "\n", FILE_APPEND);
+	}
+
 	// Check if a user is a drink admin
 	private function _isAdmin($uid) {
 		$fields = array("drinkAdmin");
@@ -110,10 +114,43 @@ class DrinkAPI extends API
 	}
 
 	// Redirect the user
-	private function _redirect($url, $permanent = false)
-	{
+	private function _redirect($url, $permanent = false) {
 		header('Location: ' . $url, true, $permanent ? 301 : 302);
 		exit();
+	}
+
+	// Log an API call
+	private function _logAPICall($api_method, $detail = null) {
+		$sql = "INSERT INTO api_calls (username, api_method, detail) VALUES (:username, :api_method, :detail)";
+		$params = array();
+		$params["username"] = $this->uid;
+		$params["api_method"] = $api_method;
+		$params["detail"] = $detail;
+		$query = db_insert($sql, $params);
+		if ($query !== false) {
+			return true;
+		}
+		return false;
+	}
+
+	// Check if a user is rate-limited
+	private function _isRateLimited($api_method, $seconds, $detail = null) {
+		$sql = "SELECT * FROM api_calls WHERE username = :username AND api_method = :api_method";
+		$params = array();
+		$params["username"] = $this->uid;
+		$params["api_method"] = $api_method;
+		$sql .= " AND timestamp > DATE_SUB(NOW(), INTERVAL :seconds SECOND)";
+		$params["seconds"] = $seconds;
+		if ($detail != null) {
+			$sql .= " AND detail = :detail";
+			$params["detail"] = $detail;
+		}
+		$sql .= " LIMIT 1";
+		$query = db_select($sql, $params);
+		if ($query !== false) {
+			return $query;
+		}
+		return false;
 	}
 
 	/*
@@ -165,9 +202,9 @@ class DrinkAPI extends API
 	*	Users Endpoint
 	*
 	*	GET /users/credits/:uid - Get a user's drink credits value
-	* POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
+	* 	POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
 	*	GET /users/search/:uid - Lookup a partial uid in LDAP
-	* GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
+	* 	GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
 	*	GET /users/drops/:limit/:offset/:uid - Get a portion of the drop logs
 	*	GET /users/apikey/ - Get a user's API key (webauth only)
 	*	POST /users/apikey/ - Update a user's API key (webauth only)
@@ -1073,6 +1110,11 @@ class DrinkAPI extends API
 		else {
 			$drop_data["delay"] = 0;
 		}
+		// Check if rate limited
+		$rateLimitDelay = RATE_LIMIT_DROPS_DROP;
+		if ($this->_isRateLimited("/drops/drop", $rateLimitDelay, $drop_data["machine_alias"])) {
+			return $this->_result(false, "Cannon exceed one call per $rateLimitDelay seconds (/drops/drop)", false);
+		}
 		// Connect to the drink server and drop a drink
 		try {
 			// Create a new client
@@ -1104,9 +1146,11 @@ class DrinkAPI extends API
 							$elephant->on('drop_recv', function($data) {
 								global $elephant;
 								global $elephant_result;
+								global $drop_data;
 								$success = explode(":", $data);
 								$success = $success[0];
 								if ($success === "OK") {
+									$this->_logAPICall("/drops/drop", $drop_data["machine_alias"]);
 									$elephant_result = array(true, "Drink dropped!", true);
 									$elephant->close();
 								}

@@ -38,6 +38,12 @@ define("DRINK_SERVER_URL", "https://drink.csh.rit.edu:8080") // Base URL for the
 define("LOCAL_DRINK_SERVER_URL", "http://localhost:3000"); // URL (and port) of test drink server (see /test directory)
 
 /*
+*	Rate limit delays (one call per X seconds)
+*/
+
+define("RATE_LIMIT_DROPS_DROP", 3); // Rate limit for /drops/drop
+
+/*
 *	Development configuration
 */
   

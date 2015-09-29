@@ -14,3 +14,4 @@ api_methods.txt
 api/drink_api_old.php
 config.php
 */node_modules/
+*log.txt
