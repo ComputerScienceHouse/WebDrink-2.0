@@ -270,6 +270,8 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 			$scope.dropping_message = "Warning: Websocket not connected, can't drop drink!";
 			return;
 		}
+    // Cancel a previous drop's delay countdown
+    $timeout.cancel($scope.dropTimeout);
 		// Send the drop command to the server
 		MachineService.dropDrink({
 			ibutton: $scope.current_user.ibutton,
@@ -278,7 +280,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 			delay: $scope.delay
 		}, function (response) {
 			if (response.status) {
-				$scope.dropping_message = "Drink dropped!";
+				$scope.dropping_message = response.message;
  				// Update my drink credits
 				$scope.current_user.credits -= $scope.current_slot.item_price;
 				MachineService.getCredits($scope.current_user.uid,
@@ -297,6 +299,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 			}
 			else {
 				$scope.dropping_message = response.message;
+        $timeout.cancel($scope.dropTimeout);
 			}
 		}, function (error) {
 			$log.log(error);

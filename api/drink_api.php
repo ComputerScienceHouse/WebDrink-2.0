@@ -1,22 +1,27 @@
 <?php
 
 // Include the database connectivity functions
-require_once('../utils/db_utils.php');
+require_once(__DIR__.'/../utils/db_utils.php');
 // Include the LDAP connectivity functions
-require_once('../utils/ldap_utils.php');
+require_once(__DIR__.'/../utils/ldap_utils.php');
 // Include the abstract API class
-require_once('./abstract_api.php');
+require_once(__DIR__.'/abstract_api.php');
 // Include configuration info
-require_once("../config.php");
+require_once(__DIR__."/../config.php");
 
 // Include Elephant.IO for websocket calls
 use ElephantIO\Client as ElephantIOClient;
-require('../lib/elephant.io-2.0.4/Client.php');
-require('../lib/elephant.io-2.0.4/Payload.php');
+require(__DIR__.'/../lib/elephant.io-2.0.4/Client.php');
+require(__DIR__.'/../lib/elephant.io-2.0.4/Payload.php');
 
 // Declare some globals, dumb hack for PHP 5.3 to get ElephantIO working
 try {
-	$elephant = new ElephantIOClient("https://drink.csh.rit.edu:8080", "socket.io", 1, false, true, true);
+	if (DEBUG && USE_LOCAL_DRINK_SERVER) {
+		$elephant = new ElephantIOClient(LOCAL_DRINK_SERVER_URL, "socket.io", 1, false, true, true);
+	}
+	else {
+		$elephant = new ElephantIOClient(DRINK_SERVER_URL, "socket.io", 1, false, true, true);
+	}
 	$elephant_result = array();
 	$drop_data = array();
 }
@@ -46,7 +51,6 @@ class DrinkAPI extends API
 	// Constructor
 	public function __construct($request) {
 		parent::__construct($request);
-
 		// Grab the uid from Webauth, API Key lookup, etc
 		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
 			$this->uid = htmlentities($_SERVER["WEBAUTH_USER"]);
@@ -73,6 +77,10 @@ class DrinkAPI extends API
 	/* 
 	*	Helpful utility methods
 	*/
+
+	private function _log($msg, $file = "./log.txt") {
+		file_put_contents($file, date("Y-m-d H:i:s") . " | " . $msg . "\n", FILE_APPEND);
+	}
 
 	// Check if a user is a drink admin
 	private function _isAdmin($uid) {
@@ -105,46 +113,44 @@ class DrinkAPI extends API
 		return (int) trim($int);
 	}
 
-	// Rate-limit a user
-	private function _checkRateLimit($call, $interval) {
-		if (DEBUG) { // Don't do this in development mode
-			return;
-		}
-		$sql = "SELECT * FROM api_calls WHERE username = :username AND api_method = :api_method AND timestamp < DATE_SUB(NOW(), INTERVAL :interval SECOND) ORDER BY timestamp DESC LIMIT 1";
-		$params["username"] = $this->uid;
-		$params["interval"] = $interval;
-		$params["api_method"] = $call;
-		$query = db_select($sql, $params);
-		if ($query !== false) {
-			if (count($query) === 0) {
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-		else {
-			// Iunno
-			return false;
-		}
+	// Redirect the user
+	private function _redirect($url, $permanent = false) {
+		header('Location: ' . $url, true, $permanent ? 301 : 302);
+		exit();
 	}
 
-	// Log an API call (for rate-limiting purposes)
-	private function _logRateLimit($call) {
-		if (DEBUG) { // Don't do this in development mode
-			return;
-		}
-		$sql = "REPLACE INTO api_calls (username, api_method) VALUES (:username, :api_method)";
+	// Log an API call
+	private function _logAPICall($api_method, $detail = null) {
+		$sql = "INSERT INTO api_calls (username, api_method, detail) VALUES (:username, :api_method, :detail)";
+		$params = array();
 		$params["username"] = $this->uid;
-		$params["api_method"] = $call;
+		$params["api_method"] = $api_method;
+		$params["detail"] = $detail;
 		$query = db_insert($sql, $params);
 		if ($query !== false) {
 			return true;
 		}
-		else {
-			// Iunno
-			return false;
+		return false;
+	}
+
+	// Check if a user is rate-limited
+	private function _isRateLimited($api_method, $seconds, $detail = null) {
+		$sql = "SELECT * FROM api_calls WHERE username = :username AND api_method = :api_method";
+		$params = array();
+		$params["username"] = $this->uid;
+		$params["api_method"] = $api_method;
+		$sql .= " AND timestamp > DATE_SUB(NOW(), INTERVAL :seconds SECOND)";
+		$params["seconds"] = $seconds;
+		if ($detail != null) {
+			$sql .= " AND detail = :detail";
+			$params["detail"] = $detail;
 		}
+		$sql .= " LIMIT 1";
+		$query = db_select($sql, $params);
+		if ($query !== false) {
+			return $query;
+		}
+		return false;
 	}
 
 	/*
@@ -196,9 +202,9 @@ class DrinkAPI extends API
 	*	Users Endpoint
 	*
 	*	GET /users/credits/:uid - Get a user's drink credits value
-	* POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
+	* 	POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
 	*	GET /users/search/:uid - Lookup a partial uid in LDAP
-	* GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
+	* 	GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
 	*	GET /users/drops/:limit/:offset/:uid - Get a portion of the drop logs
 	*	GET /users/apikey/ - Get a user's API key (webauth only)
 	*	POST /users/apikey/ - Update a user's API key (webauth only)
@@ -1060,10 +1066,6 @@ class DrinkAPI extends API
 		global $elephant;
 		global $elephant_result;
 		global $drop_data;
-		// Check for rate limiting
-		if ($this->_checkRateLimit("/drops/drop", 30)) {
-			return $this->_result(false, "Slow your roll; you can only make this request every 30 seconds (/drops/drop)", false);
-		}
 		// Check for ibutton
 		$ibutton = false;
 		if (array_key_exists("ibutton", $this->request)) {
@@ -1108,8 +1110,11 @@ class DrinkAPI extends API
 		else {
 			$drop_data["delay"] = 0;
 		}
-		// Log the API call for rate-limiting
-		$this->_logRateLimit('/drops/drop');
+		// Check if rate limited
+		$rateLimitDelay = RATE_LIMIT_DROPS_DROP;
+		if ($this->_isRateLimited("/drops/drop", $rateLimitDelay, $drop_data["machine_alias"])) {
+			return $this->_result(false, "Cannon exceed one call per $rateLimitDelay seconds (/drops/drop)", false);
+		}
 		// Connect to the drink server and drop a drink
 		try {
 			// Create a new client
@@ -1141,9 +1146,11 @@ class DrinkAPI extends API
 							$elephant->on('drop_recv', function($data) {
 								global $elephant;
 								global $elephant_result;
+								global $drop_data;
 								$success = explode(":", $data);
 								$success = $success[0];
 								if ($success === "OK") {
+									$this->_logAPICall("/drops/drop", $drop_data["machine_alias"]);
 									$elephant_result = array(true, "Drink dropped!", true);
 									$elephant->close();
 								}
@@ -1221,6 +1228,50 @@ class DrinkAPI extends API
 			return $this->_result(false, $e->getMessage()." (/drops/drop)", false);
 		}
 		return $this->_result($elephant_result[0], $elephant_result[1], $elephant_result[2]);
+	}
+
+	/*
+	*	MobileApp Endpoint
+	*
+	*	GET /mobileapp/getapikey
+	*/
+	protected function mobileapp() {
+		$result = array();
+		switch ($this->verb) {
+			case "getapikey":
+				// GET /mobileapp/getapikey
+				if ($this->method == "GET") {
+					$result = $this->_mobileGenerateAPIKey();
+				}
+				else {
+					$result = $this->_result(false, "Invalid HTTP method (/mobileapp/getapikey)", false);
+				}
+				break;
+			default:
+				$result = $this->_result(false, "Invalid API method (/mobileapp)", false);
+				break;
+		}
+		return $result;
+	}
+
+	// GET /mobileapp/getapikey
+	private function _mobileGenerateAPIKey() {
+		// Get a user's API key
+		$apiKey = $this->_getApiKey();
+		if (!$apiKey["status"]) {
+			return $apiKey;
+		}
+		$apiKey = $apiKey["data"]["api_key"];
+		// Generate a new key if one doesn't exist
+		if (!$apiKey) {
+			$apiKey = $this->_updateApiKey();
+			if (!$apiKey["status"]) {
+				return $apiKey;
+			}
+			$apiKey = $apiKey["data"]["api_key"];		
+		}
+		// Redirect back to the app
+		$this->_redirect("cshdrink://auth/".$apiKey);
 	}
 
 }
