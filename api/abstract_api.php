@@ -1,7 +1,7 @@
 <?php
 
 /*
-*	Abstract API class to handle incoming requests, pass info on to concrete classes, and send a response
+*		Abstract API class to handle incoming requests, pass info on to concrete classes, and send a response
 * 	Based heavily off of this example: http://coreymaynard.com/blog/creating-a-restful-api-with-php/
 */
 abstract class API 

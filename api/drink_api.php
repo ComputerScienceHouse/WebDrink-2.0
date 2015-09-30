@@ -4,6 +4,8 @@
 require_once(__DIR__.'/../utils/db_utils.php');
 // Include the LDAP connectivity functions
 require_once(__DIR__.'/../utils/ldap_utils.php');
+// Utils
+require_once(__DIR__.'/lib/utils.php');
 // Include the abstract API class
 require_once(__DIR__.'/abstract_api.php');
 // Include configuration info
@@ -34,6 +36,8 @@ catch (Exception $e) {
 */
 class DrinkAPI extends API
 {
+	private $utils;
+
 	private $admin = false; 	// Am I a drink admin?
 	private $uid = false;		// My uid (username)
 	private $webauth = false;	// Am I authenticated with Webauth?
@@ -51,16 +55,17 @@ class DrinkAPI extends API
 	// Constructor
 	public function __construct($request) {
 		parent::__construct($request);
+		$this->utils = new Utils();
 		// Grab the uid from Webauth, API Key lookup, etc
 		if (array_key_exists("WEBAUTH_USER", $_SERVER)) {
 			$this->uid = htmlentities($_SERVER["WEBAUTH_USER"]);
 			$this->webauth = true;
 		}
 		else if ($this->api_key) {
-			$this->uid = $this->_lookupUser($this->api_key);
+			$this->uid = $this->utils->lookupUser($this->api_key);
 			$this->webauth = false;
 		}
-		else if (DEBUG) {
+		else if (DEBUG) {	
 			$this->uid = DEBUG_USER_UID;
 			$this->webauth = true;
 		}
@@ -70,87 +75,9 @@ class DrinkAPI extends API
 		}
 		// Check if the user is a drink admin
 		if ($this->uid != false) {
-			$this->admin = $this->_isAdmin($this->uid);
+			$this->admin = $this->utils->isAdmin($this->uid);
 		}
-	}
-
-	/* 
-	*	Helpful utility methods
-	*/
-
-	private function _log($msg, $file = "./log.txt") {
-		file_put_contents($file, date("Y-m-d H:i:s") . " | " . $msg . "\n", FILE_APPEND);
-	}
-
-	// Check if a user is a drink admin
-	private function _isAdmin($uid) {
-		$fields = array("drinkAdmin");
-		$result = ldap_lookup_uid($uid, $fields);
-		if (isset($result[0]["drinkadmin"][0])) {
-			return $result[0]["drinkadmin"][0];
-		}
-		return false;
-	}
-
-	// Lookup a uid by API key
-	private function _lookupUser($api_key) {
-		$sql = "SELECT * FROM api_keys WHERE api_key = :apiKey";
-		$params["apiKey"] = $api_key;
-		$query = db_select($sql, $params); 
-		if ($query !== false) {
-			return $query[0]["uid"];
-		} 
-		return false;
-	}
-
-	// Sanitize a string
-	private function _sanitizeString($str) {
-		return htmlentities(trim((string) $str));
-	}
-
-	// Sanitize an integer
-	private function _sanitizeInt($int) {
-		return (int) trim($int);
-	}
-
-	// Redirect the user
-	private function _redirect($url, $permanent = false) {
-		header('Location: ' . $url, true, $permanent ? 301 : 302);
-		exit();
-	}
-
-	// Log an API call
-	private function _logAPICall($api_method, $detail = null) {
-		$sql = "INSERT INTO api_calls (username, api_method, detail) VALUES (:username, :api_method, :detail)";
-		$params = array();
-		$params["username"] = $this->uid;
-		$params["api_method"] = $api_method;
-		$params["detail"] = $detail;
-		$query = db_insert($sql, $params);
-		if ($query !== false) {
-			return true;
-		}
-		return false;
-	}
-
-	// Check if a user is rate-limited
-	private function _isRateLimited($api_method, $seconds, $detail = null) {
-		$sql = "SELECT * FROM api_calls WHERE username = :username AND api_method = :api_method";
-		$params = array();
-		$params["username"] = $this->uid;
-		$params["api_method"] = $api_method;
-		$sql .= " AND timestamp > DATE_SUB(NOW(), INTERVAL :seconds SECOND)";
-		$params["seconds"] = $seconds;
-		if ($detail != null) {
-			$sql .= " AND detail = :detail";
-			$params["detail"] = $detail;
-		}
-		$sql .= " LIMIT 1";
-		$query = db_select($sql, $params);
-		if ($query !== false) {
-			return $query;
-		}
-		return false;
+		// $this->utils->debug("I'm Alive!");
 	}
 
 	/*
@@ -202,9 +129,9 @@ class DrinkAPI extends API
 	*	Users Endpoint
 	*
 	*	GET /users/credits/:uid - Get a user's drink credits value
-	* 	POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
+	* POST /users/credits/:uid/:value/:type - Update a user's drink credits value (admin only)
 	*	GET /users/search/:uid - Lookup a partial uid in LDAP
-	* 	GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
+	* GET /users/info/:api_key - Get a user's info (uid, credits, etc) by API key (API key only)
 	*	GET /users/drops/:limit/:offset/:uid - Get a portion of the drop logs
 	*	GET /users/apikey/ - Get a user's API key (webauth only)
 	*	POST /users/apikey/ - Update a user's API key (webauth only)
@@ -219,7 +146,7 @@ class DrinkAPI extends API
 				// Check for the 'uid' parameter
 				$uid = false;
 				if (array_key_exists("uid", $this->request)) {
-					$uid = $this->_sanitizeString($this->request["uid"]);
+					$uid = $this->utils->sanitizeString($this->request["uid"]);
 				}
 				else {
 					return $this->_result(false, "Missing parameter 'uid' (/users/credits", false);
@@ -239,7 +166,7 @@ class DrinkAPI extends API
 				// Check for the 'uid' parameter
 				$uid = false;
 				if (array_key_exists("uid", $this->request)) {
-					$uid = $this->_sanitizeString($this->request["uid"]);
+					$uid = $this->utils->sanitizeString($this->request["uid"]);
 				}
 				else {
 					return $this->_result(false, "Missing parameter 'uid' (/users/search)", false);
@@ -315,7 +242,7 @@ class DrinkAPI extends API
 		// Check for the 'value' parameter
 		$value = false;
 		if (array_key_exists("value", $this->request)) {
-			$value = $this->_sanitizeInt($this->request["value"]);
+			$value = $this->utils->sanitizeInt($this->request["value"]);
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'value' (/users/credits)", false);
@@ -324,7 +251,7 @@ class DrinkAPI extends API
 		$type = false;
 		$direction = "in";
 		if (array_key_exists("type", $this->request)) {
-			$type = $this->_sanitizeString($this->request["type"]);
+			$type = $this->utils->sanitizeString($this->request["type"]);
 			if ($type != "add" && $type != "subtract") {
 				return $this->_result(false, "Invalid 'type' - please choose 'add' or 'subtract' (/users/credits)", false);
 			}
@@ -399,11 +326,11 @@ class DrinkAPI extends API
 		$ibutton = false;
 		// Check for a uid to lookup
 		if (array_key_exists("uid", $this->request)) {
-			$uid = $this->_sanitizeString($this->request["uid"]);
+			$uid = $this->utils->sanitizeString($this->request["uid"]);
 		}
 		// Check for an ibutton to lookup
 		else if (array_key_exists("ibutton", $this->request)) {
-			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+			$ibutton = $this->utils->sanitizeString($this->request["ibutton"]);
 		}
 		// If nothing provided, look up your own info
 		else if ($this->uid) {
@@ -452,15 +379,15 @@ class DrinkAPI extends API
 		// Check for a uid
 		$uid = false;
 		if (array_key_exists("uid", $this->request)) {
-			$uid = $this->_sanitizeString($this->request["uid"]);
+			$uid = $this->utils->sanitizeString($this->request["uid"]);
 		}
 		// Check for a limit and offset
 		$limit = 100;
 		$offset = 0;
 		if (array_key_exists("limit", $this->request)) {
-			$limit = $this->_sanitizeInt($this->request["limit"]);
+			$limit = $this->utils->sanitizeInt($this->request["limit"]);
 			if (array_key_exists("offset", $this->request)) {
-				$offset = $this->_sanitizeInt($this->request["offset"]);
+				$offset = $this->utils->sanitizeInt($this->request["offset"]);
 			}
 		}
 		// Form the SQL query
@@ -632,7 +559,7 @@ class DrinkAPI extends API
 		// Check for 'machine_id' parameter
 		$machine_id = false;
 		if (array_key_exists("machine_id", $this->request)) {
-			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+			$machine_id = $this->utils->sanitizeString($this->request["machine_id"]);
 		}
 		// Form the SQL query
 		$sql = "SELECT s.slot_num, s.machine_id, m.display_name, i.item_id, i.item_name, i.item_price, s.available, s.status 
@@ -662,7 +589,7 @@ class DrinkAPI extends API
 		// Check for 'machine_id' parameter
 		$machine_id = false;
 		if (array_key_exists("machine_id", $this->request)) {
-			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+			$machine_id = $this->utils->sanitizeString($this->request["machine_id"]);
 		}
 		// Form the SQL query
 		$sql = "SELECT m.machine_id, m.name, m.display_name, a.alias_id, a.alias 
@@ -692,7 +619,7 @@ class DrinkAPI extends API
 		// Check for 'slot_num' parameter
 		$slot = 0;
 		if (array_key_exists("slot_num", $this->request)) {
-			$slot = $this->_sanitizeInt($this->request["slot_num"]);
+			$slot = $this->utils->sanitizeInt($this->request["slot_num"]);
 			$params["slotNum"] = $slot;
 		}
 		else {
@@ -701,7 +628,7 @@ class DrinkAPI extends API
 		// Check for 'machine_id' parameter
 		$machine_id = 0;
 		if (array_key_exists("machine_id", $this->request)) {
-			$machine_id = $this->_sanitizeInt($this->request["machine_id"]);
+			$machine_id = $this->utils->sanitizeInt($this->request["machine_id"]);
 			$params["machineId"] = $machine_id;
 		}
 		else {
@@ -711,17 +638,17 @@ class DrinkAPI extends API
 		$sql = "UPDATE slots SET";
 		$append = "";
 		if (array_key_exists("item_id", $this->request)) {
-			$item_id = $this->_sanitizeInt($this->request["item_id"]);
+			$item_id = $this->utils->sanitizeInt($this->request["item_id"]);
 			$append .= " item_id = :itemId,";
 			$params["itemId"] = $item_id;
 		}
 		if (array_key_exists("available", $this->request)) {
-			$available = $this->_sanitizeString($this->request["available"]);
+			$available = $this->utils->sanitizeString($this->request["available"]);
 			$append .= " available = :available,";
 			$params["available"] = $available;
 		}
 		if (array_key_exists("status", $this->request)) {
-			$status = strtolower($this->_sanitizeString($this->request["status"]));
+			$status = strtolower($this->utils->sanitizeString($this->request["status"]));
 			if ($status != "enabled") {
 				$status = "disabled";
 			}
@@ -824,7 +751,7 @@ class DrinkAPI extends API
 		// Check for 'name' parameter
 		$name = false;
 		if (array_key_exists("name", $this->request)) {
-			$name = $this->_sanitizeString($this->request["name"]);
+			$name = $this->utils->sanitizeString($this->request["name"]);
 			$params["name"] = $name;
 		}
 		else {
@@ -833,7 +760,7 @@ class DrinkAPI extends API
 		// Check for 'price' parameter
 		$price = false;
 		if (array_key_exists("price", $this->request)) {
-			$price = $this->_sanitizeInt($this->request["price"]);
+			$price = $this->utils->sanitizeInt($this->request["price"]);
 			if ($price < 0) {
 				$price = $price * -1;
 			}
@@ -871,7 +798,7 @@ class DrinkAPI extends API
 		// Check for 'item_id' parameter
 		$item_id = 0;
 		if (array_key_exists("item_id", $this->request)) {
-			$item_id = $this->_sanitizeInt($this->request["item_id"]);
+			$item_id = $this->utils->sanitizeInt($this->request["item_id"]);
 			$params["itemId"] = $item_id;
 		}
 		else {
@@ -881,7 +808,7 @@ class DrinkAPI extends API
 		$append = "";
 		$sql = "UPDATE drink_items SET";
 		if (array_key_exists("name", $this->request)) {
-			$name = $this->_sanitizeString($this->request["name"]);
+			$name = $this->utils->sanitizeString($this->request["name"]);
 			// Make sure the name isn't empty
 			// if (strlen($name) <= 0) {
 			// 	return $this->_result 
@@ -895,7 +822,7 @@ class DrinkAPI extends API
 		}
 		$price = false;
 		if (array_key_exists("price", $this->request)) {
-			$price = $this->_sanitizeInt($this->request["price"]);
+			$price = $this->utils->sanitizeInt($this->request["price"]);
 			if ($price < 0) {
 				$price = $price * -1;
 			}
@@ -903,7 +830,7 @@ class DrinkAPI extends API
 			$params["price"] = $price;
 		}
 		if (array_key_exists("state", $this->request)) {
-			$state = $this->_sanitizeString($this->request["state"]);
+			$state = $this->utils->sanitizeString($this->request["state"]);
 			$append .= " state = :state,";
 			$params["state"] = $state;
 		}
@@ -940,7 +867,7 @@ class DrinkAPI extends API
 		// Check for 'item_id' parameter
 		$item_id = 0;
 		if (array_key_exists("item_id", $this->request)) {
-			$item_id = $this->_sanitizeInt($this->request["item_id"]);
+			$item_id = $this->utils->sanitizeInt($this->request["item_id"]);
 			$params["itemId"] = $item_id;
 		}
 		else {
@@ -990,7 +917,7 @@ class DrinkAPI extends API
 		// Check for 'machine_id' parameter
 		$machine_id = false;
 		if (array_key_exists("machine_id", $this->request)) {
-			$machine_id = $this->_sanitizeInt($this->request["machine_id"]);
+			$machine_id = $this->utils->sanitizeInt($this->request["machine_id"]);
 			$params["machineId"] = $machine_id;
 		}
 		else {
@@ -1000,9 +927,9 @@ class DrinkAPI extends API
 		$limit = 300;
 		$offset = 0;
 		if (array_key_exists("limit", $this->request)) {
-			$limit = $this->_sanitizeInt($this->request["limit"]);
+			$limit = $this->utils->sanitizeInt($this->request["limit"]);
 			if (array_key_exists("offset", $this->request)) {
-				$offset = $this->_sanitizeInt($this->request["offset"]);
+				$offset = $this->utils->sanitizeInt($this->request["offset"]);
 			}
 		}
 		$params["limit"] = $limit;
@@ -1031,7 +958,7 @@ class DrinkAPI extends API
 	*	Drops Endpoint
 	*
 	*	GET /drops/status/
-	*   POST /drops/drop/:ibutton/:slot_num/:machine_id
+	* POST /drops/drop/:ibutton/:slot_num/:machine_id
 	*/
 	protected function drops() {
 		$result = array();
@@ -1069,7 +996,7 @@ class DrinkAPI extends API
 		// Check for ibutton
 		$ibutton = false;
 		if (array_key_exists("ibutton", $this->request)) {
-			$ibutton = $this->_sanitizeString($this->request["ibutton"]);
+			$ibutton = $this->utils->sanitizeString($this->request["ibutton"]);
 		}
 		else {
 			$info = $this->_getUserInfo();
@@ -1085,14 +1012,14 @@ class DrinkAPI extends API
 		}
 		// Check for slot_num
 		if (array_key_exists("slot_num", $this->request)) {
-			$drop_data["slot_num"] = $this->_sanitizeInt($this->request["slot_num"]);
+			$drop_data["slot_num"] = $this->utils->sanitizeInt($this->request["slot_num"]);
 		}
 		else {
 			return $this->_result(false, "Missing parameter 'slot_num' (/drops/drop)", false);
 		}
 		// Check for machine_id and convert to machine_alias
 		if (array_key_exists("machine_id", $this->request)) {
-			$machine_id = $this->_sanitizeString($this->request["machine_id"]);
+			$machine_id = $this->utils->sanitizeString($this->request["machine_id"]);
 			if (array_key_exists($machine_id, $this->machines)) {
 				$drop_data["machine_alias"] = $this->machines[$machine_id];
 			}
@@ -1105,14 +1032,14 @@ class DrinkAPI extends API
 		}
 		// Check for drop delay
 		if (array_key_exists("delay", $this->request)) {
-			$drop_data["delay"] = $this->_sanitizeInt($this->request["delay"]);
+			$drop_data["delay"] = $this->utils->sanitizeInt($this->request["delay"]);
 		}
 		else {
 			$drop_data["delay"] = 0;
 		}
 		// Check if rate limited
 		$rateLimitDelay = RATE_LIMIT_DROPS_DROP;
-		if ($this->_isRateLimited("/drops/drop", $rateLimitDelay, $drop_data["machine_alias"])) {
+		if ($this->isRateLimited($this->uid, "/drops/drop", $rateLimitDelay, $drop_data["machine_alias"])) {
 			return $this->_result(false, "Cannon exceed one call per $rateLimitDelay seconds (/drops/drop)", false);
 		}
 		// Connect to the drink server and drop a drink
@@ -1150,7 +1077,7 @@ class DrinkAPI extends API
 								$success = explode(":", $data);
 								$success = $success[0];
 								if ($success === "OK") {
-									$this->_logAPICall("/drops/drop", $drop_data["machine_alias"]);
+									$this->logAPICall($this->uid, "/drops/drop", $drop_data["machine_alias"]);
 									$elephant_result = array(true, "Drink dropped!", true);
 									$elephant->close();
 								}
@@ -1271,7 +1198,7 @@ class DrinkAPI extends API
 			$apiKey = $apiKey["data"]["api_key"];		
 		}
 		// Redirect back to the app
-		$this->_redirect("cshdrink://auth/".$apiKey);
+		$this->utils->redirect("cshdrink://auth/".$apiKey);
 	}
 
 }
