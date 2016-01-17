@@ -4,9 +4,9 @@
 *	Page initialization data 
 */
 // Include the LDAP connection info
-require_once("../../webdrink_info/ldapInfo.inc");
+//require_once("../../webdrink_info/ldapInfo.inc");
 // Include configuration info
-require_once("./config.php");
+//require_once("./config.php");
 
 // Grab some necessary info from webauth
 $user_data = array();
