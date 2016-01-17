@@ -121,8 +121,11 @@ body {
 }
 
 .navbar-brand-icon{
-    height:18px;
-    margin-right:5px;
+    height:32px;
+    margin-right:-6px;
+    margin-top:-5px;
+}
+.navbar-brand{
     margin-top:-2px;
 }
 /*
