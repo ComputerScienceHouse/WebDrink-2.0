@@ -13,6 +13,11 @@
 	top: 60px;
 	z-index: -1;
 }*/
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
 .btn-primary{
     background-color:#B0197E;
     border-color:#B0197E;
@@ -125,6 +130,9 @@
 .navbar-link-csh:hover,
 .navbar-link-csh:focus{
     color:#EEE;
+}
+.dropdown-csh > .navbar-inverse .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:hover, .navbar-inverse .navbar-nav>.open>a:focus{
+    background-color:#9E1671;
 }
 .navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:hover, .navbar-inverse .navbar-nav>.active>a:focus{
     background-color:#9E1671;

@@ -101,7 +101,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
                     <li ng-class="(location.path() == '/machines') ? 'active' : ''" class="navitem"><a href="#/machines" class="navbar-link-csh"><span class="navbar-link-csh">Machines</span></a></li>	
 					<!--<li ng-class="(location.path() == '/thunderdome') ? 'active' : ''" class="navitem"><a href="#/thunderdome">Thunderdome</a></li>-->
 					<li ng-class="(location.path() == '/settings') ? 'active' : ''" class="navitem"><a href="#/settings" class="navbar-link-csh"><span class="navbar-link-csh">Settings</span></a></li>
-					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown" ng-show="current_user.admin === '1'">
+					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown dropdown-csh" ng-show="current_user.admin === '1'">
 						<a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="navbar-link-csh">Admin<b class="caret"></b></span></a>
 						<ul class="dropdown-menu">
 							<li><a class="navitem" href="#admin/users">Users</a></li>
