@@ -18,7 +18,7 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.btn-primary{
+/*.btn-primary{
     background-color:#B0197E;
     border-color:#B0197E;
     color:#FFF;
@@ -33,9 +33,10 @@ body {
     border-color:#9E1671;
     
 }
+*/
 
 .btn-primary:disabled {
-	border-color: #CCC;
+	border-color: #DDD;
 	background-color: #DDD;
 }
 
@@ -119,39 +120,6 @@ body {
 	}
 }
 
-.navbar-csh{
-    background-color:#B0197E;
-    border-color:#B0197E;
-    color:#FFF;
-}
-.navbar-link-csh{
-    color:#FFF;
-}
-.navbar-link-csh:hover,
-.navbar-link-csh:focus{
-    color:#EEE;
-}
-.dropdown-csh > .navbar-inverse .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:hover, .navbar-inverse .navbar-nav>.open>a:focus{
-    background-color:#9E1671;
-}
-.navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:hover, .navbar-inverse .navbar-nav>.active>a:focus{
-    background-color:#9E1671;
-    border-color:#9E1671;
-}
-.navbar-inverse .navbar-toggle{
-    border-color:transparent;
-    transition: all .1s ease-in;
-    -webkit-transition: all .1s ease-in;
-    -moz-transition: all .1s ease-in;
-    -ms-transition: all .1s ease-in;
-}
-.navbar-inverse .navbar-toggle:hover, .navbar-inverse .navbar-toggle:focus{
-    background-color:#9E1671;
-    border-color:#9E1671;
-}
-.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form{
-     border-color:#9E1671;
-}
 .navbar-brand-icon{
     height:18px;
     margin-right:5px;

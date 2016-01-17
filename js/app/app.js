@@ -1,5 +1,26 @@
+//Functions
+
+function loadTheme(option){
+    switch(option){
+        case "purple":
+            $(".navbar").removeClass("navbar-default").addClass("navbar-inverse");
+            $('#purpleThemeCSS').removeAttr('disabled');
+            $('#pinkThemeCSS').attr('disabled', 'disabled');
+            
+            break;
+        case "pink":
+            $(".navbar").removeClass("navbar-inverse").addClass("navbar-default");
+            $('#purpleThemeCSS').attr('disabled', 'disabled');
+            $('#pinkThemeCSS').removeAttr('disabled');
+            
+            break;
+    }
+}
+
+
+
 // Register the app with angular
-var app = angular.module("WebDrink", ['ngRoute', 'ngSanitize']);
+var app = angular.module("WebDrink", ['ngRoute', 'ngSanitize','ngStorage']);
 
 // Alert directive - quickly display a Bootstrap Alert
 // See $scope.Alert in RootCtrl for parameters details
@@ -54,7 +75,7 @@ app.directive("modal", function() {
 });
 
 // Root controller - for shared data/services
-app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', function ($scope, $log, $window, $location) {
+app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', '$localStorage', function ($scope, $log, $window, $location, $localStorage) {
 	// Current user data
 	$scope.current_user = $window.current_user;
 	$scope.current_user.credits = parseInt($scope.current_user.credits);
@@ -137,6 +158,19 @@ app.controller("RootCtrl", ['$scope', '$log', '$window', '$location', function (
 			return false;
 		return true;
 	};
+    $scope.$storage = $localStorage.$default({
+          theme: 'purple'
+        });
+    $scope.getTheme = function(){
+        var storedTheme= $localStorage.theme;
+        if(storedTheme == "purple"){
+            loadTheme("purple");
+        }
+        else if(storedTheme == "pink"){
+            loadTheme("pink");
+        }
+    }
+    $scope.getTheme();
 	
 }]);
 

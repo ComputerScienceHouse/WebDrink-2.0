@@ -46,6 +46,9 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<!-- Styles -->
 	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
 	<link href="css/main.css" rel="stylesheet" media="screen" type="text/css"/>
+    <link href="css/members-flat.min.css" rel="stylesheet" media="screen" type="text/css"/>
+    <link href="css/purple-theme.css" id="purpleThemeCSS" rel="stylesheet" media="screen" type="text/css"/>
+    <link href="css/pink-theme.css" id="pinkThemeCSS" rel="stylesheet" media="screen" type="text/css"/>
 	<style type="text/css">
 		body {
 			padding-top: 70px;
@@ -72,6 +75,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 			});
 		}, true);
 	</script>
+    <script src="https://rawgithub.com/gsklee/ngStorage/master/ngStorage.js"></script>
 	<script type="text/javascript" src="js/app/app.js"></script>
 	<script type="text/javascript" src="js/app/machines.js"></script>
 	<script type="text/javascript" src="js/app/drops.js"></script>
@@ -86,7 +90,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 	<?php endif; ?>
 </head>
 <body ng-controller="RootCtrl">
-	<header class="navbar navbar-inverse navbar-fixed-top navbar-csh">
+	<header class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -94,15 +98,15 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#/machines"><img src="assets/icons/webdrink-icon.svg" class="navbar-brand-icon"><span class="navbar-link-csh">WebDrink</span></a>
+				<a class="navbar-brand" href="#/machines"><img src="assets/icons/webdrink-icon.svg" class="navbar-brand-icon">WebDrink</a>
 			</div>
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
-                    <li ng-class="(location.path() == '/machines') ? 'active' : ''" class="navitem"><a href="#/machines" class="navbar-link-csh"><span class="navbar-link-csh">Machines</span></a></li>	
+                    <li ng-class="(location.path() == '/machines') ? 'active' : ''" class="navitem"><a href="#/machines">Machines</a></li>	
 					<!--<li ng-class="(location.path() == '/thunderdome') ? 'active' : ''" class="navitem"><a href="#/thunderdome">Thunderdome</a></li>-->
-					<li ng-class="(location.path() == '/settings') ? 'active' : ''" class="navitem"><a href="#/settings" class="navbar-link-csh"><span class="navbar-link-csh">Settings</span></a></li>
-					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown dropdown-csh" ng-show="current_user.admin === '1'">
-						<a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="navbar-link-csh">Admin<b class="caret"></b></span></a>
+					<li ng-class="(location.path() == '/settings') ? 'active' : ''" class="navitem"><a href="#/settings">Settings</a></li>
+					<li ng-class="(location.path().indexOf('/admin') != -1) ? 'active' : ''" class="dropdown" ng-show="current_user.admin === '1'">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 						<ul class="dropdown-menu">
 							<li><a class="navitem" href="#admin/users">Users</a></li>
 							<li><a class="navitem" href="#admin/items">Items</a></li>
@@ -112,7 +116,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<li ng-class="(location.path() == '/drops') ? 'active' : ''" class="navitem"><a href="#/drops"><span class="navbar-link-csh">{{ current_user.uid }} ({{ current_user.credits }} Credits)</span></a></li>
+					<li ng-class="(location.path() == '/drops') ? 'active' : ''" class="navitem"><a href="#/drops">{{ current_user.uid }} ({{ current_user.credits }} Credits)</a></li>
 				</ul>
 			</div>
 		</div>

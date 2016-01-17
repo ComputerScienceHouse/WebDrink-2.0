@@ -23,6 +23,15 @@
 				</div>
 			</div>
 		</div>
+        <div class="col-md-12 col-sm-12">
+            <h3>General Settings</h3>
+            <div class="col-md-12 center">
+				<h4>Select a WebDrink Theme</h4>
+                <select class="form-control" ng-change="changeTheme(selectedOption)" ng-options="o.name for o in options" ng-model="selectedOption">
+                </select>
+            </br></br>
+			</div>
+        </div>
 		<!--
 		<div class="col-md-6 col-sm-12">
 			<h3>Thunderdome Settings</h3>
