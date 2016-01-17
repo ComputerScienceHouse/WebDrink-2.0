@@ -75,7 +75,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 			});
 		}, true);
 	</script>
-    <script src="https://rawgithub.com/gsklee/ngStorage/master/ngStorage.js"></script>
+    <script src="js/app/ngStorage.js"></script>
 	<script type="text/javascript" src="js/app/app.js"></script>
 	<script type="text/javascript" src="js/app/machines.js"></script>
 	<script type="text/javascript" src="js/app/drops.js"></script>
