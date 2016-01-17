@@ -1,15 +1,28 @@
 //Functions
 
+
+/**
+* Loads a theme based on an option
+* Params:
+*  - option - string - theme name
+* Returns: None
+* Author: hudson
+* Date: 01 17 16
+**/
 function loadTheme(option){
     switch(option){
         case "purple":
+            // if theme is purple, modify nav and swap theme css files
             $(".navbar").removeClass("navbar-default").addClass("navbar-inverse");
+            //Swapping out theme css files
             $('#purpleThemeCSS').removeAttr('disabled');
             $('#pinkThemeCSS').attr('disabled', 'disabled');
             
             break;
         case "pink":
+            // if theme is pink, modify nav and swap theme css files
             $(".navbar").removeClass("navbar-inverse").addClass("navbar-default");
+            //Swapping out theme css files
             $('#purpleThemeCSS').attr('disabled', 'disabled');
             $('#pinkThemeCSS').removeAttr('disabled');
             
