@@ -7,3 +7,11 @@
   background-color: #ca194a;
   border-color: #ca194a;
 }
+.btn.btn-danger {
+  background-color: #b0197e;
+  border-color: #b0197e;
+}
+.btn.btn-danger:hover {
+  background-color: #9a166e;
+  border-color: #9a166e;
+}
