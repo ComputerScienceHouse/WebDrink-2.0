@@ -1,3 +1,4 @@
+
 // Routes
 app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.
@@ -60,7 +61,7 @@ app.factory("SettingsService", function($http, $window, $log) {
 });
 
 // Controller for the API page
-app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', function ($scope, $window, $log, SettingsService) {
+app.controller("SettingsCtrl", ['$scope', '$window', '$log','$localStorage', 'SettingsService', function ($scope, $window, $log, $localStorage, SettingsService) {
 	$scope.api_key = false;	// User's API key
 	$scope.date = "";		// Date the API key was generated
 	$scope.api_message = "Looking up API key...";
@@ -160,6 +161,29 @@ app.controller("SettingsCtrl", ['$scope', '$window', '$log', 'SettingsService', 
 			}
 		);
 	}
+    $scope.options = [{ name: "Purple", value: "purple" }, { name: "Pink", value: "pink" }];
+    $scope.$storage = $localStorage.$default({
+          theme: 'purple'
+        });
+    $scope.getTheme = function(){
+        var storedTheme= $localStorage.theme;
+        if(storedTheme == "purple"){
+            $scope.selectedOption = $scope.options[0];
+            loadTheme("purple");
+        }
+        else if(storedTheme == "pink"){
+            $scope.selectedOption = $scope.options[1];
+            loadTheme("pink");
+        }
+    }
+    $scope.getTheme();
+    $scope.changeTheme = function(option){
+        $localStorage.theme = option.value;
+        loadTheme(option.value);
+        
+    }
+    
+    
 
 	/*
 	// Add another quiet hours
