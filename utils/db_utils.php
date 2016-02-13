@@ -1,7 +1,7 @@
 <?php
 
 // Include the database connection info
-require_once(__DIR__."/../../../webdrink_info/dbInfo.inc");
+require_once(__DIR__."/../../webdrink_info/dbInfo.inc");
 
 /*
 *	Database methods
