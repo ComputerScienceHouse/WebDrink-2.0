@@ -33,8 +33,8 @@ Webdrink should be deployed with a configuration file, `config.php`, at the proj
 *	General configuration
 */
 
-define("API_BASE_URL", "api/index.php?request="); The base URL of the Drink API
-define("DRINK_SERVER_URL", "https://drink.csh.rit.edu:8080") // Base URL for the Drink (websocket) server
+define("API_BASE_URL", "api/index.php?request="); // The base URL of the Drink API
+define("DRINK_SERVER_URL", "https://drink.csh.rit.edu:8080"); // Base URL for the Drink (websocket) server
 define("LOCAL_DRINK_SERVER_URL", "http://localhost:3000"); // URL (and port) of test drink server (see /test directory)
 
 /*
