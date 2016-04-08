@@ -367,7 +367,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
        var params = JSON.stringify({
             'uid': user,
             'item': item,
-            'amount': amount
+            'amount': price
         });
         
         $http.post("#",params)
