@@ -298,9 +298,9 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 				);
                 
                /* Receipt plugin for Jamie */
-               var resp = confirm("Would you like a receipt?");
+               var confirmResponse = confirm("Would you like a receipt?");
                 
-                if(resp){
+                if(confirmResponse==true){
                     $scope.sendReceipt($scope.current_user,$scope.current_slot.item_name,$scope.current_slot.item_price);
                     
                 }
