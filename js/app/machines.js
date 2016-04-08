@@ -301,7 +301,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
                var confirmResponse = confirm("Would you like a receipt?");
                 
                 if(confirmResponse==true){
-                    $scope.sendReceipt($scope.current_user,$scope.current_slot.item_name,$scope.current_slot.item_price);
+                    $scope.sendReceipt($scope.current_user.uid,$scope.current_slot.item_name,$scope.current_slot.item_price); 
                     
                 }
                 
@@ -362,6 +362,25 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
     /* Receipt plugin for Jamie */
     $scope.sendReceipt = function(user,item,price){
         console.log(user+","+item+","+price); //debug
+        
+        
+       var params = $httpParamSerializer({
+            'uid': user,
+            'item': item,
+            'amount': amount
+        });
+        
+        $http.post("#",params)
+            .then(function successCallback(){
+                alert("Receipt sent!"); //debug        
+            
+            }, 
+            function errorCallback(){
+                alert("Error sending receipt!"); //debug
+            
+            })
+        
+        
     }
 
 	// Check the drink server's status now
