@@ -364,7 +364,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
         console.log(user+","+item+","+price); //debug
         
         
-       var params = $httpParamSerializer({
+       var params = JSON.stringify({
             'uid': user,
             'item': item,
             'amount': amount
