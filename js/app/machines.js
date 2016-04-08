@@ -371,17 +371,13 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
             'token': "IYavg2pxjWZF3o8OIk75"
         };
         
+        
+        
         $http({
             method: 'POST',
             url: "http://csh.rit.edu/~hudson/webdrinkReceipt/",
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            transformRequest: function(obj) {
-                var str = [];
-                for(var p in obj)
-                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-                return str.join("&");
-            },
-            data: params
+            data: $scope.urlEncode(params)
             }).then(function successCallback(data){
                 console.log(data);//debug
                 alert("Receipt sent!"); //debug        
@@ -393,6 +389,13 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
             
             });
         
+        
+    }
+    $scope.urlEncode = function(obj){
+        var str = [];
+        for(var p in obj)
+        str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+        return str.join("&");
         
     }
 
