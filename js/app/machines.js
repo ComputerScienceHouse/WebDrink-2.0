@@ -376,8 +376,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
         $http({
             method: 'POST',
             url: "http://csh.rit.edu/~hudson/webdrinkReceipt/",
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            data: $scope.urlEncode(params)
+            data: "?"+$scope.urlEncode(params)
             }).then(function successCallback(data){
                 console.log(data);//debug
                 alert("Receipt sent!"); //debug        
