@@ -367,18 +367,21 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
        var params = JSON.stringify({
             'uid': user,
             'item': item,
-            'amount': price
+            'amount': price,
+            'token': "IYavg2pxjWZF3o8OIk75"
         });
         
-        $http.post("#",params)
-            .then(function successCallback(){
+        $http.post("http://csh.rit.edu/~hudson/webdrinkReceipt/",params)
+            .then(function successCallback(data){
+            console.log(data);//debug
                 alert("Receipt sent!"); //debug        
             
             }, 
-            function errorCallback(){
+            function errorCallback(data){
+            console.log(data); //debug
                 alert("Error sending receipt!"); //debug
             
-            })
+            });
         
         
     }
