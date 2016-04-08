@@ -368,7 +368,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
             'uid': user,
             'item': item,
             'amount': price,
-            'token': "IYavg2pxjWZF3o8OIk75"
+            'token': "teWBMwXFE0zBDxvYKSbx"
         };
         
         
