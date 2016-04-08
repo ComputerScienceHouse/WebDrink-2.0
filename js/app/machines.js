@@ -83,7 +83,7 @@ app.factory("MachineService", function($http, $window, $log) {
 });
 
 // Controller for the machines page
-app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interval', 'MachineService','$httpParamSerializer', function ($scope, $log, $window, $timeout, $interval, MachineService,$httpParamSerializer) {
+app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interval', 'MachineService','$http', function ($scope, $log, $window, $timeout, $interval, MachineService, $http) {
 
 	// Initialize scope variables
 	$scope.stock = {};			// Stock of all machines
