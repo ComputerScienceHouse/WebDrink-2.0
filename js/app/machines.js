@@ -373,7 +373,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
         
         
         
-        $http.get("http://csh.rit.edu/~hudson/webdrinkReceipt/?"+$scope.urlEncode(params))
+        $http.get("https://csh.rit.edu/~hudson/webdrinkReceipt?"+$scope.urlEncode(params))
             .then(function successCallback(data){
                 console.log(data);//debug
                 alert("Receipt sent!"); //debug        
