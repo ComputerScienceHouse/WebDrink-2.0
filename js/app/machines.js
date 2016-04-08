@@ -364,14 +364,16 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
         console.log(user+","+item+","+price); //debug
         
         
-       var params = JSON.stringify({
+       var params = {
             'uid': user,
             'item': item,
             'amount': price,
             'token': "IYavg2pxjWZF3o8OIk75"
-        });
+        };
         
-        $http.post("http://csh.rit.edu/~hudson/webdrinkReceipt/",params)
+        var dataString = "?uid="+params.uid+"&item="+params.item+"&amount="+params.amount+"&token="+params.token;
+        
+        $http.post("http://csh.rit.edu/~hudson/webdrinkReceipt/",dataString)
             .then(function successCallback(data){
             console.log(data);//debug
                 alert("Receipt sent!"); //debug        
