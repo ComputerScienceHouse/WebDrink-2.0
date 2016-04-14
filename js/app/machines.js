@@ -372,8 +372,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
         };
         
         
-        
-        $http.get("https://csh.rit.edu/~hudson/webdrinkReceipt?"+$scope.urlEncode(params))
+        $http.get("api/receipt_api.php?"+$scope.urlEncode(params))
             .then(function successCallback(data){
                 console.log(data);//debug
                 alert("Receipt sent!"); //debug        
