@@ -295,16 +295,7 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 					function (error) {
 						$log.log(error);
 					}
-				);
-                
-               /* Receipt plugin for Jamie */
-               var confirmResponse = confirm("Would you like a receipt?");
-                
-                if(confirmResponse==true){
-                    $scope.sendReceipt($scope.current_user.uid,$scope.current_slot.item_name,$scope.current_slot.item_price); 
-                    
-                }
-                
+				);                
 			}
 			else {
 				$scope.dropping_message = response.message;
@@ -358,30 +349,6 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 			}
 		);
 	};
-    
-    /* Receipt plugin for Jamie */
-    $scope.sendReceipt = function(user,item,price){
-        console.log(user+","+item+","+price); //debug
-        
-        
-       var params = $httpParamSerializer({
-            'uid': user,
-            'item': item,
-            'amount': amount
-        });
-        
-        $http.post("#",params)
-            .then(function successCallback(){
-                alert("Receipt sent!"); //debug        
-            
-            }, 
-            function errorCallback(){
-                alert("Error sending receipt!"); //debug
-            
-            })
-        
-        
-    }
 
 	// Check the drink server's status now
 	$scope.checkStatus();
