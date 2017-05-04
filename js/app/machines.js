@@ -98,8 +98,8 @@ app.controller("MachineCtrl", ['$scope', '$log', '$window', '$timeout', '$interv
 	$scope.message_alert = new $scope.Alert({
 		type: "alert-info",
 		title: "Welcome to WebDrink!",
-		message: "Check out the code on <a href='https://github.com/bencentra/WebDrink-2.0/'>GitHub</a> " +
-							"and report any <a href='https://github.com/bencentra/WebDrink-2.0/issues'>issues</a>.",
+		message: "Check out the code on <a href='https://github.com/ComputerScienceHouse/WebDrink-2.0'>GitHub</a> " +
+							"and report any <a href='https://github.com/ComputerScienceHouse/WebDrink-2.0/issues'>issues</a>.",
 		show: true,
 		closeable: false
 	});
