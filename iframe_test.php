@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="en-us">
 <head>
 	<title>WebDrink iFrame</title>
 </head>
