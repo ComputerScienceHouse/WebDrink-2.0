@@ -32,7 +32,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 
 ?>
 <!DOCTYPE HTML>
-<html ng-app="WebDrink">
+<html ng-app="WebDrink" lang="en-us">
 <head>
 	<title>WebDrink</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,9 +52,9 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
     <link rel="icon" type="image/png" sizes="96x96" href="assets/icons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
     <link rel="manifest" href="assets/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileColor" content="#a31774">
     <meta name="msapplication-TileImage" content="assets/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#a31774">
 
 	<!-- Styles -->
 	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" media="screen" type="text/css"/>
@@ -111,7 +111,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="#/machines"><img src="assets/icons/webdrink-icon.svg" class="navbar-brand-icon">WebDrink</a>
+				<a class="navbar-brand" href="#/machines"><img src="assets/icons/webdrink-icon.svg" class="navbar-brand-icon" alt="WebDrink">WebDrink</a>
 			</div>
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">

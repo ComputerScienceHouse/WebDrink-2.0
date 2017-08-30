@@ -32,7 +32,7 @@ $user_data['ibutton'] = $data[0]["ibutton"][0];
 
 ?>
 <!DOCTYPE HTML>
-<html ng-app="WebDrink">
+<html ng-app="WebDrink" lang="en-us">
 <head>
 	<title>WebDrink 2.0</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
