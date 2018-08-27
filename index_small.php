@@ -21,12 +21,12 @@ else {
 
 // Get some initial data from LDAP
 $filter = "(uid=".$user_data['uid'].")";
-$fields = array('drinkAdmin', 'drinkBalance', 'ibutton');
+$fields = array('memberOf', 'drinkBalance', 'ibutton');
 $search = ldap_search($conn, $userDn, $filter, $fields);
 $data = ldap_get_entries($conn, $search);
 
 // Add it to the user_data array
-$user_data['admin'] = $data[0]["drinkadmin"][0];
+$user_data['admin'] = in_array($ldapDrinkAdminGroup, $data[0]["memberof"]);
 $user_data['credits'] = $data[0]["drinkbalance"][0];
 $user_data['ibutton'] = $data[0]["ibutton"][0];
 
