@@ -110,14 +110,17 @@ catch (PDOException $e) {
 <?php
 
 // LDAP connection info
-$ldapUser = "uid=";
+$ldapUser = "krbprincipalname=";
 $ldapPass = "";
-$ldapHost = "ldap.csh.rit.edu";
-$appDn = "ou=Apps,dc=csh,dc=rit,dc=edu";
-$userDn = "ou=Users,dc=csh,dc=rit,dc=edu";
+$ldapHost = "ldaps://stone.csh.rit.edu";
+$ldapDrinkAdminGroup = "cn=drink";
+$appDn = "cn=services,cn=accounts,dc=csh,dc=rit,dc=edu";
+$userDn = "cn=users,cn=accounts,dc=csh,dc=rit,dc=edu";
+$groupDn = "cn=groups,cn=accounts,dc=csh,dc=rit,dc=edu";
 
 // Append the appropriate dn to the username
 $ldapUser .= "," . $userDn;
+$ldapDrinkAdminGroup .= "," . $groupDn;
 
 // Connect to LDAP and bind the connection
 try {
