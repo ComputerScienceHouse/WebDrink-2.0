@@ -68,4 +68,18 @@ function ldap_update($uid, $replace) {
 	}
 }
 
+function ldap_is_drinkadmin($uid) {
+	global $conn;
+	global $ldapDrinkAdminGroup;
+
+	try {
+		$fields = array("memberOf");
+		$result = ldap_lookup_uid($uid, $fields);
+		return in_array($ldapDrinkAdminGroup, $result[0]["memberof"]);
+	}
+	catch (Exception $e) {
+		return false;
+	}
+}
+
 ?>

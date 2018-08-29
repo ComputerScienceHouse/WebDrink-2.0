@@ -84,10 +84,7 @@ class DrinkAPI extends API
 
 	// Check if a user is a drink admin
 	private function _isAdmin($uid) {
-		global $ldapDrinkAdminGroup;
-		$fields = array("memberOf");
-		$result = ldap_lookup_uid($uid, $fields);
-		return in_array($ldapDrinkAdminGroup, $result[0]["memberof"]);
+		return ldap_is_drinkadmin($uid);
 	}
 
 	// Lookup a uid by API key
@@ -412,7 +409,7 @@ class DrinkAPI extends API
 			return $this->_result(false, "Error: please provide a uid or ibutton to look up (/users/info)", false);
 		}
 		// Query LDAP for the user info
-		$fields = array('drinkBalance', 'drinkAdmin', 'cn', 'uid');
+		$fields = array('drinkBalance', 'cn', 'uid');
 		if ($this->admin || $uid === $this->uid) $fields[] = 'ibutton';
 		$data = false;
 		if ($uid) {
@@ -430,7 +427,7 @@ class DrinkAPI extends API
 				$tmp = array();
 				$tmp["uid"] = $data[0]["uid"][0];
 				$tmp["credits"] = $data[0]["drinkbalance"][0];
-				$tmp["admin"] = $data[0]["drinkadmin"][0];
+				$tmp["admin"] = ldap_is_drinkadmin($tmp["uid"]);
 				if (in_array("ibutton", $fields)) $tmp["ibutton"] = $data[0]["ibutton"][0];
 				$tmp["cn"] = $data[0]["cn"][0];
 				return $this->_result(true, "Success (/users/info)", $tmp);
