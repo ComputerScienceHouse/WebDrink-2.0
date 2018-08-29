@@ -84,6 +84,7 @@ class DrinkAPI extends API
 
 	// Check if a user is a drink admin
 	private function _isAdmin($uid) {
+		global $ldapDrinkAdminGroup;
 		$fields = array("memberOf");
 		$result = ldap_lookup_uid($uid, $fields);
 		return in_array($ldapDrinkAdminGroup, $result[0]["memberof"]);
